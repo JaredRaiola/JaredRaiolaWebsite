@@ -1,0 +1,18 @@
+@font-face {
+	font-family: garamond;
+	font-family: wingdings;
+}
+
+bulletpoint{
+	font-family: wingdings;
+}
+
+body {
+	font-family: garamond;
+	font-size: 18px;
+}
+
+
+nav {
+	text-align: center;
+}
