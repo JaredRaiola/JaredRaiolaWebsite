@@ -19,6 +19,9 @@ body {
 section {
 	text-align: center-left;
 }
+section.q{
+	text-align:center;
+}
 
 smallfoot {
 	font-size: 16px;
@@ -27,4 +30,10 @@ smallfoot {
 nav {
 	text-align: center;
 	position: fixed;
+}
+
+footer {
+	font-size: 18px;
+	text-align: center;
+	font-family: garamond;
 }
