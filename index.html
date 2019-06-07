@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
 	<title>Location Tracker</title>
-
+	<script src="https://www.gstatic.com/firebasejs/6.1.1/firebase-app.js"></script>
 	<script src="index.js"></script>
   <script src="data.js"></script>
 
@@ -14,16 +14,37 @@
 
 </head>
 
-<body onload="displayPeople()">
+<body>
 	<div class="card" id="form">
 
 		<div class="formTitle">Location Tracker</div> <br>
             
     <div id="entries">
       <!-- filled in on-load -->
-  	</div>
-
+    <div class="entry">
+    	<div class="pForm">
+		    <h3>Add Someone New!</h3>
+		    <form>
+		    	<p>
+		        <label>id</label>
+		        <input type="text" name="inputID">
+		      </p>
+		      <p>
+		        <label>Name</label>
+		        <input type="text" name="name">
+		      </p>
+		      <p>
+		        <label>bID</label>
+		        <input type="text" name="buttonID">
+		      </p>
+		    </form>
+		  </div>
+	    <p class="full">
+        <button>Submit</button>
+      </p>
+	  </div>
 	</div>
+  	</div>
 
 </body>
 
