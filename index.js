@@ -61,25 +61,30 @@ function ratingRow(id, name, bID) {
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                 	document.getElementById('${bID}').style.visibility='hidden';
-                	document.getElementById('${bID}').value='Enter Location Here';" id="${id}-1">In</span>
+                	document.getElementById('${bID}').value='Enter Location Here';
+                    document.getElementById('${id}').style.background='rgb(152,251,152)';;" id="${id}-1">In</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                 	document.getElementById('${bID}').style.visibility='hidden';
-                	document.getElementById('${bID}').value='Enter Location Here';" id="${id}-2">Lunch</span>
+                	document.getElementById('${bID}').value='Enter Location Here';
+                    document.getElementById('${id}').style.background='rgb(135,206,250)';" id="${id}-2">Lunch</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                 	document.getElementById('${bID}').style.visibility='hidden';
-                	document.getElementById('${bID}').value='Enter Location Here';" id="${id}-3">Sick</span>
+                	document.getElementById('${bID}').value='Enter Location Here';
+                    document.getElementById('${id}').style.background='rgb(220,20,60)';" id="${id}-3">Sick</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                 	document.getElementById('${bID}').style.visibility='hidden';
-                	document.getElementById('${bID}').value='Enter Location Here';" id="${id}-4">Vacation</span>
+                	document.getElementById('${bID}').value='Enter Location Here';
+                    document.getElementById('${id}').style.background='rgb(255,182,193)';" id="${id}-4">Vacation</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                 	document.getElementById('${bID}').style.visibility='visible';
-                	document.getElementById('${bID}').value='Enter Location Here';" id="${id}-5">Other</span>
+                	document.getElementById('${bID}').value='Enter Location Here';
+                    backgroundColor('${id}')" id="${id}-5">Other</span>
 
-                <input type="text" id="${bID}" style="visibility:hidden"
+                <input type="text" id="${bID}" style="visibility:hidden" 
                 	value="Enter Location Here" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
                 </div>
             </div>
@@ -93,6 +98,13 @@ function inputBlur(i) {
     if (i.value == "") { i.value = i.defaultValue;}
 }
 
+function backgroundColor(i) {
+    if (parseInt(i)%2!=0){
+        document.getElementById(i).style.background="rgb(250,250,250)";
+    } else {
+        document.getElementById(i).style.background="rgb(255,255,255)";
+    }
+}
 
 //document.getElementById('${tID}').style.visibility='hidden';
 //                	startTimer(0, ${tID}, 0);
