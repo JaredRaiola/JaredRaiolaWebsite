@@ -79,7 +79,7 @@ function ratingRow(id, name, bID) {
                 	document.getElementById('${bID}').style.visibility='visible';
                 	document.getElementById('${bID}').value='Enter Location Here';" id="${id}-5">Other</span>
 
-                <input type="text" id="${bID}" style="visibility:hidden" 
+                <input type="text" id="${bID}" style="visibility:hidden"
                 	value="Enter Location Here" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
                 </div>
             </div>
