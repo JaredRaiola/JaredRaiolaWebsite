@@ -1,0 +1,196 @@
+@font-face { font-family: SF-text; src: url('assets/SF-UI-Text-Regular.otf'); }
+@font-face { font-family: SF-bold; src: url('assets/SF-UI-Text-Semibold.otf'); } 
+
+/* Form Appearence */
+
+html, body {
+    margin: 0; border: 0; padding: 0;
+    background-color: rgb(240, 240, 240);
+}
+
+body {
+    font-family: SF-text, sans-serif;
+    font-size: 18px;
+}
+
+.card {
+    background-color: white;
+    width: 700px; 
+    padding: 50px;
+    padding-bottom: 20px;
+    margin: 20px auto;
+    position: relative;
+    z-index: 0;
+}
+
+.formTitle {
+    font-family: SF-bold;
+    font-size: 25px;
+}
+
+.grid-container {
+    display: grid;
+}
+
+
+/* Form Contents */
+
+.title {
+    margin-top: 40px;
+    font-size: 20px;
+    font-family: SF-bold;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: gray;
+    margin-bottom: 40px;
+}
+
+.entry {    
+    margin-left:-50px;
+    padding-left:50px;
+    margin-right:-50px;
+    padding-right:50px;
+    padding-top:35px;
+    padding-bottom:45px;
+}
+
+.entry:nth-child(odd) {
+    background-color: rgb(250,250,250);
+}
+
+.image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    float: left;
+    margin-right: 10px;
+}
+
+.name {
+    padding-top: 2px;
+    font-size: 18px;
+}
+
+.subtitle {
+    color: gray;
+    font-size: 15px;
+    margin-bottom: 30px;
+}
+
+.small {
+    color: gray;
+    font-size: 12px;
+    margin: 10px;
+    
+}
+
+#nameLabel {
+    height: 30px;
+}
+
+.input {
+    font-size: 14px;
+}
+
+select {
+    font-size: 14px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.fieldValue {
+    font-size: 15px;
+    font-family: SF-text;
+}
+
+.title {
+    font-family: SF-bold;
+    line-height: 30px;
+}
+
+#ratingForm {
+    margin-top: 10px;
+    margin-left: -5px;
+    margin-bottom: 10px;
+}
+
+#ratingForm td {
+    padding-bottom: 15px;
+}
+
+.ratingName {
+    font-family: SF-bold;
+}
+
+.description {
+    line-height: 20px;
+    color: #666;
+    font-size: 0.8em;
+    padding-bottom: 10px;
+}
+
+#submitArea {
+    margin-top: 20px;
+    margin-bottom: 0px;
+    font-size: 15px;
+}
+
+#submitButton {
+    margin-right: 20px;
+}
+
+.button {
+    font-family: SF-bold;
+    background-color: rgb(52, 153, 39);
+    color: white;
+    font-size: 18px;
+    border: 0;
+    border-radius: 5px;
+    width: 85px;
+    height: 45px;
+    cursor: pointer;
+}
+
+.attribute-button {
+    font-family: SF-bold;
+    font-size: 15px;
+    border: 0;
+    border-radius: 5px;
+    padding-top: 10px;
+    padding-right: 20px;
+    padding-left: 20px;
+    padding-bottom: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 45px;
+    cursor: pointer;
+}
+
+.unselected {
+    background-color: rgb(243, 243, 243);
+    color: black;
+}
+
+.selected {
+    background-color: rgb(37, 161, 103);
+    color: white;
+}
+
+textArea {
+   font-family: inherit;
+   font-size: inherit;
+}
+
+.dialog-no-clode {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+}
+
+.dialog-no-close .ui-dialog-titlebar {
+  display: none;
+}
+
