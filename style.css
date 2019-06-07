@@ -1,7 +1,9 @@
 @font-face { font-family: SF-text; src: url('assets/SF-UI-Text-Regular.otf'); }
 @font-face { font-family: SF-bold; src: url('assets/SF-UI-Text-Semibold.otf'); } 
 
-/* Form Appearence */
+/* Form View */
+
+@media screen and (max-width: 481px) {
 
 html, body {
     margin: 0; border: 0; padding: 0;
@@ -192,5 +194,6 @@ textArea {
 
 .dialog-no-close .ui-dialog-titlebar {
   display: none;
+}
 }
 
