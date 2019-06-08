@@ -15,8 +15,9 @@ firebase.initializeApp(firebaseConfig);
 
 var createPerson = firebase.database().ref('People');
 
-document.getElementById('personForm').addEventListener('submit', submitForm);
-
+window.onload=function(){
+    document.getElementById('personForm').addEventListener('submit', submitForm);
+}
 //submit new person
 function submitForm(e) {
     e.preventDefault();
