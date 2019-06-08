@@ -15,15 +15,18 @@ firebase.initializeApp(firebaseConfig);
 
 var createPerson = firebase.database().ref('People');
 
-document.getElementById('personForm').addEventListener('submit', submitForm)
+document.getElementById('personForm').addEventListener('submit', submitForm);
 
 //submit new person
-function submitForm(i) {
-    i.preventDefault();
+function submitForm(e) {
+    e.preventDefault();
 
     var id = getInputVal('inputID');
     var name = getInputVal('name');
     var bID = getInputVal('buttonID');
+    console.log(name);
+    console.log(id);
+    console.log(bID);
 
     //save new person
     newPerson(id, name, bID);
