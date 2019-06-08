@@ -18,9 +18,10 @@ var createPerson = firebase.database().ref('People');
 //submit new person
 function submitForm(i) {
     i.preventDefault();
-    var id = getInputVal('id');
+
+    var id = getInputVal('inputID');
     var name = getInputVal('name');
-    var bID = getInputVal('bID');
+    var bID = getInputVal('buttonID');
 
     //save new person
     newPerson(id, name, bID);
