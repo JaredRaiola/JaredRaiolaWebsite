@@ -29,8 +29,8 @@ function writeFP() {
     <div class="dropdown">
         <button class="dropbtn">Departments</button>
         <div class="dropdown-content">
-            <a onclick="rewriteDep('IT')">IT</a>
-            <a onclick="rewriteDep('Personnel')">Personnel</a>
+            <a onclick="rewriteDep("IT")">IT</a>
+            <a onclick="rewriteDep("Personnel")">Personnel</a>
         </div>
     </div>`
 }
@@ -56,9 +56,10 @@ function displayPeople(depName) {
     updatePageName(depName);
     updateError('');
     //This loop needs to read in from firebase
+    //Reading in doesnt seem to be working
     fbRef  = firebase.database().ref(depName + "/");
-    fbRef.on("value", function(data){
-        var people = data.val();
+    fbRef.on("child_added", function(data){
+        var person = data.val();
         $("#entries").append(rowForPerson(person));
     });
     $("#buttons").append(addButton());
