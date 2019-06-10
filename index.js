@@ -60,7 +60,7 @@ function displayPeople(depName) {
     fbRef = firebase.database().ref(depName + "/");
     fbRef.on("value", function(data){
         var person = data.val();
-        console.log(people.)
+        console.log(person.name);
         $("#entries").append(rowForPerson(person));
     });
     $("#buttons").append(addButton());
