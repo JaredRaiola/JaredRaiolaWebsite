@@ -57,8 +57,8 @@ function displayPeople(depName) {
     updateError('');
     //This loop needs to read in from firebase
     //Reading in doesnt seem to be working
-    fbRef = firebase.database().ref("/" + depName + "/");
-    fbRef.on("child_added", function(data){
+    fbRef = firebase.database().ref(depName + "/");
+    fbRef.on("value", function(data){
         var person = data.val();
         console.log(people.)
         $("#entries").append(rowForPerson(person));
