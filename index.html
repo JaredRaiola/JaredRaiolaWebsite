@@ -11,40 +11,19 @@
 
 </head>
 
-<body>
-	<div class="card" id="form">
+<body onload="displayFP()">
+	<div class="card" id="main">
 
+		<br>
 		<div class="formTitle">Location Tracker</div> <br>
+		<div id="step-name" class="title"></div>
+		<br>
             
     <div id="entries">
       <!-- filled in on-load -->
-	    <div class="entry">
-	    	<div class="pForm">
-			    <h3>Add Someone New:</h3>
-			    <div class="alert">New person added!</div>
-			    <form id="personForm">
-			    	<p>
-			        <label>Department</label>
-			        <input type="text" name="depName" id="depName">
-			      </p>
-			    	<p>
-			        <label>id</label>
-			        <input type="text" name="inputID" id="inputID">
-			      </p>
-			      <p>
-			        <label>Name</label>
-			        <input type="text" name="name" id="name">
-			      </p>
-			      <p>
-			        <label>bID</label>
-			        <input type="text" name="buttonID" id="buttonID">
-			      </p>
-			      <p class="full">
-			        <button type='submit'>Submit</button>
-			      </p>
-			    </form>
-			  </div>
-		  </div>
+		</div>
+		<div class="entry" id="buttons">
+			<!-- filled in second page -->
 		</div>
   </div>
 
