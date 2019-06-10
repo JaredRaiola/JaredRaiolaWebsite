@@ -370,12 +370,11 @@ function submitForm() {
     var name = getInputVal('name');
     var bID = getInputVal('buttonID');
     var depName = getInputVal('depName');
+    document.getElementById("personForm").reset();
     createPerson = firebase.database().ref(depName);
 
     //save new person
     newPerson(id, name, bID);
-
-    document.getElementById("personForm").reset();
 }
 
 //todo:
