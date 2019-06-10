@@ -56,7 +56,7 @@ function displayPeople(depName) {
     updatePageName(depName);
     updateError('');
     //This loop needs to read in from firebase
-    fbRef  = firebase.database().ref(depName);
+    fbRef  = firebase.database().ref(depName + "/");
     fbRef.on("value", function(data){
         var people = data.val();
         $("#entries").append(rowForPerson(person));
