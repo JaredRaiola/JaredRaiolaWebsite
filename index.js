@@ -12,7 +12,8 @@ firebase.initializeApp(firebaseConfig);
 
 //States
 
-var currState = "FRONT_PAGE"
+var current_step = ""
+var fbRef;
 
 function displayFP() {
     $("#entries").empty();
@@ -55,9 +56,11 @@ function displayPeople(depName) {
     updatePageName(depName);
     updateError('');
     //This loop needs to read in from firebase
-    for (var person of people) {
+    fbRef  = firebase.database().ref(depName);
+    fbRef.on("value", function(data){
+        var people = data.val();
         $("#entries").append(rowForPerson(person));
-    }
+    });
     $("#buttons").append(addButton());
     $("#buttons").append(removeButton());
     $("#buttons").append(backButtonFP());
@@ -391,10 +394,6 @@ function submitForm() {
 //---1.2 2.2 3.2 ... n.2 will be bID
 //
 //
-//--make an entry box that asks for department name from dropdown
-//  and rewrites page with that specific departments people on the page
-//
-//
 //--auto reload page after adding new person, rewriting page with
 //  new person added to bottom
 //
@@ -402,21 +401,7 @@ function submitForm() {
 //--after they click submit it needs to loop through that specific dep
 //  in order to see how many people are in it for id and bID
 //
-//
-//--you're not doing multiple pages, you're just using JS to rewrite 
-//  one page
-//
-//
-//
-//--Tomorrow, clean up index.html 
-//
-//---write a rewrite function for the person form (make it
-//  require a specifc username and password
-//
-//---write a rewrite func for standardized dep employee display that
-//   sets depname
-//
-//---Make a back button
+//--HOOK UP "Other" BOX TO FIREBASE
 //
 //--make front page dropdown a typable dropdown
 
