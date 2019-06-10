@@ -204,8 +204,7 @@ function updateError(txt) {
 function submitAdd() {
     return `
     <p class="full">
-        <button type='submit' onclick="submitForm(); 
-        displayAddPeople();">Submit</button>
+        <button type='submit' onclick="submitForm();">Submit</button>
     </p>`
 }
 
@@ -375,6 +374,7 @@ function submitForm() {
 
     //save new person
     newPerson(id, name, bID);
+    displayAddPeople();
 }
 
 //todo:
