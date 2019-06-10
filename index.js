@@ -18,6 +18,7 @@ function displayFP() {
     $("#entries").empty();
     $("#buttons").empty();
     updatePageName('');
+    updateError('');
     window.scrollTo(0, 0);
     $("#buttons").append(writeFP());
 }
@@ -52,6 +53,7 @@ function displayPeople(depName) {
     $("#buttons").empty();
     
     updatePageName(depName);
+    updateError('');
     //This loop needs to read in from firebase
     for (var person of people) {
         $("#entries").append(rowForPerson(person));
@@ -89,73 +91,157 @@ function backButtonFP() {
 function removeButton() {
     return `
     <p class="full">
-        <button type='admin' onclick='displayLogin(2)'>Remove</button>
+        <button type='admin' onclick='displayLoginRemove()'>Remove</button>
     </p>`
 }
 
 function addButton() {
     return `
     <p class="full">
-        <button type='admin' onclick='displayLogin(1)'>Add</button>
+        <button type='admin' onclick='displayLoginAdd()'>Add</button>
     </p>`
 }
 
 function doneButtonFP() {
     return `
     <p class="full">
-        <button type='done' onclick='displayFP()'>Done</button>
+        <button type='done' onclick='rewriteDep("${current_step}")'>Done</button>
     </p>`
 }
 
-function displayLogin() {
+function displayLoginAdd() {
     updatePageName('');
     $("#entries").empty();
     $("#buttons").empty();
     window.scrollTo(0, 0);
     $("#entries").append(writeLogin());
-    $("#buttons").append(writeLoginButtons());
+    $("#buttons").append(writeLoginButtonsAdd());
+}
+
+function displayLoginRemove() {
+    updatePageName('');
+    $("#entries").empty();
+    $("#buttons").empty();
+    window.scrollTo(0, 0);
+    $("#entries").append(writeLogin());
+    $("#buttons").append(writeLoginButtonsRemove());
 }
 
 function writeLogin() {
     return `
-    <div id="incorr" class="title"></div>
     <form id="adForm">
         <p>
             <label>User:</label>
-            <input type="text" name="username" id="username">
+            <input type="username" name="username" id="username">
         </p>
         <p>
             <label>Pass:</label>
-            <input type="text" name="password" id="password">
+            <input type="password" name="password" id="password">
         </p>
         <br>
     </form>`
 }
 
-function writeLoginButtons() {
+function writeLoginButtonsAdd() {
     return `
     <p class="full">
-        <button type='submitAdmin' onclick='submitAdmin()'>Submit</button>
+        <button type='submitAdmin' onclick='submitAdminAdd()'>Submit</button>
     </p>
     <p class="full">
         <button type='backToDisp' onclick='rewriteDep("${current_step}")'>Back</button>
     </p>`
 }
 
-function submitAdmin(num) {
+function writeLoginButtonsAddInsidePage() {
+    return `
+    <p class="full">
+        <button type='submitAdmin' onclick='submitAdminAdd()'>Submit</button>
+    </p>
+    <p class="full">
+        <button type='backToDisp' onclick='rewriteDep("${current_step}")'>Back</button>
+    </p>`
+}
+
+function writeLoginButtonsRemove() {
+    return `
+    <p class="full">
+        <button type='submitAdmin' onclick='submitAdminRemove()'>Submit</button>
+    </p>
+    <p class="full">
+        <button type='backToDisp' onclick='rewriteDep("${current_step}")'>Back</button>
+    </p>`
+}
+
+function submitAdminAdd() {
     var user = getInputVal('username');
     var pass = getInputVal('password');
 
     if (user == "admin" && pass == "admin") {
-        if (num == 1) {
-
-        }
-        else {
-            displayRemovePeople(current_step);
-        }
+        displayAddPeople(current_step);
     } else {
-        displayLogin();
-        $('#incorr').text("You have entered the wrong username or password");
+        displayLoginAdd();
+        updateError("You have entered the wrong username or password");
+    }
+}
+
+function displayAddPeople(depName) {
+    current_step = depName;
+    $("#entries").empty();
+    $("#buttons").empty();
+    
+    updatePageName(depName);
+    updateError('');
+    //This loop needs to read in from firebase
+    $("#entries").append(writeAddPeople());
+    $("#buttons").append(submitAdd());
+    $("#buttons").append(doneButtonFP());
+}
+
+function updateError(txt) {
+    $('#errorMSG').text(txt);
+}
+
+function submitAdd() {
+    return `
+    <p class="full">
+        <button type='submit' onclick="submitForm();">Submit</button>
+    </p>`
+}
+
+//Fix submit button!!!!
+function writeAddPeople() {
+    return `
+    <div class="pForm">
+        <form id="personForm">
+            <p>
+                <label>Department</label>
+                <input type="text" name="depName" id="depName">
+            </p>
+            <p>
+                <label>id</label>
+                <input type="text" name="inputID" id="inputID">
+            </p>
+            <p>
+                <label>Name</label>
+                <input type="text" name="name" id="name">
+            </p>
+            <p>
+                <label>bID</label>
+                <input type="text" name="buttonID" id="buttonID">
+            </p>
+        </form>
+    </div>`
+}
+
+function submitAdminRemove() {
+    var user = getInputVal('username');
+    var pass = getInputVal('password');
+
+    if (user == "admin" && pass == "admin") {
+        displayRemovePeople(current_step);
+    } else {
+        displayLoginRemove();
+        updateError("You have entered the wrong username or password");
     }
 }
 
@@ -165,6 +251,7 @@ function displayRemovePeople(depName) {
     $("#buttons").empty();
     
     updatePageName(depName);
+    updateError('');
     //This loop needs to read in from firebase
     for (var person of people) {
         $("#entries").append(removeForPerson(person));
@@ -184,7 +271,6 @@ function removePeople(id, name, bID) {
     return `
         <div class="entry" id="${id}">
             <div class="info">
-            <img class="image" src="images/${id}.jpg">
                 <div class="name">${name}</div>
                 <br>
             </div>
@@ -212,7 +298,6 @@ function rowOfPeople(id, name, bID) {
     return `
         <div class="entry" id="${id}">
             <div class="info">
-            <img class="image" src="images/${id}.jpg">
                 <div class="name">${name}</div>
                 <br>
             </div>
@@ -278,13 +363,8 @@ function backgroundColor(i) {
 //New person
 var createPerson; 
 
-//Listens for submit input
-//DONT FORGET IT DOESNT WORK BECAUSE YOU DELETED PERSON FORM
-document.getElementById('personForm').addEventListener('submit', submitForm);
-
 //submit new person
-function submitForm(e) {
-    e.preventDefault();
+function submitForm() {
 
     var id = getInputVal('inputID');
     var name = getInputVal('name');
