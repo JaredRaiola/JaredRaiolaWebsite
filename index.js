@@ -374,7 +374,8 @@ function submitForm() {
 
     //save new person
     newPerson(id, name, bID);
-    displayAddPeople();
+
+    document.getElementById("personForm").reset();
 }
 
 //todo:
