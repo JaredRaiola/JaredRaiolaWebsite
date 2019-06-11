@@ -252,9 +252,13 @@ function displayRemovePeople(depName) {
     updatePageName(depName);
     updateError('');
     //This loop needs to read in from firebase
-    for (var person of people) {
-        $("#entries").append(removeForPerson(person));
-    }
+    fbRef = firebase.database().ref(depName + "/");
+    fbRef.once("value", function(person) {
+        person.forEach(function (inPerson){
+            peopleKeys.push(inPerson.key);
+            $("#entries").append(removeForPerson(inPerson.val()));
+        });
+    });
     $("#buttons").append(doneButtonFP());
 }
 
@@ -407,6 +411,12 @@ function newPerson(id, name, bID, location, state) {
     });
 }
 
-function setState(i) {
-
+function setState(index, stateNum) {
+    var thisKey = peopleKeys[index - 1];
+    var ref = new Firebase("https://pctouchscreen-1cf50.firebaseio.com/");
+    var pRef = ref.child(current_step).child(thisKey).child('state');
+    pRef.transaction(function(currentState) {
+        currentState = stateNum;
+        return currentState;
+    });
 }
