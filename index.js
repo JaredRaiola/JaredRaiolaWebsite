@@ -364,7 +364,7 @@ var createPerson;
 //submit new person
 function submitForm() {
 
-    var id = newID - 1;
+    var id = newID;
     var name = getInputVal('name');
     var bID = "1." + newID;
     var depName = current_step;
