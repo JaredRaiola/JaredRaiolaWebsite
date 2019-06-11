@@ -58,6 +58,7 @@ function displayPeople(depName) {
     //This loop needs to read in from firebase
     fbRef = firebase.database().ref(depName + "/");
     fbRef.once("value", function(person) {
+        console.log("right before append");
         $("#entries").append(rowForPerson(person.val()));
     });
     $("#buttons").append(addButton());
@@ -286,6 +287,7 @@ function removePeople(id, name, bID) {
 // People Row
 
 function rowForPerson(person) {
+    console.log("In rowForPerson");
     return rowOfPeople(
         person.id, 
         person.name, 
