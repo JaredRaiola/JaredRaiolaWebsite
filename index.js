@@ -257,6 +257,15 @@ function displayRemovePeople(depName) {
         person.forEach(function (inPerson){
             peopleKeys.push(inPerson.key);
             $("#entries").append(removeForPerson(inPerson.val()));
+            if (inPerson.val().state == 1) {
+                document.getElementById('${id}').style.background='rgb(152,251,152)';
+            } else if (inPerson.val().state == 2) {
+                document.getElementById('${id}').style.background='rgb(135,206,250)';
+            } else if (inPerson.val().state == 3) {
+                document.getElementById('${id}').style.background='rgb(220,20,60)';
+            } else if (inPerson.val().state == 4) {
+                document.getElementById('${id}').style.background='rgb(255,182,193)';
+            }
         });
     });
     $("#buttons").append(doneButtonFP());
@@ -287,64 +296,37 @@ function removePeople(id, name, bID) {
 // People Row
 
 function rowForPerson(person) {
-    return rowOfPeople(
-        person.id, 
-        person.name, 
-        `${person.bID}`);
-}
-
-
-
-//YOU NEED TO STILL UPDATE STATES ON CLICK IN DB
-
-function rowOfPeople(id, name, bID) {
-    return `
-        <div class="entry" id="${id}">
-            <div class="info">
-                <div class="name">${name}</div>
-                <br>
-            </div>
-            <div class="selection">
-                <span class="attribute-button unselected" onclick="valueSelected(this); 
-                    document.getElementById('${bID}').style.visibility='hidden';
-                    document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(152,251,152)';
-                    setState(${id}, 1);" 
-                    id="${id}-1">In</span>
-
-                <span class="attribute-button unselected" onclick="valueSelected(this); 
-                    document.getElementById('${bID}').style.visibility='hidden';
-                    document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(135,206,250)';
-                    setState(${id}, 2);" 
-                    id="${id}-2">Lunch</span>
-
-                <span class="attribute-button unselected" onclick="valueSelected(this); 
-                    document.getElementById('${bID}').style.visibility='hidden';
-                    document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(220,20,60)';
-                    setState(${id}, 3);" 
-                    id="${id}-3">Sick</span>
-
-                <span class="attribute-button unselected" onclick="valueSelected(this); 
-                    document.getElementById('${bID}').style.visibility='hidden';
-                    document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(255,182,193)';
-                    setState(${id}, 4);" 
-                    id="${id}-4">Vacation</span>
-
-                <span class="attribute-button unselected" onclick="valueSelected(this); 
-                    document.getElementById('${bID}').style.visibility='visible';
-                    document.getElementById('${bID}').value='Enter Location Here';
-                    backgroundColor('${id}');
-                    setState(${id}, 5);" 
-                    id="${id}-5">Other</span>
-
-                <input type="text" id="${bID}" style="visibility:hidden" 
-                    value="Enter Location Here" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
-                </div>
-            </div>
-        </div>`
+    if (person.state == 1) {
+        return rowOfPeopleState1(
+            person.id, 
+            person.name, 
+            `${person.bID}`);
+    } else if (person.state == 2) {
+        return rowOfPeopleState2(
+            person.id, 
+            person.name, 
+            `${person.bID}`);
+    } else if (person.state == 3) {
+        return rowOfPeopleState3(
+            person.id, 
+            person.name, 
+            `${person.bID}`);
+    } else if (person.state == 4) {
+        return rowOfPeopleState4(
+            person.id, 
+            person.name, 
+            `${person.bID}`);
+    } else if (person.state == 5) {
+        return rowOfPeopleState5(
+            person.id, 
+            person.name, 
+            `${person.bID}`);
+    } else {
+        return rowOfPeople(
+            person.id, 
+            person.name, 
+            `${person.bID}`);
+    }
 }
 
 function inputFocus(i) {
@@ -361,11 +343,6 @@ function backgroundColor(i) {
         document.getElementById(i).style.background="rgb(255,255,255)";
     }
 }
-
-
-
-
-
 
 //New person
 var createPerson; 
@@ -393,7 +370,7 @@ function submitForm() {
 //--Make input person with less fields...
 //---Fill dep, ID and bID automatically
 //
-//--make state values get stored between each person
+//--make state value actaully affect the display when read in
 //
 //--Make Other field get stored for the person in the database
 //
