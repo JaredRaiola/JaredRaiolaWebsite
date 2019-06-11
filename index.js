@@ -308,31 +308,36 @@ function rowOfPeople(id, name, bID) {
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                     document.getElementById('${bID}').style.visibility='hidden';
                     document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(152,251,152)';" 
+                    document.getElementById('${id}').style.background='rgb(152,251,152)';
+                    setState(${id}, 1);" 
                     id="${id}-1">In</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                     document.getElementById('${bID}').style.visibility='hidden';
                     document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(135,206,250)';" 
+                    document.getElementById('${id}').style.background='rgb(135,206,250)';
+                    setState(${id}, 2);" 
                     id="${id}-2">Lunch</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                     document.getElementById('${bID}').style.visibility='hidden';
                     document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(220,20,60)';" 
+                    document.getElementById('${id}').style.background='rgb(220,20,60)';
+                    setState(${id}, 3);" 
                     id="${id}-3">Sick</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                     document.getElementById('${bID}').style.visibility='hidden';
                     document.getElementById('${bID}').value='Enter Location Here';
-                    document.getElementById('${id}').style.background='rgb(255,182,193)';" 
+                    document.getElementById('${id}').style.background='rgb(255,182,193)';
+                    setState(${id}, 4);" 
                     id="${id}-4">Vacation</span>
 
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                     document.getElementById('${bID}').style.visibility='visible';
                     document.getElementById('${bID}').value='Enter Location Here';
-                    backgroundColor('${id}');" 
+                    backgroundColor('${id}');
+                    setState(${id}, 5);" 
                     id="${id}-5">Other</span>
 
                 <input type="text" id="${bID}" style="visibility:hidden" 
