@@ -14,7 +14,6 @@ firebase.initializeApp(firebaseConfig);
 
 var current_step = ""
 var fbRef;
-var person;
 
 function displayFP() {
     $("#entries").empty();
@@ -30,8 +29,8 @@ function writeFP() {
     <div class="dropdown">
         <button class="dropbtn">Departments</button>
         <div class="dropdown-content">
-            <a onclick="rewriteDep("IT")">IT</a>
-            <a onclick="rewriteDep("Personnel")">Personnel</a>
+            <a onclick="rewriteDep('IT')">IT</a>
+            <a onclick="rewriteDep('Personnel')">Personnel</a>
         </div>
     </div>`
 }
@@ -57,12 +56,9 @@ function displayPeople(depName) {
     updatePageName(depName);
     updateError('');
     //This loop needs to read in from firebase
-    //Reading in doesnt seem to be working
     fbRef = firebase.database().ref(depName + "/");
     fbRef.once("value", function(data) {
-        data.forEach(function(person) {
-            $("#entries").append(rowForPerson(person));
-        });
+        console.log(data.val());
     });
     $("#buttons").append(addButton());
     $("#buttons").append(removeButton());
@@ -397,6 +393,10 @@ function submitForm() {
 //---1.2 2.2 3.2 ... n.2 will be bID
 //
 //
+//--make an entry box that asks for department name from dropdown
+//  and rewrites page with that specific departments people on the page
+//
+//
 //--auto reload page after adding new person, rewriting page with
 //  new person added to bottom
 //
@@ -404,7 +404,21 @@ function submitForm() {
 //--after they click submit it needs to loop through that specific dep
 //  in order to see how many people are in it for id and bID
 //
-//--HOOK UP "Other" BOX TO FIREBASE
+//
+//--you're not doing multiple pages, you're just using JS to rewrite 
+//  one page
+//
+//
+//
+//--Tomorrow, clean up index.html 
+//
+//---write a rewrite function for the person form (make it
+//  require a specifc username and password
+//
+//---write a rewrite func for standardized dep employee display that
+//   sets depname
+//
+//---Make a back button
 //
 //--make front page dropdown a typable dropdown
 
