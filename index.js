@@ -14,6 +14,7 @@ var firebaseConfig = {
 
 var current_step = ""
 var fbRef;
+var newID;
 
 function displayFP() {
     $("#entries").empty();
@@ -39,6 +40,7 @@ function writeFP() {
 //WHEN YOU CLICK A LINK IT NEEDS TO CALL THIS
 function rewriteDep(depName) {
     window.scrollTo(0, 0);
+    newID = 0;
     displayPeople(depName);
 }
 
@@ -59,6 +61,7 @@ function displayPeople(depName) {
     fbRef = firebase.database().ref(depName + "/");
     fbRef.once("value", function(person) {
         person.forEach(function (inPerson){
+            newID++;
             $("#entries").append(rowForPerson(inPerson.val()));
         });
     });
@@ -102,7 +105,7 @@ function removeButton() {
 function addButton() {
     return `
     <p class="full">
-        <button type='admin' onclick='displayLoginAdd()'>Add</button>
+        <button type='admin' onclick='displayLoginAdd(); newID++;'>Add</button>
     </p>`
 }
 
@@ -208,7 +211,8 @@ function updateError(txt) {
 function submitAdd() {
     return `
     <p class="full">
-        <button type='submit' onclick="submitForm();">Submit</button>
+        <button type='submit' onclick="submitForm();
+        newID++;">Submit</button>
     </p>`
 }
 
@@ -218,20 +222,8 @@ function writeAddPeople() {
     <div class="pForm">
         <form id="personForm">
             <p>
-                <label>Department</label>
-                <input type="text" name="depName" id="depName">
-            </p>
-            <p>
                 <label>id</label>
                 <input type="text" name="inputID" id="inputID">
-            </p>
-            <p>
-                <label>Name</label>
-                <input type="text" name="name" id="name">
-            </p>
-            <p>
-                <label>bID</label>
-                <input type="text" name="buttonID" id="buttonID">
             </p>
         </form>
     </div>`
@@ -370,15 +362,17 @@ var createPerson;
 //submit new person
 function submitForm() {
 
-    var id = getInputVal('inputID');
+    var id = "1."+ newID;
     var name = getInputVal('name');
-    var bID = getInputVal('buttonID');
-    var depName = getInputVal('depName');
+    var bID = "2." + newID;
+    var depName = current_step;
+    var location = '';
+    var state = 0;
     document.getElementById("personForm").reset();
     createPerson = firebase.database().ref(depName);
 
     //save new person
-    newPerson(id, name, bID);
+    newPerson(id, name, bID, location, state);
 }
 
 //todo:
@@ -387,6 +381,12 @@ function submitForm() {
 //
 //--Make input person with less fields...
 //---Fill dep, ID and bID automatically
+//
+//--make state values get stored between each person
+//
+//--Make Other field get stored for the person in the database
+//
+//--Make typable dropdown
 
 
 function getInputVal(toFind) {
@@ -394,11 +394,13 @@ function getInputVal(toFind) {
 }
 
 
-function newPerson(id, name, bID) {
+function newPerson(id, name, bID, location, state) {
     var newPerson = createPerson.push();
     newPerson.set({
         id: id,
         name: name,
         bID: bID,
+        location: location,
+        state: state,
     });
 }
