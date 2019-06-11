@@ -50,7 +50,7 @@ function rowOfPeople(id, name, bID) {
 
 function rowOfPeopleState1(id, name, bID) {
     return `
-        <div class="entry" id="${id}">
+        <div class="entry" id="${id}" onload="document.getElementById(inPerson.val().id.toString()).style.background='rgb(152,251,152)';">
             <div class="info">
                 <div class="name">${name}</div>
                 <br>
