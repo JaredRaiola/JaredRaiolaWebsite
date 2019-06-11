@@ -14,6 +14,7 @@ firebase.initializeApp(firebaseConfig);
 
 var current_step = ""
 var fbRef;
+var person;
 
 function displayFP() {
     $("#entries").empty();
@@ -58,10 +59,10 @@ function displayPeople(depName) {
     //This loop needs to read in from firebase
     //Reading in doesnt seem to be working
     fbRef = firebase.database().ref(depName + "/");
-    fbRef.on("value", function(data){
-        var person = data.val();
-        console.log(person.name);
-        $("#entries").append(rowForPerson(person));
+    fbRef.once("value", function(data) {
+        data.forEach(function(person) {
+            $("#entries").append(rowForPerson(person));
+        });
     });
     $("#buttons").append(addButton());
     $("#buttons").append(removeButton());
