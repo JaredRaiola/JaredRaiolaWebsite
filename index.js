@@ -58,9 +58,7 @@ function displayPeople(depName) {
     //This loop needs to read in from firebase
     fbRef = firebase.database().ref(depName + "/");
     fbRef.once("value", function(person) {
-        console.log("right before append");
         person.forEach(function (inPerson){
-            console.log("right before append");
             $("#entries").append(rowForPerson(inPerson.val()));
         });
     });
@@ -290,7 +288,6 @@ function removePeople(id, name, bID) {
 // People Row
 
 function rowForPerson(person) {
-    console.log("In rowForPerson");
     return rowOfPeople(
         person.id, 
         person.name, 
@@ -386,46 +383,10 @@ function submitForm() {
 
 //todo:
 //
-//--learn how to read in from firebase
+//--Make remove button work
 //
-//--auto make ID and bID
-//
-//---this will be done by looping through current database and seeing
-//   how many employees are already in
-//
-//---1.1 2.1 3.1 ... n.1 will be ID
-//
-//---1.2 2.2 3.2 ... n.2 will be bID
-//
-//
-//--make an entry box that asks for department name from dropdown
-//  and rewrites page with that specific departments people on the page
-//
-//
-//--auto reload page after adding new person, rewriting page with
-//  new person added to bottom
-//
-//
-//--after they click submit it needs to loop through that specific dep
-//  in order to see how many people are in it for id and bID
-//
-//
-//--you're not doing multiple pages, you're just using JS to rewrite 
-//  one page
-//
-//
-//
-//--Tomorrow, clean up index.html 
-//
-//---write a rewrite function for the person form (make it
-//  require a specifc username and password
-//
-//---write a rewrite func for standardized dep employee display that
-//   sets depname
-//
-//---Make a back button
-//
-//--make front page dropdown a typable dropdown
+//--Make input person with less fields...
+//---Fill dep, ID and bID automatically
 
 
 function getInputVal(toFind) {
