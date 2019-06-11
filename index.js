@@ -68,7 +68,6 @@ function displayPeople(depName) {
             $("#entries").append(rowForPerson(inPerson.val()));
         });
     });
-    console.log(peopleKeys);
     $("#buttons").append(addButton());
     $("#buttons").append(removeButton());
     $("#buttons").append(backButtonFP());
