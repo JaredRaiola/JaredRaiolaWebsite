@@ -418,8 +418,7 @@ function newPerson(id, name, bID, location, state) {
 
 function setState(index, stateNum) {
     var thisKey = peopleKeys[index - 1];
-    var ref = new Firebase("https://pctouchscreen-1cf50.firebaseio.com/");
-    var pRef = ref.child(current_step).child(thisKey).child('state');
+    var pRef = firebase.database().ref(current_step + "/" + thisKey + "/state");
     pRef.transaction(function(currentState) {
         currentState = stateNum;
         return currentState;
