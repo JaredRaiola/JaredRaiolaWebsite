@@ -59,7 +59,10 @@ function displayPeople(depName) {
     fbRef = firebase.database().ref(depName + "/");
     fbRef.once("value", function(person) {
         console.log("right before append");
-        $("#entries").append(rowForPerson(person.val()));
+        person.forEach(function (inPerson){
+            console.log("inPerson");
+            $("#entries").append(rowForPerson(inPerson.val()));
+        });
     });
     $("#buttons").append(addButton());
     $("#buttons").append(removeButton());
