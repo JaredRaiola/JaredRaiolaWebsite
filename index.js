@@ -373,6 +373,8 @@ function submitForm() {
 //
 //--Sanitize inputs?
 //
+//--Make remove button unselect if you click it again.
+//
 //--Make Other field get stored for the person in the database
 //
 //--Make typable dropdown
