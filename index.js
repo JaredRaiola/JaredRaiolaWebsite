@@ -58,7 +58,7 @@ function displayPeople(depName) {
     //This loop needs to read in from firebase
     fbRef = firebase.database().ref(depName + "/");
     fbRef.once("value", function(person) {
-        $("#entries").append(ratingRowForPerson(person));
+        $("#entries").append(ratingRowForPerson(person.val()));
     });
     $("#buttons").append(addButton());
     $("#buttons").append(removeButton());
