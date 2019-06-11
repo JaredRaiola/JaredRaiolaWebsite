@@ -60,11 +60,8 @@ function displayPeople(depName) {
     fbRef.once("value", function(person) {
         console.log("right before append");
         person.forEach(function (inPerson){
-            var aPerson = inPerson.val();
-            console.log(aPerson.name);
-            console.log(aPerson.id);
-            console.log(aPerson.bID);
-            //$("#entries").append(rowForPerson(aPerson));
+            console.log("right before append");
+            $("#entries").append(rowForPerson(inPerson.val()));
         });
     });
     $("#buttons").append(addButton());
