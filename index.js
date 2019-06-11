@@ -298,7 +298,6 @@ function rowOfPeople(id, name, bID) {
                 <br>
             </div>
             <div class="selection">
-
                 <span class="attribute-button unselected" onclick="valueSelected(this); 
                     document.getElementById('${bID}').style.visibility='hidden';
                     document.getElementById('${bID}').value='Enter Location Here';
