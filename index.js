@@ -64,7 +64,7 @@ function displayPeople(depName) {
     fbRef.once("value", function(person) {
         person.forEach(function (inPerson){
             newID++;
-            console.log(inPerson);
+            console.log(inPerson.val());
             $("#entries").append(rowForPerson(inPerson.val()));
         });
     });
