@@ -367,10 +367,11 @@ function submitForm() {
 //
 //--Make remove button work
 //
-//--Make input person with less fields...
-//---Fill dep, ID and bID automatically
+//--Make ability to add departments (basically make an array of departments and make a loop creating the links)
 //
-//--make state value actaully affect the display when read in
+//--Make ability to change admin password from the website
+//
+//--Sanitize inputs?
 //
 //--Make Other field get stored for the person in the database
 //
