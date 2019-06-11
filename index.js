@@ -222,8 +222,8 @@ function writeAddPeople() {
     <div class="pForm">
         <form id="personForm">
             <p>
-                <label>id</label>
-                <input type="text" name="inputID" id="inputID">
+                <label>Name</label>
+                <input type="text" name="name" id="name">
             </p>
         </form>
     </div>`
