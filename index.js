@@ -258,13 +258,13 @@ function displayRemovePeople(depName) {
             peopleKeys.push(inPerson.key);
             $("#entries").append(removeForPerson(inPerson.val()));
             if (inPerson.val().state == 1) {
-                document.getElementById('${id}').style.background='rgb(152,251,152)';
+                document.getElementById(inPerson.val().id.toString()).style.background='rgb(152,251,152)';
             } else if (inPerson.val().state == 2) {
-                document.getElementById('${id}').style.background='rgb(135,206,250)';
+                document.getElementById(inPerson.val().id.toString()).style.background='rgb(135,206,250)';
             } else if (inPerson.val().state == 3) {
-                document.getElementById('${id}').style.background='rgb(220,20,60)';
+                document.getElementById(inPerson.val().id.toString()).style.background='rgb(220,20,60)';
             } else if (inPerson.val().state == 4) {
-                document.getElementById('${id}').style.background='rgb(255,182,193)';
+                document.getElementById(inPerson.val().id.toString()).style.background='rgb(255,182,193)';
             }
         });
     });
