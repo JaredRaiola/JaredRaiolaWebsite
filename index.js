@@ -1,14 +1,14 @@
 var firebaseConfig = {
-    apiKey: "AIzaSyCtH0XQ0J-ppAStYDb_8jT0hzf7d9BOSjU",
-    authDomain: "touchscreen-40d56.firebaseapp.com",
-    databaseURL: "https://touchscreen-40d56.firebaseio.com",
-    projectId: "touchscreen-40d56",
-    storageBucket: "touchscreen-40d56.appspot.com",
-    messagingSenderId: "1042306702206",
-    appId: "1:1042306702206:web:a9b8016d6055faba"
+    apiKey: "AIzaSyCJInwwUFq0mom4us7Lzqyk0eXGWSn99Qg",
+    authDomain: "pctouchscreen-1cf50.firebaseapp.com",
+    databaseURL: "https://pctouchscreen-1cf50.firebaseio.com",
+    projectId: "pctouchscreen-1cf50",
+    storageBucket: "",
+    messagingSenderId: "465563345097",
+    appId: "1:465563345097:web:4901fdfd964a8de8"
   };
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
 
 //States
 
