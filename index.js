@@ -14,7 +14,8 @@ var firebaseConfig = {
 
 var current_step = ""
 var fbRef;
-var newID;
+var newID = 0;
+var peopleKeys = [];
 
 function displayFP() {
     $("#entries").empty();
@@ -41,6 +42,7 @@ function writeFP() {
 function rewriteDep(depName) {
     window.scrollTo(0, 0);
     newID = 0;
+    peopleKeys = [];
     displayPeople(depName);
 }
 
@@ -62,6 +64,7 @@ function displayPeople(depName) {
     fbRef.once("value", function(person) {
         person.forEach(function (inPerson){
             newID++;
+            console.log(inPerson.key());
             $("#entries").append(rowForPerson(inPerson.val()));
         });
     });
@@ -361,7 +364,7 @@ var createPerson;
 //submit new person
 function submitForm() {
 
-    var id = newID;
+    var id = newID - 1;
     var name = getInputVal('name');
     var bID = "1." + newID;
     var depName = current_step;
@@ -402,4 +405,8 @@ function newPerson(id, name, bID, location, state) {
         location: location,
         state: state,
     });
+}
+
+function setState(i) {
+
 }
