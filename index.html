@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
-	<meta http-equiv="refresh" content="60" >
+	<meta http-equiv="refresh" content="2000" >
 	<!-- Author: Jared Raiola -->
 	<title>Location Tracker</title>
 
@@ -14,21 +14,78 @@
 </head>
 
 <body onload="rewriteDep('IT')">
-	<div class="card" id="main">
-
+	<div class="card" id="title">
 		<br>
 		<img src="ITandGIS.png" style="width:170px;height:96px;">
-		<br>
-		<br>
-		<div class="formTitle"><b>Location Tracker</b></div>
-		<div id="step-name" class="title"></div>
+		<div class="formTitle" id="lT"><br><b>Location</b></div>
+		<table id="table1" align="center">
+			<tr>
+				<th id="add"><p class="full">
+        <button type='add' onclick='displayLoginAdd();'>Add</button>
+    		</p></th>
+				<th><div id="step-name" class="title"></div></th>
+				<th id="remove"><p class="full">
+        <button type='remove' onclick='displayLoginRemove();'>Remove</button>
+    		</p></th>
+		</table>
+		<table id="table2" align="center">
+			<tr>
+				<th id="submitAddLogin"><p class="full">
+        <button type='submitAdmin' onclick='submitAdminAdd()'>Submit</button>
+    		</p></th>
+    		<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+				<th id="backAddLogin"><p class="full">
+        <button type='backToDisp' onclick='rewriteDep("IT")'>Back</button>
+    		</p></th>
+		</table>
+		<table id="table3" align="center">
+			<tr>
+				<th id="submitRemoveLogin"><p class="full">
+        <button type='submitAdmin' onclick='submitAdminRemove()'>Submit</button>
+    		</p></th>
+    		<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+				<th id="backRemoveLogin"><p class="full">
+        <button type='backToDisp' onclick='rewriteDep("IT")'>Back</button>
+    		</p></th>
+		</table>
+		<table id="table4" align="center">
+			<tr>
+				<th id="cancel"><p class="full">
+        <button type='backButtonDep' onclick='rewriteDep("IT")'>Cancel</button>
+    		</p></th>
+		</table>
+		<table id="table5" align="center">
+			<tr>
+				<th id="add"><p class="full">
+        <button type='addButtonFirebase' onclick='submitForm();'>Add</button>
+    		</p></th>
+				<th><div id="step-name2" class="title"></div></th>
+				<th id="remove"><p class="full">
+        <button type='done' onclick='rewriteDep("IT");'>Done</button>
+    		</p></th>
+		</table>
 		<div id="errorMSG" class="title"></div>
-            
-    <div id="entries">
-      <!-- filled in on-load -->
+	</div>
+	<div class="card" id="main">
+		<div class="column">
+	    <div id="entries">
+	      <!-- filled in on-load -->
+			</div>
 		</div>
-		<div class="entry" id="buttons">
-			<!-- filled in second page -->
+		<div class="column">
+	    <div id="entries2">
+	      <!-- filled in on-load -->
+			</div>
+		</div>
+		<div class="column">
+	    <div id="entries3">
+	      <!-- filled in on-load -->
+			</div>
+		</div>
+	</div>
+  <div class="card" id="locScreen">
+  	<div id="choiceScreen">
+      <!-- filled in on-load -->
 		</div>
   </div>
 
