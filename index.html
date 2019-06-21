@@ -76,10 +76,12 @@
 		var depName = "IT"
 	  //This loop reads in from firebase
 	  rowOfPeople("1", "Jared", "1", "In");
+	  console.log("Yuh")
 	  var fbRef = firebase.database().ref(depName + "/");
 	  fbRef.on("value", function(person) {
+	  	console.log("in 1")
 	      person.forEach(function (inPerson){
-	      		
+	      		console.log("in 2")
 	      });
 	  });
 	}
