@@ -75,10 +75,11 @@
 		window.onload = function displayPeople() {
 		var depName = "IT"
 	  //This loop reads in from firebase
+	  rowOfPeople("1", "Jared", "1", "In");
 	  var fbRef = firebase.database().ref(depName + "/");
 	  fbRef.on("value", function(person) {
 	      person.forEach(function (inPerson){
-	      		rowOfPeople("1", "Jared", "1", "In");
+	      		
 	      });
 	  });
 	}
