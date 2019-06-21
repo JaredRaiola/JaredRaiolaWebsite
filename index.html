@@ -75,41 +75,6 @@
 		var depName = "IT"
 		$('#entries').append("Hi")
 	  //This loop reads in from firebase
-	  fbRef = firebase.database().ref(depName + "/");
-	  fbRef.once("value", function(person) {
-	  	$('#entries').append("Hi")
-	      /*person.forEach(function (inPerson){
-	      		//increment newID per person to handle the case when adding a new person
-	          //if first person, put in column 1
-	          if (loopCount == 0) {
-	              loopCount++;
-	              $("#entries").append(rowForPerson(inPerson.val()));
-	          //if second person, put in column 2
-	          } else if (loopCount == 1) {
-	              loopCount++;
-	              $("#entries2").append(rowForPerson(inPerson.val()));
-	          //if third person put in column three and reset to first person
-	          } else {
-	              loopCount = 0;
-	              $("#entries3").append(rowForPerson(inPerson.val()));
-	          }
-	          //changes the color of a persons background based off which location they picked
-	          //state 1 is "In"
-	          if (inPerson.val().state == 1) {
-	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(152,251,152)';
-	          //state 2 is "Lunch"
-	          } else if (inPerson.val().state == 2) {
-	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(135,206,250)';
-	          //state 3 is "Home"
-	          } else if (inPerson.val().state == 3) {
-	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(220,20,60)';
-	          //state 4 is "Vacation"
-	          } else if (inPerson.val().state == 4) {
-	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(255,182,193)';
-	          }
-	          //any other state just rewrites as the normal background
-	      });*/
-	  });
 	}
 
 	function rowForPerson(person) {
