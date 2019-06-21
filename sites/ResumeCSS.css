@@ -1,0 +1,39 @@
+@font-face {
+	font-family: garamond;
+	font-family: wingdings;
+}
+
+bulletpoint{
+	font-family: wingdings;
+}
+
+gara {
+	font-family: garamond;
+}
+
+body {
+	font-family: garamond;
+	font-size: 20px;
+}
+
+section {
+	text-align: center-left;
+}
+section.q{
+	text-align:center;
+}
+
+smallfoot {
+	font-size: 16px;
+}
+
+nav {
+	text-align: center;
+	position: fixed;
+}
+
+footer {
+	font-size: 18px;
+	text-align: center;
+	font-family: garamond;
+}
