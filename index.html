@@ -7,20 +7,18 @@
 	<title>Locator</title>
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
-	<link rel="stylesheet" type="text/css" href="indstyle.css">
+	<link rel="stylesheet" type="text/css" href="ieindex.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
 </head>
 <!-- onload write IT dep page -->
-<body onload="rewriteDep('IT')">
+<body>
 	<!-- Don't delete :) thx -->
 	<div class="duck" id="duck"></div>
 	<!-- Title card, contains logo, date, department, and buttons -->
 	<div class="card" id="title">
-		<br>
-		<!-- Logo -->
 		<img src="images/ITandGIS.png" style="width:170px;height:96px;" onclick="duckDuckGoose()">
 		<br>
 		<br>
@@ -31,104 +29,181 @@
 			var dt = new Date();
 			document.getElementById("dateTime").innerHTML = dt.toDateString();
 		</script>
-		<!-- Button table 1 -->
-		<table id="table1" align="center">
-			<tr>
-				<th id="add"><p class="full">
-				<!-- Add button from main rewriteDep page to add login page -->
-        <button type='add' onclick='displayLoginAdd();'>Add</button>
-    		</p></th>
-    		<!-- Department title -->
-				<th><div id="step-name" class="title"></div></th>
-				<th id="remove"><p class="full">
-					<!-- Remove button from main rewriteDep page to remove login page -->
-        <button type='remove' onclick='displayLoginRemove();'>Remove</button>
-    		</p></th>
-		</table>
-		<!-- Button table 2 -->
-		<table id="table2" align="center">
-			<tr>
-				<th id="submitAddLogin"><p class="full">
-				<!-- Submit button from add login page to add person page -->
-        <button type='submitAdmin' onclick='submitAdminAdd()'>Submit</button>
-    		</p></th>
-    		<!-- These spaces give the correct formatting between buttons for smoother look -->
-    		<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-				<th id="backAddLogin"><p class="full">
-				<!-- Back button from add login page to rewriteDep page -->
-        <button type='backToDisp' onclick='rewriteDep("IT")'>Back</button>
-    		</p></th>
-		</table>
-		<!-- Button table 3 -->
-		<table id="table3" align="center">
-			<tr>
-				<th id="submitRemoveLogin"><p class="full">
-				<!-- Submit button from remove login page to remove person page -->
-        <button type='submitAdmin' onclick='submitAdminRemove()'>Submit</button>
-    		</p></th>
-    		<!-- These spaces give the correct formatting between buttons for smoother look -->
-    		<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-				<th id="backRemoveLogin"><p class="full">
-				<!-- Back button from remove login page to rewriteDep page -->
-        <button type='backToDisp' onclick='rewriteDep("IT")'>Back</button>
-    		</p></th>
-		</table>
-		<!-- Button table 4 -->
-		<table id="table4" align="center">
-			<tr>
-				<th id="cancel"><p class="full">
-				<!-- Cancel button from choice page to rewriteDep page -->
-        <button type='backButtonDep' onclick='rewriteDep("IT")'>Done</button>
-    		</p></th>
-		</table>
-		<!-- Button table 5 -->
-		<table id="table5" align="center">
-			<tr>
-				<th id="add"><p class="full">
-				<!-- Add button from add person page to push form to submitForm() -->
-        <button type='addButtonFirebase' onclick='submitForm(); incrementID(); nPerson();'>Add</button>
-    		</p></th>
-    		<!-- Department title -->
-				<th><div id="step-name2" class="title"></div></th>
-				<th id="Done"><p class="full">
-				<!-- Done button from add person page to rewriteDep page -->
-        <button type='done' onclick='rewriteDep("IT");'>Done</button>
-    		</p></th>
-		</table>
-		<div id="errorMSG" class="title"></div>
 	</div>
+	
 	<!-- Main display, holds employees -->
 	<div class="card" id="main">
 		<!-- Column 1 -->
 		<div class="column">
 	    <div id="entries">
 	      <!-- filled in on-load -->
+	      <div class="entry" name="1" id="1">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Jared</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected"
+	                  id="1-1"></span>
+	          </div>
+	      </div>
+	      <div class="entry" name="2" id="2">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Annmarie</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected"
+	                  id="4-1"></span>
+	          </div>
+	      </div>
+	      <div class="entry" name="3" id="3">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Chris</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected" 
+	                  id="7-1"></span>
+	          </div>
+	      </div>
 			</div>
 		</div>
 		<!-- Column 2 -->
 		<div class="column">
 	    <div id="entries2">
 	      <!-- filled in on-load -->
+	      <div class="entry" name="1" id="1">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Casey</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected"
+	                  id="2-1"></span>
+	          </div>
+	      </div>
+	      <div class="entry" name="2" id="2">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Eileen</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected"
+	                  id="5-1"></span>
+	          </div>
+	      </div>
+	      <div class="entry" name="3" id="3">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Thomas</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected" 
+	                  id="8-1"></span>
+	          </div>
+	      </div>
 			</div>
 		</div>
 		<!-- Column 3 -->
 		<div class="column">
 	    <div id="entries3">
 	      <!-- filled in on-load -->
+	      <div class="entry" name="1" id="1">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Arlene</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected"
+	                  id="3-1"></span>
+	          </div>
+	      </div>
+	      <div class="entry" name="2" id="2">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Brian</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected"
+	                  id="6-1"></span>
+	          </div>
+	      </div>
+	      <div class="entry" name="3" id="3">
+	          <div class="info">
+	            <img class="image" src="images/1.jpg">
+	            <div class="name">Anita</div>
+	            <br>
+	          </div>
+	          <div class="selection">
+	              <span class="attribute-button unselected" 
+	                  id="9-1"></span>
+	          </div>
+	      </div>
 			</div>
 		</div>
 	</div>
-	<!-- Location screen div -->
-  <div class="card" id="locScreen">
-  	<div id="choiceScreen">
-      <!-- filled in when location is clicked -->
-		</div>
-  </div>
 
 	<script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-app.js"></script>
 	<script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-auth.js"></script>
 	<script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-database.js"></script>
-	<script src="index.js"></script>
+	<script>
+		var firebaseConfig = {
+		apiKey: "AIzaSyAUSImSSuLVmng1bwaKsf-7SmMg9PKUgNU",
+		authDomain: "touchscreen-app.firebaseapp.com",
+		databaseURL: "https://touchscreen-app.firebaseio.com",
+		projectId: "touchscreen-app",
+		storageBucket: "touchscreen-app.appspot.com",
+		messagingSenderId: "949468004343",
+		appId: "1:949468004343:web:fa3c79797f9f7980"
+		};
+		// Initialize Firebase
+		firebase.initializeApp(firebaseConfig);
+
+		var loopCount = 1;
+		window.onload = function displayPeople() {
+		var depName = "IT"
+	  //This loop reads in from firebase
+	  fbRef = firebase.database().ref(depName + "/");
+	  fbRef.once("value", function(person) {
+	      person.forEach(function (inPerson){
+	      		document.getElementById(loopCount + "-1").innerHTML = inPerson.val().location.toString();
+	          if (inPerson.val().state == 1) {
+	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(152,251,152)';
+	          //state 2 is "Lunch"
+	          } else if (inPerson.val().state == 2) {
+	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(135,206,250)';
+	          //state 3 is "Home"
+	          } else if (inPerson.val().state == 3) {
+	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(220,20,60)';
+	          //state 4 is "Vacation"
+	          } else if (inPerson.val().state == 4) {
+	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(255,182,193)';
+	          }
+	          //any other state just rewrites as the normal background
+	      });
+	  });
+	}
+
+	function rowForPerson(person) {
+	  return rowOfPeople(person.id, 
+	           person.name,
+	           person.state,
+	           person.location);
+	}
+
+	function rowOfPeople(id, name, state, location) {
+	  return document.write("ugh");
+	}
+	</script>
 </body>
 
 </html>
