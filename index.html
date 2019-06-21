@@ -1,90 +1,134 @@
 <!DOCTYPE html>
-
-<!-- Author: Jared Raiola
-	 Description: My personal website, containing relevant information about me, my studies, and my projects
--->
-
 <html>
-<meta charset="UTF-8">
 <head>
-  <title>Jared Raiola Homepage</title>
+	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="refresh" content="120" >
+	<!-- Author: Jared Raiola -->
+	<title>Locator</title>
+	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+	<link rel="stylesheet" type="text/css" href="indstyle.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
 </head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/3/w3.css">
-<link rel="stylesheet" href="frontpage.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
-<link rel="shortcut icon" type="image/x-icon" href="..\Photos\logo.png" />
-<body>
-<nav class = "w3-bar w3-amber">
-	<a href = "index" class="w3-button w3-bar-item w3-hover-white">Home</a>
-	<a href = "\sites\Projects" class="w3-button w3-bar-item w3-hover-white">Projects</a>
-	<a href = "\sites\Resume" class="w3-button w3-bar-item w3-hover-white">Resume</a>
-	<a href = "https://github.com/JaredRaiola" target="_blank" class="w3-button w3-bar-item w3-hover-white">GitHub</a>
-	<a href = "https://www.linkedin.com/in/jared-raiola/" target="_blank" class="w3-button w3-bar-item w3-hover-white">LinkedIn</a>
-</nav>
+<!-- onload write IT dep page -->
+<body onload="rewriteDep('IT')">
+	<!-- Don't delete :) thx -->
+	<div class="duck" id="duck"></div>
+	<!-- Title card, contains logo, date, department, and buttons -->
+	<div class="card" id="title">
+		<br>
+		<!-- Logo -->
+		<img src="images/ITandGIS.png" style="width:170px;height:96px;" onclick="duckDuckGoose()">
+		<br>
+		<br>
+		<!-- Date -->
+		<div class="formTitle" id="dateTime"></div>
+		<!-- Script to show date -->
+		<script>
+			var dt = new Date();
+			document.getElementById("dateTime").innerHTML = dt.toDateString();
+		</script>
+		<!-- Button table 1 -->
+		<table id="table1" align="center">
+			<tr>
+				<th id="add"><p class="full">
+				<!-- Add button from main rewriteDep page to add login page -->
+        <button type='add' onclick='displayLoginAdd();'>Add</button>
+    		</p></th>
+    		<!-- Department title -->
+				<th><div id="step-name" class="title"></div></th>
+				<th id="remove"><p class="full">
+					<!-- Remove button from main rewriteDep page to remove login page -->
+        <button type='remove' onclick='displayLoginRemove();'>Remove</button>
+    		</p></th>
+		</table>
+		<!-- Button table 2 -->
+		<table id="table2" align="center">
+			<tr>
+				<th id="submitAddLogin"><p class="full">
+				<!-- Submit button from add login page to add person page -->
+        <button type='submitAdmin' onclick='submitAdminAdd()'>Submit</button>
+    		</p></th>
+    		<!-- These spaces give the correct formatting between buttons for smoother look -->
+    		<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+				<th id="backAddLogin"><p class="full">
+				<!-- Back button from add login page to rewriteDep page -->
+        <button type='backToDisp' onclick='rewriteDep("IT")'>Back</button>
+    		</p></th>
+		</table>
+		<!-- Button table 3 -->
+		<table id="table3" align="center">
+			<tr>
+				<th id="submitRemoveLogin"><p class="full">
+				<!-- Submit button from remove login page to remove person page -->
+        <button type='submitAdmin' onclick='submitAdminRemove()'>Submit</button>
+    		</p></th>
+    		<!-- These spaces give the correct formatting between buttons for smoother look -->
+    		<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+				<th id="backRemoveLogin"><p class="full">
+				<!-- Back button from remove login page to rewriteDep page -->
+        <button type='backToDisp' onclick='rewriteDep("IT")'>Back</button>
+    		</p></th>
+		</table>
+		<!-- Button table 4 -->
+		<table id="table4" align="center">
+			<tr>
+				<th id="cancel"><p class="full">
+				<!-- Cancel button from choice page to rewriteDep page -->
+        <button type='backButtonDep' onclick='rewriteDep("IT")'>Done</button>
+    		</p></th>
+		</table>
+		<!-- Button table 5 -->
+		<table id="table5" align="center">
+			<tr>
+				<th id="add"><p class="full">
+				<!-- Add button from add person page to push form to submitForm() -->
+        <button type='addButtonFirebase' onclick='submitForm(); incrementID(); nPerson();'>Add</button>
+    		</p></th>
+    		<!-- Department title -->
+				<th><div id="step-name2" class="title"></div></th>
+				<th id="Done"><p class="full">
+				<!-- Done button from add person page to rewriteDep page -->
+        <button type='done' onclick='rewriteDep("IT");'>Done</button>
+    		</p></th>
+		</table>
+		<div id="errorMSG" class="title"></div>
+	</div>
+	<!-- Main display, holds employees -->
+	<div class="card" id="main">
+		<!-- Column 1 -->
+		<div class="column">
+	    <div id="entries">
+	      <!-- filled in on-load -->
+			</div>
+		</div>
+		<!-- Column 2 -->
+		<div class="column">
+	    <div id="entries2">
+	      <!-- filled in on-load -->
+			</div>
+		</div>
+		<!-- Column 3 -->
+		<div class="column">
+	    <div id="entries3">
+	      <!-- filled in on-load -->
+			</div>
+		</div>
+	</div>
+	<!-- Location screen div -->
+  <div class="card" id="locScreen">
+  	<div id="choiceScreen">
+      <!-- filled in when location is clicked -->
+		</div>
+  </div>
 
-<section>
-  <center>
-  &nbsp;
-  <img class="mySlides" src="\Photos\webpic1.jpg" align="middle">
-  <img class="mySlides" src="\Photos\webpic2.jpg" align="middle">
-  <img class="mySlides" src="\Photos\webpic3.jpg" align="middle">
-  <img class="mySlides" src="\Photos\webpic4.jpg" align="middle">
-  </center>
-</section>
-
-<script>
-var myIndex = 0;
-carousel();
-
-function carousel() {
-  var i;
-  var x = document.getElementsByClassName("mySlides");
-  for (i = 0; i < x.length; i++) {
-    x[i].style.display = "none";
-  }
-  myIndex++;
-  if (myIndex > x.length) {myIndex = 1}
-  x[myIndex-1].style.display = "block";
-  setTimeout(carousel, 7000);
-}
-</script>
-
-<section class="w3-container w3-content w3-center" style="max-width:975px">
-  <h2 class="w3-wide">Jared Raiola</h2>
-  <h3 class="w3-sepia">About Me</h3>
-
-<p class="body">
-  I am a sophomore attending <b>Georgia Institute of Technology</b> majoring in <b>computer science</b>.
-  My hobbies include hiking, skiing, traveling, playing music and playing with dogs! Throughout my life, I've been raised to help others and dedicate myself
-  fully to any project that is at hand. Due to this, I've taken a leadership program in Washington D.C. (People To People), and have performed community service in Boston and New Orleans, to help rebuild 
-  communities in both areas. Throughout my high school career at Mahopac High School I've led my school's sax quartet, participated in the jazz and marching bands, created a taco club, and became the captain 
-  of the tennis team. In college, I've joined the iOS development club, orgT caving, and Delta Upsilon fraternity. I actively participate in all of these organizations and have taken a leadership role in my 
-  fraternity as Assistant House Manager. One of my major goals in life is to travel the world, as I believe it's very important to learn about and be appreciative of other cultures and idealogies.
-  Thank you for taking the time to check out my website and learn a little bit more about me! Here you you'll find links my GitHub, LinkedIn, Resume, and my Projects.
-</p>
-</section>
-
-<section class="w3-container w3-content w3-center w3-light-grey" style="max-width:975px">
-  <h3 class="w3-sepia">Why I Chose to Major in Computer Science</h3>
-
-<p class="body">
-I’ve been interested in computers ever since childhood, but I really decided upon it as a career choice in my senior year at Mahopac High School, 
-where I took my first programming class in C++.
-Since then, I’ve been hooked. I love the challenge of learning new languages and how machines communicate with each other.
-I'm very interested in delving further into the field of Cyber Security and mobile development, perhaps even a combination of the two. I believe that mobile devices are the future, as technology advances. 
-</p>
-</section>
-
-
-<footer>
-<p><br></p>
- <div align=center><a href='https://www.counter12.com'>
- <img src='https://www.counter12.com/img-y0AZDbDZBc94Z10z-27.gif' border='0' alt='web counter free'>
- </a><script type='text/javascript' src='https://www.counter12.com/ad.js?id=y0AZDbDZBc94Z10z'></script></div>
-  <p><br></p>
-</footer>
-
+	<script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-auth.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-database.js"></script>
+	<script src="index.js"></script>
 </body>
+
 </html>
