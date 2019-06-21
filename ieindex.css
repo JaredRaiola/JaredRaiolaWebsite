@@ -1,9 +1,5 @@
 /* fonts and body formatting */
 
-@font-face { font-family: SF-text; src: url('assets/SF-UI-Text-Regular.otf'); }
-@font-face { font-family: SF-bold; src: url('assets/SF-UI-Text-Semibold.otf'); } 
-
-
 html, body {
     margin: 0; border: 0; padding: 0;
     background-color: rgb(240, 240, 240);
@@ -34,18 +30,15 @@ body {
 /* ID specific formatting */
 
 #dateTime {
-    font: SF-bold;
     font-weight: bold;
     font-size: 26px;
 }
 
 #step-name {
-    font: SF-text;
     font-size: 22px;
 }
 
 #step-name2 {
-    font: SF-text;
     font-size: 22px;
 }
 
