@@ -76,11 +76,11 @@
 	  //This loop reads in from firebase
 	  fbRef = firebase.database().ref(depName + "/");
 	  fbRef.once("value", function(person) {
-	      person.forEach(function (inPerson){
+	  	$('#entries').append("Hi")
+	      /*person.forEach(function (inPerson){
 	      		//increment newID per person to handle the case when adding a new person
 	          //if first person, put in column 1
-	          $('#entries').append("Hi");
-	          /*if (loopCount == 0) {
+	          if (loopCount == 0) {
 	              loopCount++;
 	              $("#entries").append(rowForPerson(inPerson.val()));
 	          //if second person, put in column 2
@@ -105,9 +105,9 @@
 	          //state 4 is "Vacation"
 	          } else if (inPerson.val().state == 4) {
 	              document.getElementById(inPerson.val().id.toString()).style.background='rgb(255,182,193)';
-	          }*/
+	          }
 	          //any other state just rewrites as the normal background
-	      });
+	      });*/
 	  });
 	}
 
