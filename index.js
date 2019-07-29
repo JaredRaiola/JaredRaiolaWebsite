@@ -14,6 +14,7 @@ function carousel() {
 }
 
 function displayMain() {
+	window.scroll(0,0);
 	$("#home").show();
 	$("#resume").hide();
 	$("#projects").hide();
@@ -28,11 +29,10 @@ function displayMain() {
 	$("#frontPageTextBody2").empty();
 	$("#frontPageTextBody2").append(writeTitleBlock3());
 	$("#frontPageTextBody2").append(writeFrontPageTextBody2());
-
-	window.scroll(0,0);
 }
 
 function displayProjects() {
+	window.scroll(0,0);
 	$("#home").hide();
 	$("#resume").hide();
 	$("#projects").show();
@@ -41,10 +41,12 @@ function displayProjects() {
 	$("#projects").append(writeProjectsContent1());
 	$("#projects").append(writeProjectsContent2());
 
-	window.scroll(0,0);
+	$("#progBar").attr("style", "width: 100%");
+	$("#reverseProgBar").attr("style", "width: 0%");
 }
 
 function displayResume() {
+	window.scroll(0,0);
 	$("#home").hide();
 	$("#resume").show();
 	$("#resume").empty();
@@ -57,7 +59,6 @@ function displayResume() {
 	$("#resume").append(writeResumeProjects());
 	$("#resume").append(writeSkillsInterests());
 	$("#resume").append(writeFooters());
-	window.scroll(0,0);
 }
 
 
@@ -144,3 +145,16 @@ function writeSkillsInterests() {
 function writeFooters() {
 	return '<div class="roundedDiv w3-container" style="max-width:975px;background-color: rgb(245, 245, 245); text-align: center;"><p><smallfoot>    LinkedIn:    <a href="https://www.linkedin.com/in/jared-raiola/">        https://www.linkedin.com/in/jared-raiola/    </a><bulletpoint>v</bulletpoint> GitHub:    <a href="https://github.com/JaredRaiola">https://github.com/JaredRaiola</a>   <bulletpoint>v</bulletpoint> My Website: <a href="http://jaredraiola.me/">http://jaredraiola.me/</a></smallfoot></p></div><footer><br><a href="./Jared-Raiola-Resume.pdf" class="downloadButton" download><i class="fa fa-cloud-download"></i>&nbsp;&nbsp;Click here to download this resume as a PDF!&nbsp;&nbsp;<i class="fa fa-cloud-download"></i></a></div><br><br><br></footer>'
 }
+
+
+
+//creating progress bar
+$(document).scroll(function() {  // OR  $(window).scroll(function() {
+  var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  var scrolled = 100 - ((winScroll / height) * 100);
+  if (scrolled < .05) {
+  	scrolled = 0;
+  }
+  document.getElementById("reverseProgBar").style.width = scrolled + "%";
+});

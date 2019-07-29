@@ -22,41 +22,43 @@
 </head>
 
 <body onload="displayMain()">
-<nav class = "w3-bar" style="background-color: rgb(255,191,0);z-index: 100">
-	<button style="background-color: rgb(255,191,0);" onclick="displayMain()" class="w3-button w3-bar-item w3-hover-white">Home</button>
-	<button style="background-color: rgb(255,191,0);" onclick="displayProjects()" class="w3-button w3-bar-item w3-hover-white">Projects</button>
-	<button style="background-color: rgb(255,191,0);" onclick="displayResume()" class="w3-button w3-bar-item w3-hover-white">Resume</button>
-	<a href = "https://github.com/JaredRaiola" target="_blank" class="w3-button w3-bar-item w3-hover-white">GitHub</a>
-	<a href = "https://www.linkedin.com/in/jared-raiola/" target="_blank" class="w3-button w3-bar-item w3-hover-white">LinkedIn</a>
-</nav>
-<div id="home">
-	<center>
-		<div id="pictureRotation" style="margin-bottom: 6px;">
-			<!-- filled in onload -->
-		</div>
+	<div class="header">
+		<nav class = "w3-bar" style="background-color: background-color: transparent;z-index: 100;">
+			<button style="background-color: transparent;z-index: 101" onclick="displayMain()" class="w3-button w3-bar-item w3-hover-amber">Home</button>
+			<button style="background-color: transparent; z-index: 102" onclick="displayProjects()" class="w3-button w3-bar-item w3-hover-amber">Projects</button>
+			<button style="background-color: transparent; z-index: 103" onclick="displayResume()" class="w3-button w3-bar-item w3-hover-amber">Resume</button>
+			<a href = "https://github.com/JaredRaiola" target="_blank" class="w3-button w3-bar-item w3-hover-amber">GitHub</a>
+			<a href = "https://www.linkedin.com/in/jared-raiola/" target="_blank" class="w3-button w3-bar-item w3-hover-amber">LinkedIn</a>
+		</nav>
+		<div class="progCon" id="progCon"><div class="reverseProgBar" id="reverseProgBar"></div><div class="progBar" id="progBar"></div></div>
+	</div>
+	<div id="home">
+		<center>
+			<div id="pictureRotation" style="margin-bottom: 6px;">
+				<!-- filled in onload -->
+			</div>
 
-		<div id="titleBlock" class="w3-container roundedDiv body"
-		style="max-width:975px; background-color: rgb(245, 245, 245);">
-			<!-- filled in onload -->
-		</div>
+			<div id="titleBlock" class="w3-container roundedDiv body"
+			style="max-width:975px; background-color: rgb(245, 245, 245);">
+				<!-- filled in onload -->
+			</div>
 
-		<div id="frontPageTextBody1" class="w3-container roundedDiv body" style="max-width:975px; background-color: white;">
-			<!-- filled in onload -->
-		</div>
+			<div id="frontPageTextBody1" class="w3-container roundedDiv body" style="max-width:975px; background-color: white;">
+				<!-- filled in onload -->
+			</div>
 
-		<div id="frontPageTextBody2" class="w3-container roundedDiv body"  style="max-width:975px; background-color: rgb(245, 245, 245);">
-			<!-- filled in onload -->
-		</div>
-		<br>
-		<br>
-	</center>
-</div>
-<div id="projects" align="center">
-	<!-- filled in when user selects projects tab -->
-</div>
-<div id="resume" align="center">
-	<!-- filled in when user selects resume tab -->
-</div>
-
+			<div id="frontPageTextBody2" class="w3-container roundedDiv body"  style="max-width:975px; background-color: rgb(245, 245, 245);">
+				<!-- filled in onload -->
+			</div>
+			<br>
+			<br>
+		</center>
+	</div>
+	<div id="projects" align="center">
+		<!-- filled in when user selects projects tab -->
+	</div>
+	<div id="resume" align="center">
+		<!-- filled in when user selects resume tab -->
+	</div>
 </body>
 </html>
