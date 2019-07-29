@@ -1,16 +1,65 @@
 @font-face {
 	font-family: garamond;
-	
+	font-family: wingdings;
 }
 
 body {
-	background-color: white;
+	background-color: rgb(245, 245, 245);
 	font-family: garamond;
 	font-size: 20px;
 }
 
+h2 {
+	letter-spacing: 2px;
+}
+
+@media screen and (max-width:767px) {  
+	#pictureRotation {
+    display: none;
+  }
+}
+
+.roundedDiv {
+	border-style: solid;
+	border-width: 7px;
+	border-radius: 15px;
+	border-color: transparent;
+}
 
 nav {
 	text-align: center;
 	position: fixed;
+}
+
+bulletpoint{
+	font-family: wingdings;
+}
+
+gara {
+	font-family: garamond;
+}
+
+smallfoot {
+	font-size: 16px;
+}
+
+footer {
+	font-size: 18px;
+	text-align: center;
+	font-family: garamond;
+}
+
+.downloadButton {
+	font-size: 18px;
+	font-family: garamond;
+	border: 0;
+	border-radius: 10px;
+	padding-top: 10px;
+	padding-bottom: 40px;
+	padding-left: 10px;
+	padding-right: 10px;
+	height: 20px;
+	cursor: pointer;
+	background-color: white;
+	outline: none;
 }
