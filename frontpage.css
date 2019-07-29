@@ -19,6 +19,12 @@ h2 {
 	#pictureRotation {
     display: none;
   }
+
+  html, body {
+	background-color: rgb(245, 245, 245);
+	font-family: garamond;
+	font-size: 14px;
+}
 }
 
 .roundedDiv {
