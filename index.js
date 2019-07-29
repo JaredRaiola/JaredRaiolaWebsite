@@ -142,10 +142,5 @@ function writeSkillsInterests() {
 }
 
 function writeFooters() {
-	return '<div class="roundedDiv w3-container" style="max-width:975px;background-color: rgb(245, 245, 245); text-align: center;"><p><smallfoot>    LinkedIn:    <a href="https://www.linkedin.com/in/jared-raiola/">        https://www.linkedin.com/in/jared-raiola/    </a><bulletpoint>v</bulletpoint> GitHub:    <a href="https://github.com/JaredRaiola">https://github.com/JaredRaiola</a>   <bulletpoint>v</bulletpoint> My Website: <a href="http://jaredraiola.me/">http://jaredraiola.me/</a></smallfoot></p></div><footer><br><button onclick="downloadPDF()" class="downloadButton"><i class="roundedDiv fa fa-cloud-download"></i>Click here to download this resume as a PDF!<i class="roundedDiv fa fa-cloud-download"></i></button><iframe id="invisible" style="display:none;"></iframe></div><br><br><br></footer>'
-}
-
-function downloadPDF() {
-    var iframe = document.getElementById('invisible');
-    iframe.src = "Jared-Raiola-Resume.pdf";
+	return '<div class="roundedDiv w3-container" style="max-width:975px;background-color: rgb(245, 245, 245); text-align: center;"><p><smallfoot>    LinkedIn:    <a href="https://www.linkedin.com/in/jared-raiola/">        https://www.linkedin.com/in/jared-raiola/    </a><bulletpoint>v</bulletpoint> GitHub:    <a href="https://github.com/JaredRaiola">https://github.com/JaredRaiola</a>   <bulletpoint>v</bulletpoint> My Website: <a href="http://jaredraiola.me/">http://jaredraiola.me/</a></smallfoot></p></div><footer><br><a href="./Jared-Raiola-Resume.pdf" class="downloadButton" download><i class="fa fa-cloud-download"></i>Click here to download this resume as a PDF!<i class="fa fa-cloud-download"></i></a></div><br><br><br></footer>'
 }
