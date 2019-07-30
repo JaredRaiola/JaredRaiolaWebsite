@@ -15,6 +15,7 @@ function carousel() {
 
 function displayMain() {
 	window.scroll(0,0);
+	$("#reverseProgBar").attr("style", "width: 100%");
 	$("#home").show();
 	$("#resume").hide();
 	$("#projects").hide();
@@ -41,12 +42,12 @@ function displayProjects() {
 	$("#projects").append(writeProjectsContent1());
 	$("#projects").append(writeProjectsContent2());
 
-	$("#progBar").attr("style", "width: 100%");
 	$("#reverseProgBar").attr("style", "width: 0%");
 }
 
 function displayResume() {
 	window.scroll(0,0);
+	$("#reverseProgBar").attr("style", "width: 100%");
 	$("#home").hide();
 	$("#resume").show();
 	$("#resume").empty();
