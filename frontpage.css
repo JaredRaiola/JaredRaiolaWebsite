@@ -49,6 +49,7 @@ h2 {
 }
 
 .card {
+	max-width:975px;
 	padding-left: 10px;
 	padding-right: 10px;
 }

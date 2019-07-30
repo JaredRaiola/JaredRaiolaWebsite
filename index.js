@@ -27,12 +27,9 @@ function displayMain() {
 	$("#projects").hide();
 	$("#titleBlock").empty();
 	$("#titleBlock").append(writeTitleBlock1());
-	$("#frontPageTextBody1").empty();
-	$("#frontPageTextBody1").append(writeTitleBlock2());
-	$("#frontPageTextBody1").append(writeFrontPageTextBody1());
-	$("#frontPageTextBody2").empty();
-	$("#frontPageTextBody2").append(writeTitleBlock3());
-	$("#frontPageTextBody2").append(writeFrontPageTextBody2());
+	$("#frontPageTextBody").empty();
+	$("#frontPageTextBody").append(writeFrontPageTextBody1());
+	$("#frontPageTextBody").append(writeFrontPageTextBody2());
 }
 
 function displayProjects() {
@@ -76,20 +73,12 @@ function writeTitleBlock1() {
 	return '<h2>Jared Raiola</h2>'
 }
 
-function writeTitleBlock2() {
-	return '<h3>About Me</h3>'
-}
-
-function writeTitleBlock3() {
-	return '<h3>Why I Chose to Major in Computer Science</h3>'
-}
-
 function writeFrontPageTextBody1() {
-	return "<p>I am a sophomore attending <b>Georgia Institute of Technology</b> majoring in <b>computer science</b>. My hobbies include hiking, skiing, traveling, playing music and playing with dogs! Throughout my life, I've been raised to help others and dedicate myself fully to any project that is at hand. Due to this, I've taken a leadership program in Washington D.C. (People To People), and have performed community service in Boston and New Orleans, to help rebuild communities in both areas. Throughout my high school career at Mahopac High School I've led my school's sax quartet, participated in the jazz and marching bands, created a taco club, and became the captain of the tennis team. In college, I've joined the iOS development club, orgT caving, and Delta Upsilon fraternity. I actively participate in all of these organizations and have taken a leadership role in my fraternity as Assistant House Manager. One of my major goals in life is to travel the world, as I believe it's very important to learn about and be appreciative of other cultures and idealogies.Thank you for taking the time to check out my website and learn a little bit more about me! Here you you'll find links my GitHub, LinkedIn, Resume, and my Projects.</p>"
+	return "<div id='bodyText1' class='card roundedDiv' style='background-color: white;'><h3>About Me</h3><p>I am a sophomore attending <b>Georgia Institute of Technology</b> majoring in <b>computer science</b>. My hobbies include hiking, skiing, traveling, playing music and playing with dogs! Throughout my life, I've been raised to help others and dedicate myself fully to any project that is at hand. Due to this, I've taken a leadership program in Washington D.C. (People To People), and have performed community service in Boston and New Orleans, to help rebuild communities in both areas. Throughout my high school career at Mahopac High School I've led my school's sax quartet, participated in the jazz and marching bands, created a taco club, and became the captain of the tennis team. In college, I've joined the iOS development club, orgT caving, and Delta Upsilon fraternity. I actively participate in all of these organizations and have taken a leadership role in my fraternity as Assistant House Manager. One of my major goals in life is to travel the world, as I believe it's very important to learn about and be appreciative of other cultures and idealogies.Thank you for taking the time to check out my website and learn a little bit more about me! Here you you'll find links my GitHub, LinkedIn, Resume, and my Projects.</p></div>"
 }
 
 function writeFrontPageTextBody2() {
-	return "<p>I’ve been interested in computers ever since childhood, but I really decided upon it as a career choice in my senior year at Mahopac High School, where I took my first programming class in C++. Since then, I’ve been hooked. I love the challenge of learning new languages and how machines communicate with each other. I'm very interested in delving further into the field of Cyber Security and mobile development, perhaps even a combination of the two. I believe that mobile devices are the future, as technology advances. </p>"
+	return "<div id='bodyText1' class='card roundedDiv' style='background-color: rgb(245,245,245);'><h3>Why I Chose to Major in Computer Science</h3><p>I’ve been interested in computers ever since childhood, but I really decided upon it as a career choice in my senior year at Mahopac High School, where I took my first programming class in C++. Since then, I’ve been hooked. I love the challenge of learning new languages and how machines communicate with each other. I'm very interested in delving further into the field of Cyber Security and mobile development, perhaps even a combination of the two. I believe that mobile devices are the future, as technology advances. </p></div>"
 }
 
 
