@@ -31,6 +31,28 @@ h2 {
 	border-color: transparent;
 }
 
+.resDivTitle {
+	border-style: solid;
+	border-width: 7px;
+	border-radius: 15px;
+	border-color: transparent;
+	cursor: pointer;
+}
+
+.resDiv {
+	border-style: solid;
+	border-width: 7px;
+	border-radius: 15px;
+	border-color: transparent;
+	cursor: pointer;
+	padding-bottom: 20px;
+}
+
+.card {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
 nav {
 	text-align: center;
 	position: fixed;
@@ -42,7 +64,7 @@ gara {
 	font-family: garamond;
 }
 
-smallfoot {
+.smallfoot {
 	font-size: 16px;
 }
 
@@ -50,10 +72,11 @@ a {
 	text-decoration: none;
 }
 
-footer {
+.resFooter {
 	font-size: 18px;
 	text-align: center;
 	font-family: garamond;
+	margin-top: -.5%;
 }
 
 .barbutton {
@@ -173,6 +196,10 @@ footer {
 	  width: 100%;
 	  z-index: 110;
 	}
+
+	.smallfoot {
+		font-size: 12px;
+	}
 }
 
 
@@ -238,6 +265,9 @@ footer {
 		background: linear-gradient(to left, #45a247, #283c86); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 	  width: 100%;
 	  z-index: 110;
+	}
+	.smallfoot {
+		font-size: 14px;
 	}
 }
 
