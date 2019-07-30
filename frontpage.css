@@ -10,28 +10,18 @@ html, body {
 	font-size: 20px;
 }
 
+hr { 
+  display: block;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  border-style: solid;
+  border-width: 1px;
+} 
 
 h2 {
 	letter-spacing: 2px;
-}
-
-@media screen and (max-width:767px) {  
-	#pictureRotation {
-    display: none;
-  }
-
-  html, body {
-		background-color: rgb(245, 245, 245);
-		font-family: garamond;
-		font-size: 16px;
-	}
-
-	nav {
-		text-align: center;
-		position: fixed;
-		color: white;
-		font-size: 10px;
-	}
 }
 
 .roundedDiv {
@@ -45,6 +35,7 @@ nav {
 	text-align: center;
 	position: fixed;
 	color: white;
+	height: 45px;
 }
 
 bulletpoint{
@@ -67,6 +58,10 @@ footer {
 	font-size: 18px;
 	text-align: center;
 	font-family: garamond;
+}
+
+.barbutton {
+	height: 100%;
 }
 
 .downloadButton {
@@ -111,4 +106,168 @@ footer {
 	background: linear-gradient(to left, #45a247, #283c86); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   width: 100%;
   z-index: 110;
+}
+
+
+
+@media screen and (max-width:370px) {
+	nav {
+		text-align: center;
+		vertical-align: center;
+		position: fixed;
+		color: white;
+		font-size: 10.49px;
+		height: 60px;
+		padding-top: 0px;
+		padding-bottom: -10px;
+		padding-left: 0px;
+		padding-right: 0px;
+
+	}
+
+	.downloadButton {
+		font-size: 14px;
+		padding-top: 10px;
+		padding-bottom: 11px;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.barbutton {
+		height: 45px;
+	}
+
+	#pictureRotation {
+    display: none;
+  }
+
+  html, body {
+  	background-color: rgb(245, 245, 245);
+		font-family: garamond;
+		font-size: 16px;
+	}
+
+	#titleBlock {
+		margin-top: 50px;
+	}
+
+	/* Style the header: fixed position (always stay at the top) */
+	.header {
+	  position: fixed;
+	  top: 0;
+	  z-index: 1;
+	  width: 100%;
+	}
+
+	/* The progress container (grey background) */
+	.reverseProgBar {
+		top: 0;
+	  width: 100%;
+	  height: 45px;
+	  float: right;
+	  background: #283c86;
+	  z-index: 108;
+	}
+
+	/* The progress bar (scroll indicator) */
+	.progBar {
+		top: 0;
+	  height: 45px;
+		background: #283c86;  /* fallback for old browsers */
+		background: -webkit-linear-gradient(to left, #45a247, #283c86);  /* Chrome 10-25, Safari 5.1-6 */
+		background: linear-gradient(to left, #45a247, #283c86); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+	  width: 100%;
+	  z-index: 110;
+	}
+}
+
+
+@media screen and (min-device-width : 371px) and (max-width:420px) {
+	nav {
+		text-align: center;
+		position: fixed;
+		color: white;
+		font-size: 14px;
+		height: 45px;
+	}
+
+	.downloadButton {
+		font-size: 16px;
+		padding-top: 10px;
+		padding-bottom: 11px;
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+
+	.barbutton {
+		height: 40px;
+	}
+
+	#pictureRotation {
+    display: none;
+  }
+
+  html, body {
+  	background-color: rgb(245, 245, 245);
+		font-family: garamond;
+		font-size: 16px;
+	}
+
+	#titleBlock {
+		margin-top: 50px;
+	}
+
+	/* Style the header: fixed position (always stay at the top) */
+	.header {
+	  position: fixed;
+	  top: 0;
+	  z-index: 1;
+	  width: 100%;
+	}
+
+	/* The progress container (grey background) */
+	.reverseProgBar {
+		top: 0;
+	  width: 100%;
+	  height: 40px;
+	  float: right;
+	  background: #283c86;
+	  z-index: 108;
+	}
+
+	/* The progress bar (scroll indicator) */
+	.progBar {
+		top: 0;
+	  height: 40px;
+		background: #283c86;  /* fallback for old browsers */
+		background: -webkit-linear-gradient(to left, #45a247, #283c86);  /* Chrome 10-25, Safari 5.1-6 */
+		background: linear-gradient(to left, #45a247, #283c86); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+	  width: 100%;
+	  z-index: 110;
+	}
+}
+
+
+@media screen and (min-device-width : 421px) and (max-width:760px) {  
+	#pictureRotation {
+    display: none;
+  }
+
+  html, body {
+  	background-color: rgb(245, 245, 245);
+		font-family: garamond;
+		font-size: 16px;
+	}
+
+	nav {
+		text-align: center;
+		position: fixed;
+		color: white;
+		font-size: 16px;
+		height: 45px;
+	}
+
+	#titleBlock {
+		margin-top: 50px;
+	}
 }

@@ -7,7 +7,7 @@
 <html>
 <meta charset="UTF-8">
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta content="width=device-width, initial-scale=1" name="viewport" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<link rel="stylesheet" href="https://www.w3schools.com/w3css/3/w3.css">
 	<link rel="stylesheet" href="frontpage.css">
@@ -23,12 +23,12 @@
 
 <body onload="displayMain()">
 	<div class="header">
-		<nav class = "w3-bar" style="background-color: background-color: transparent;z-index: 100;">
-			<button style="background-color: transparent;z-index: 101" onclick="displayMain()" class="w3-button w3-bar-item w3-hover-amber">Home</button>
-			<button style="background-color: transparent; z-index: 102" onclick="displayProjects()" class="w3-button w3-bar-item w3-hover-amber">Projects</button>
-			<button style="background-color: transparent; z-index: 103" onclick="displayResume()" class="w3-button w3-bar-item w3-hover-amber">Resume</button>
-			<a href = "https://github.com/JaredRaiola" target="_blank" class="w3-button w3-bar-item w3-hover-amber">GitHub</a>
-			<a href = "https://www.linkedin.com/in/jared-raiola/" target="_blank" class="w3-button w3-bar-item w3-hover-amber">LinkedIn</a>
+		<nav class = "w3-bar" style="background-color: transparent;z-index: 100;">
+			<button class="barbutton w3-button w3-bar-item w3-hover-amber" onclick="displayMain()">Home</button>
+			<button class="barbutton w3-button w3-bar-item w3-hover-amber" onclick="displayProjects()">Projects</button>
+			<button class="barbutton w3-button w3-bar-item w3-hover-amber" onclick="displayResume()">Resume</button>
+			<button onclick = "window.open('https://github.com/JaredRaiola')" class="barbutton w3-button w3-bar-item w3-hover-amber">GitHub</button>
+			<button onclick="window.open('https://www.linkedin.com/in/jared-raiola/')" class="barbutton w3-button w3-bar-item w3-hover-amber">LinkedIn</button>
 		</nav>
 		<div class="progCon" id="progCon"><div class="reverseProgBar" id="reverseProgBar"></div><div class="progBar" id="progBar"></div></div>
 	</div>
