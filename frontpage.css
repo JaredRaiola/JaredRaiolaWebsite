@@ -104,8 +104,6 @@ footer {
   z-index: 110;
 }
 
-
-
 @media screen and (max-width:370px) {
 	nav {
 		text-align: center;
