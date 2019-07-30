@@ -13,15 +13,18 @@ function carousel() {
   setTimeout(carousel, 7000);
 }
 
+function loadPage() {
+	$("#pictureRotation").append(writePictureRotation());
+	carousel();
+	displayMain();
+}
+
 function displayMain() {
 	window.scroll(0,0);
 	$("#reverseProgBar").attr("style", "width: 100%");
 	$("#home").show();
 	$("#resume").hide();
 	$("#projects").hide();
-	$("#pictureRotation").empty();
-	$("#pictureRotation").append(writePictureRotation());
-	carousel();
 	$("#titleBlock").empty();
 	$("#titleBlock").append(writeTitleBlock1());
 	$("#frontPageTextBody1").empty();
