@@ -1,0 +1,9 @@
+todo:
+change the onhover aspect of the nav bar because it gets stuck on mobile (you might
+not need to)
+
+make projects have droppable sections
+
+change the content to be actually relevant
+
+commment ur code xd

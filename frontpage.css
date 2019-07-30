@@ -31,7 +31,7 @@ h2 {
 	border-color: transparent;
 }
 
-.resDivTitle {
+.dropDivGoodPadding {
 	border-style: solid;
 	border-width: 7px;
 	border-radius: 15px;
@@ -39,7 +39,7 @@ h2 {
 	cursor: pointer;
 }
 
-.resDiv {
+.dropDiv {
 	border-style: solid;
 	border-width: 7px;
 	border-radius: 15px;
