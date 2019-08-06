@@ -24,6 +24,11 @@ h2 {
 	letter-spacing: 2px;
 }
 
+blockquote {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
 .roundedDiv {
 	border-style: solid;
 	border-width: 7px;
@@ -36,7 +41,7 @@ h2 {
 	border-width: 7px;
 	border-radius: 15px;
 	border-color: transparent;
-	cursor: pointer;
+	line-height: 20pt;
 }
 
 .dropDiv {
@@ -44,14 +49,28 @@ h2 {
 	border-width: 7px;
 	border-radius: 15px;
 	border-color: transparent;
-	cursor: pointer;
 	padding-bottom: 20px;
+	line-height: 20pt;
+}
+
+.dropDivCode {
+	border-style: solid;
+	border-width: 7px;
+	border-radius: 15px;
+	border-color: transparent;
+	padding-bottom: 7px;
+	line-height: 20pt;
+}
+
+.clickable {
+	cursor: pointer;
 }
 
 .card {
 	max-width:975px;
 	padding-left: 10px;
 	padding-right: 10px;
+	line-height: 20pt;
 }
 
 nav {
@@ -97,6 +116,21 @@ a {
 	cursor: pointer;
 	background-color: white;
 	outline: none;
+}
+
+.codeDownloadButton {
+	font-size: 18px;
+	font-family: garamond;
+	border: 0;
+	border-radius: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
+	height: 45px;
+	cursor: pointer;
+	background-color: #283c86;
+	color: white;
 }
 
 /* Style the header: fixed position (always stay at the top) */
@@ -192,8 +226,6 @@ a {
 		top: 0;
 	  height: 45px;
 		background: #283c86;  /* fallback for old browsers */
-		background: -webkit-linear-gradient(to left, #45a247, #283c86);  /* Chrome 10-25, Safari 5.1-6 */
-		background: linear-gradient(to left, #45a247, #283c86); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 	  width: 100%;
 	  z-index: 110;
 	}
@@ -262,8 +294,6 @@ a {
 		top: 0;
 	  height: 40px;
 		background: #283c86;  /* fallback for old browsers */
-		background: -webkit-linear-gradient(to left, #45a247, #283c86);  /* Chrome 10-25, Safari 5.1-6 */
-		background: linear-gradient(to left, #45a247, #283c86); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 	  width: 100%;
 	  z-index: 110;
 	}

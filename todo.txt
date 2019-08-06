@@ -7,3 +7,5 @@ make projects have droppable sections
 change the content to be actually relevant
 
 commment ur code xd
+
+make a code section under projects
