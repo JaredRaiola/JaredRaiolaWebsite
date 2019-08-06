@@ -168,7 +168,7 @@ a {
 		vertical-align: center;
 		position: fixed;
 		color: white;
-		font-size: 8px;
+		font-size: 7px;
 		height: 60px;
 		padding-top: 0px;
 		padding-bottom: -10px;
@@ -240,7 +240,7 @@ a {
 		text-align: center;
 		position: fixed;
 		color: white;
-		font-size: 12px;
+		font-size: 11px;
 		height: 45px;
 	}
 
@@ -310,7 +310,7 @@ a {
   html, body {
   	background-color: rgb(245, 245, 245);
 		font-family: garamond;
-		font-size: 14px;
+		font-size: 13px;
 	}
 
 	nav {
