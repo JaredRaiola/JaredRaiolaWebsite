@@ -129,7 +129,7 @@ function writeCodeContent3() {
 
 //Resume Page Functions
 function writeResumeTitle() {
-	return '<br><br><div id="resumePage" class="dropDivGoodPadding card clickable" onclick=listForOpenSesame("resTitle",["objTitle","workTitle","eduTitle","leadTitle","resProjTitle","skillTitle"],["objBody","workBody","eduBody","leadBody","resProjBody","skillBody"]); style="max-width:975px;background-color: white; text-align: left;"><h2><gara><strong><div id="resTitle">Jared Raiola ▼</div></strong></gara></h2><p>jraiola3@gatech.edu ✦ (845) 490-7692 ✦ Mahopac, New York</p></div></div>'
+	return '<br><br><div id="resumePage" class="dropDivGoodPadding card clickable" onclick=listForOpenSesame("resTitle",["objTitle","workTitle","eduTitle","leadTitle","resProjTitle","skillTitle"],["objBody","workBody","eduBody","leadBody","resProjBody","skillBody"]); style="max-width:975px;background-color: white; text-align: left;"><h2><gara><strong><div id="resTitle">Jared Raiola ▼</div></strong></gara></h2><p>jraiola33@gatech.edu ✦ (845) 490-7692 ✦ Mahopac, New York</p></div></div>'
 }
 
 function writeObjective() {
