@@ -70,7 +70,7 @@ function displayResume() {
 
 //Front Page Functions
 function writePictureRotation() {
-	return '<br><br><img class="mySlides roundedDiv" src="./Photos/webpic1.jpg" align="middle"><img class="mySlides roundedDiv" src="./Photos/webpic2.jpg" align="middle"><img class="mySlides roundedDiv" src="./Photos/webpic3.jpg" align="middle"><img class="mySlides roundedDiv" src="./Photos/webpic4.jpg" align="middle">'
+	return '<br><br><img class="mySlides roundedDiv" src="./Photos/webpic1.jpg" align="middle"><img class="mySlides roundedDiv" src="./Photos/webpic2.jpg" align="middle"><img class="mySlides roundedDiv" src="./Photos/webpic3.jpg" align="middle">'
 }
 
 function writeTitleBlock1() {
