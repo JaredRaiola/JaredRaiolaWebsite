@@ -156,7 +156,7 @@ function writeSkillsInterests() {
 }
 
 function writeFooters() {
-	return '<div id="resFoot" class="dropDiv card smallfoot" style="max-width:975px;background-color: rgb(245, 245, 245); text-align: center;"><p>LinkedIn:<a href="https://www.linkedin.com/in/jared-raiola/">https://www.linkedin.com/in/jared-raiola/</a>✦ GitHub:<a href="https://github.com/JaredRaiola">https://github.com/JaredRaiola</a>✦ My Website: <a href="http://jaredraiola.me/">http://jaredraiola.me/</a></p></div><div id="resumeButton" class="resFooter"><a href="./Jared-Raiola-Resume.pdf" class="downloadButton" download><i class="fa fa-cloud-download"></i>&nbsp;&nbsp;Click here to download the most current resume as a PDF!&nbsp;&nbsp;<i class="fa fa-cloud-download"></i></a><br><br><br></div>'
+	return '<div id="resFoot" class="dropDiv card smallfoot" style="max-width:975px;background-color: rgb(245, 245, 245); text-align: center;"><p>LinkedIn:<a href="https://www.linkedin.com/in/jared-raiola/">https://www.linkedin.com/in/jared-raiola/</a>✦ GitHub:<a href="https://github.com/JaredRaiola">https://github.com/JaredRaiola</a>✦ My Website: <a href="http://jaredraiola.com/">http://jaredraiola.com/</a></p></div><div id="resumeButton" class="resFooter"><a href="./Jared-Raiola-Resume.pdf" class="downloadButton" download><i class="fa fa-cloud-download"></i>&nbsp;&nbsp;Click here to download the most current resume as a PDF!&nbsp;&nbsp;<i class="fa fa-cloud-download"></i></a><br><br><br></div>'
 }
 
 
