@@ -12,18 +12,6 @@ let targetX = spriteX;
 let targetY = spriteY;
 let isWalking = false; // Indicates if the sprite is walking
 
-// Moveable Areas
-const islandArea = document.querySelector('#island');
-
-// Non moveable areas
-const fountainArea = document.querySelector('#fountain');
-
-// Initial sprite setup
-playerSprite.style.left = `${spriteX - playerSprite.offsetWidth / 2}px`;
-playerSprite.style.top = `${spriteY - playerSprite.offsetHeight / 4}px`;
-updateSprite(); // Set the initial facing animation frame
-
-
 const Directions = {
 	Up: 2,
 	Down: 0,
@@ -34,6 +22,17 @@ const Directions = {
 	WalkingLeft: -4,
 	WalkingRight: 4
 }
+
+// Moveable Areas
+const islandArea = document.querySelector('#island');
+
+// Non moveable areas
+const fountainArea = document.querySelector('#fountain');
+
+// Initial sprite setup
+playerSprite.style.left = `${spriteX - playerSprite.offsetWidth / 2}px`;
+playerSprite.style.top = `${spriteY - playerSprite.offsetHeight / 4}px`;
+updateSprite(); // Set the initial facing animation frame
 
 document.addEventListener('click', (e) => {
     // Start updating the sprite position
