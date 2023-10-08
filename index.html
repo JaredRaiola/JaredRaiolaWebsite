@@ -1,65 +1,38 @@
 <!DOCTYPE html>
-
-<!-- Author: Jared Raiola
-	 Description: My personal website, containing relevant information about me, my studies, and my projects
--->
-
-<html>
-<meta charset="UTF-8">
+<html lang="en">
 <head>
-	<meta content="width=device-width, initial-scale=1" name="viewport" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<link rel="stylesheet" href="https://www.w3schools.com/w3css/3/w3.css">
-	<link rel="stylesheet" href="frontpage.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
-	<link rel="shortcut icon" type="image/x-icon" href=".\Photos\logo.png" />
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
-  <script src="index.js"></script>
-  <title>Jared Raiola</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jared Raiola - Personal Website</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
+<body>
+    <div id="town-holder">
+        <div id="town">
+            <div class="town-moveable" id="island">
+                <div class="town-not-moveable" id="fountain">
+                
+                </div>
+            </div>
+        </div>
+    </div>
 
-<body onload="loadPage()">
-	<div class="header">
-		<nav class = "w3-bar" style="background: transparent;z-index: 100;">
-			<button style="background: transparent;" class="barbutton w3-button w3-bar-item w3-hover-amber" onclick="displayMain()">Home</button>
-			<button style="background: transparent;" class="barbutton w3-button w3-bar-item w3-hover-amber" onclick="displayProjects()">Code/Projects</button>
-			<button style="background: transparent;" class="barbutton w3-button w3-bar-item w3-hover-amber" onclick="displayResume()">Resume</button>
-			<button style="background: transparent;" onclick = "window.open('https://github.com/JaredRaiola')" class="barbutton w3-button w3-bar-item w3-hover-amber">GitHub</button>
-			<button style="background: transparent;" onclick="window.open('https://www.linkedin.com/in/jared-raiola/')" class="barbutton w3-button w3-bar-item w3-hover-amber">LinkedIn</button>
-		</nav>
-		<div class="progCon" id="progCon"><div class="reverseProgBar" id="reverseProgBar"></div><div class="progBar" id="progBar"></div></div>
-	</div>
-	<div id="home">
-		<center>
-			<div id="pictureRotation" style="margin-bottom: 6px;">
-				<!-- filled in onload -->
-			</div>
 
-			<div id="titleBlock" class="card roundedDiv body"
-			style="background-color: rgb(245, 245, 245);">
-				<!-- filled in onload -->
-			</div>
-
-			<div id="frontPageTextBody">
-				<!-- filled in onload -->
-			</div>
-			<br>
-			<br>
-		</center>
-	</div>
-	<div id="projectsPage">
-		<div id="projects" align="center">
-			<!-- filled in when user selects projects tab -->
-		</div>
-		<div id="classCode" align="center">
-			<!-- filled in when user selects projects tab -->
-		</div>
-	</div>
-	<div id="resume" align="center">
-		<!-- filled in when user selects resume tab -->
-	</div>
+    <div id="music-credit">
+        <button id="mute-button" class="btn btn-primary">
+            <i class="bi bi-volume-unmute"></i> Unmute
+        </button>
+        <audio id="background-music" loop="loop">
+            <source src="./assets/music/HeatleyBros - 8 Bit Explore.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <a href="https://www.youtube.com/watch?v=iX6xUbI_LYU&list=PLobY7vO0pgVKn4FRDgwXk5FUSiGS8_jA8&index=18" target="_blank">Music:  "8 Bit Explore"  By  HeatleyBros</a>
+    </div>
+    <!-- Player code -->
+    <div class="player-sprite"></div>
+    
+    <script type="text/javascript" src="js/spriteMovement.js"></script>
+    <script type="text/javascript" src="js/scripts.js"></script>
 </body>
 </html>
