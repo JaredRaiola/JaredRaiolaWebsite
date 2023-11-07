@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { formatDate } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,15 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'jared_raiola_website';
+  public localDateTime: Date = new Date();
+
+  constructor() {
+      setInterval(() => {
+        this.localDateTime = new Date();
+      }, 1);
+  }
+
+  getTime() {
+    return formatDate(this.localDateTime, "hh:mm:ss", "en-US");
+  }
 }
