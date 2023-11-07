@@ -8,3 +8,11 @@ body {
     overflow: hidden;
     background-color: rgb(85, 171, 170);
 }
+
+*.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+ }

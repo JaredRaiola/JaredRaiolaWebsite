@@ -3,9 +3,9 @@
 </div>
 <div id="taskbar" class="taskbar">
     <div class="taskbar-left-section">
-        <button id="start" class="start-button">
-            <img class="start_icon" src="../assets/Windows 98 Imgs/png/start_icon.png">
-        </button>
+        <div id="start" class="start-button">
+            <img class="start_icon unselectable" src="../assets/Windows 98 Imgs/png/start_icon.png">
+        </div>
         <div class="taskbar-border"></div>
     </div>
     <div id="time" class="taskbar-center-section">
@@ -13,7 +13,7 @@
     <div class="taskbar-right-section">
         <div class="taskbar-border"></div>
         <div class="taskbar-right-section-container">
-            <div id="time" class="time">{{localDateTime | date: "shortTime"}}</div>
+            <div id="time" class="time unselectable">{{localDateTime | date: "shortTime"}}</div>
         </div>
     </div>
 </div>
