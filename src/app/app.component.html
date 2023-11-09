@@ -1,19 +1,45 @@
-<div class="page">
-    
+<div class="desktop">
+  <app-alert #windowAlert class="alert" [alertContent]="desktopAlert" [hidden]="windowAlert?.hidden"></app-alert>
+  <div id="icon-col-one" class="icons">
+      <div class="icon">
+          <img id="recycle" class="unhighlightable" src="../assets/Windows 98 Imgs/png/recycle_bin_empty-0.png">
+          <div for="recycle" class="label">Recycle Bin</div>
+      </div>
+      <div class="icon">
+          <img id="resume" class="unhighlightable" src="../assets/Windows 98 Imgs/png/document-0.png">
+          <div for="resume" class="label">My Resume</div>
+      </div> 
+      <a href="https://www.linkedin.com/in/jared-raiola/" target="_blank">
+          <div class="icon">
+              <img id="linkedin" class="unhighlightable" src="../assets/misc/linkedin.png">
+              <div for="linkedin" class="label">LinkedIn</div>
+          </div>
+      </a>
+      <a href="https://github.com/JaredRaiola" target="_blank">
+          <div class="icon">
+              <img id="github" class="unhighlightable" src="../assets/misc/github.png">
+              <div for="github" class="label">GitHub</div>
+          </div>
+      </a>
+      <div class="icon">
+          <img id="todo" class="unhighlightable" src="../assets/Windows 98 Imgs/png/document-0.png">
+          <div for="todo" class="label">To Do List</div>
+      </div>
+  </div>
 </div>
 <div id="taskbar" class="taskbar">
-    <div class="taskbar-left-section">
-        <div id="start" class="start-button">
-            <img class="start_icon unselectable" src="../assets/Windows 98 Imgs/png/start_icon.png">
-        </div>
-        <div class="taskbar-border"></div>
-    </div>
-    <div id="time" class="taskbar-center-section">
-    </div>
-    <div class="taskbar-right-section">
-        <div class="taskbar-border"></div>
-        <div class="taskbar-right-section-container">
-            <div id="time" class="time unselectable">{{localDateTime | date: "shortTime"}}</div>
-        </div>
-    </div>
+  <div class="taskbar-left-section">
+      <div id="start" class="start-button">
+          <img class="start_icon unhighlightable" src="../assets/Windows 98 Imgs/png/start_icon.png">
+      </div>
+      <div class="taskbar-border"></div>
+  </div>
+  <div id="time" class="taskbar-center-section">
+  </div>
+  <div class="taskbar-right-section">
+      <div class="taskbar-border"></div>
+      <div class="taskbar-right-section-container">
+          <div id="time" class="time unhighlightable">{{localDateTime | date: "shortTime"}}</div>
+      </div>
+  </div>
 </div>

@@ -1,0 +1,12 @@
+<div class="alert-window">
+    <div class="alert-title-container">
+        <div class="alert-title">{{alertContent.title}}</div>
+        <div class="alert-x alert-button-container" (click)="x()">X</div>
+    </div>
+    <div class="alert-body-container">
+        <div class="alert-body">{{alertContent.body}}</div>
+        <div class="alert-button-container alert-options" *ngIf="alertContent.optionType == AlertOptions.Ok">
+            <button class="alert-button" (click)="ok()">Ok</button>
+        </div>
+    </div>
+</div>

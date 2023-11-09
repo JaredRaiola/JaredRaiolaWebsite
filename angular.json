@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "jared_raiola_website": {
+    "JaredRaiolaFirebaseWebsite": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -25,6 +25,7 @@
               "src/assets"
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/pink-bluegrey.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -60,10 +61,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "jared_raiola_website:build:production"
+              "browserTarget": "JaredRaiolaFirebaseWebsite:build:production"
             },
             "development": {
-              "browserTarget": "jared_raiola_website:build:development"
+              "browserTarget": "JaredRaiolaFirebaseWebsite:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -71,7 +72,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "jared_raiola_website:build"
+            "browserTarget": "JaredRaiolaFirebaseWebsite:build"
           }
         },
         "test": {
@@ -87,6 +88,7 @@
               "src/assets"
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/pink-bluegrey.css",
               "src/styles.css"
             ],
             "scripts": []

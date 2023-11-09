@@ -1,0 +1,79 @@
+.alert-window {
+    margin: auto;
+    max-width: 500px;
+    border-top: 2px solid white;
+    border-left: 2px solid white;
+    border-bottom: 2px solid rgb(133, 135, 139);
+    border-right: 2px solid rgb(133, 135, 139);
+    background-color: rgb(194, 194, 194);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.alert-title-container {
+    background-color: rgb(8, 8, 132);
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-title {
+    color: white;
+    margin-left: 2px;
+}
+
+.alert-x {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    width: 12px;
+    height: 12px;
+    margin-right: 2px;
+}
+
+.alert-body-container {
+    color: black;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.alert-body {
+    margin: 10px;
+}
+
+.alert-options {
+    margin: 10px;
+}
+
+.alert-button-container {
+    background-color: rgb(194, 194, 194);
+    border-top: 2px solid white;
+    border-left: 2px solid white;
+    border-bottom: 2px solid rgb(133, 135, 139);
+    border-right: 2px solid rgb(133, 135, 139);
+}
+
+.alert-button-container:active {
+    border-top: 2px solid black;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+    border-right: 2px solid black;
+}
+
+.alert-button {
+    cursor: pointer;
+    margin: 1px;
+    background-color: rgb(194, 194, 194);
+    border: 1px solid rgb(194, 194, 194);
+}
+
+.alert-button:active {
+    border: 1px dotted;
+}

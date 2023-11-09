@@ -1,80 +1,110 @@
-.page {
-  display: flex;
-  flex-grow: 1;
-}
-
-.taskbar {
-  position: fixed;
-  display: flex;
-  bottom: 0;
-  height: 4%;
-  width: 100%;
-  align-items: center;
-  background-color: rgb(194, 197, 202);
-  border-top: 2px solid white;
-}
-
-.taskbar-border {
-  display: flex;
-  flex-grow: 1;
-  position: relative;
-  margin-left: 3px;
-  margin-right: 3px;
-  border-left: 1px solid rgb(133, 135, 139);
-  border-right: 1px solid white;
-  height: 100%;
-}
-
-.taskbar-left-section {
-  display: flex;
-  margin-left: 0.25%;
-  height: 85%;
-}
-
-.start-button {
-  cursor: pointer;
-  display: flex;
-  position: relative;
-  justify-content: center;
-  align-items: center;
-  border-top: 2px solid white;
-  border-left: 2px solid white;
-  border-bottom: 2px solid rgb(133, 135, 139);
-  border-right: 2px solid rgb(133, 135, 139);
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.start-button:active {
-  border-top: 2px solid rgb(133, 135, 139);
-  border-left: 2px solid rgb(133, 135, 139);
-  border-bottom: 2px solid white;
-  border-right: 2px solid white;
-}
-
-.start_icon {
-  z-index: -999;
-  max-width: 80px;
-  height: 100%;
-}
-
-.taskbar-right-section {
-  position: absolute;
-  display: flex;
-  right:0.25%;
-  height: 85%;
-}
-
-.taskbar-right-section-container {
-  cursor: pointer;
-  height: 85%;
-  display: flex;
-  text-align: center;
-  align-items: center;
-  border-top: 2px solid rgb(133, 135, 139);
-  border-left: 2px solid rgb(133, 135, 139);
-  border-bottom: 2px solid white;
-  border-right: 2px solid white;
-  padding-left: 10px;
-  padding-right: 10px;
-}
+.desktop {
+    display: flex;
+    flex-grow: 1;
+  }
+  
+  .icons {
+    display: flex;
+    position: fixed;
+    flex-direction: column;
+    margin: 1%;
+  }
+  
+  
+  /* icon css */
+  .icon {
+    margin: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .icon img {
+    width: 32px;
+    height: 32px;
+  }
+  
+  
+  
+  
+  
+  /* taskbar css */
+  
+  .taskbar {
+    position: fixed;
+    display: flex;
+    bottom: 0;
+    height: 4%;
+    max-height: 40px;
+    width: 100%;
+    align-items: center;
+    background-color: rgb(194, 194, 194);
+    border-top: 2px solid white;
+  }
+  
+  .taskbar-border {
+    display: flex;
+    flex-grow: 1;
+    position: relative;
+    margin-left: 3px;
+    margin-right: 3px;
+    border-left: 1px solid rgb(133, 135, 139);
+    border-right: 1px solid white;
+    height: 100%;
+  }
+  
+  .taskbar-left-section {
+    display: flex;
+    margin-left: 0.25%;
+    height: 85%;
+  }
+  
+  .start-button {
+    cursor: pointer;
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    border-top: 2px solid white;
+    border-left: 2px solid white;
+    border-bottom: 2px solid rgb(133, 135, 139);
+    border-right: 2px solid rgb(133, 135, 139);
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  .start-button:active {
+    border-top: 2px solid rgb(133, 135, 139);
+    border-left: 2px solid rgb(133, 135, 139);
+    border-bottom: 2px solid white;
+    border-right: 2px solid white;
+  }
+  
+  .start_icon {
+    z-index: -999;
+    max-width: 80px;
+    height: 100%;
+  }
+  
+  .taskbar-right-section {
+    position: absolute;
+    display: flex;
+    right:0.25%;
+    height: 85%;
+  }
+  
+  .taskbar-right-section-container {
+    cursor: pointer;
+    height: 85%;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    border-top: 2px solid rgb(133, 135, 139);
+    border-left: 2px solid rgb(133, 135, 139);
+    border-bottom: 2px solid white;
+    border-right: 2px solid white;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
