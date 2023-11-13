@@ -11,7 +11,7 @@ export class AppComponent {
   public localDateTime: Date = new Date();
   public desktopAlert: IAlert = {
     title: 'Welcome!',
-    body: 'This is a Windows 98 inspired personal website created by Jared Raiola. Feel free to explore and learn more about me!',
+    body: 'This is a Windows 98 inspired personal website created by Jared Raiola. It is currently a work in progress, not all features are implemented yet! Feel free to explore and learn more about me!',
     optionType: AlertOptions.Ok
   };
 
