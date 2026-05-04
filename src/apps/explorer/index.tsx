@@ -204,12 +204,33 @@ export default function Explorer({ api, fs, args }: AppProps) {
     if (selection.size === 0) return;
     const list = Array.from(selection);
     const msg =
-      list.length === 1 ? `Are you sure you want to delete '${list[0]}'?` : `Are you sure you want to delete these ${list.length} items?`;
+      list.length === 1
+        ? `Are you sure you want to send '${list[0]}' to the Recycle Bin?`
+        : `Are you sure you want to send these ${list.length} items to the Recycle Bin?`;
     void sysConfirm(msg, { title: 'Confirm File Delete', icon: 'warn' }).then((ok) => {
       if (!ok) return;
       void (async () => {
         for (const name of list) {
           await fs.unlink(join(cwd, name));
+        }
+        setSelection(new Set());
+        useFsStore.getState().bump();
+      })();
+    });
+  };
+
+  const permanentlyDeleteSelection = (): void => {
+    if (selection.size === 0) return;
+    const list = Array.from(selection);
+    const msg =
+      list.length === 1
+        ? `Are you sure you want to permanently delete '${list[0]}'? This action cannot be undone.`
+        : `Are you sure you want to permanently delete these ${list.length} items? This action cannot be undone.`;
+    void sysConfirm(msg, { title: 'Confirm File Delete', icon: 'warn' }).then((ok) => {
+      if (!ok) return;
+      void (async () => {
+        for (const name of list) {
+          await fs.unlinkPermanent(join(cwd, name));
         }
         setSelection(new Set());
         useFsStore.getState().bump();
@@ -297,6 +318,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
           backspace: goUp,
           f5: () => useFsStore.getState().bump(),
           delete: deleteSelection,
+          'shift+delete': permanentlyDeleteSelection,
           f2: renameSelected,
           enter: () => {
             if (selection.size !== 1) return;
