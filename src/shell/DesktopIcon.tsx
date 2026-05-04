@@ -19,6 +19,7 @@ import {
 } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 import { sysAlert, sysConfirm, sysPrompt } from '@/lib/dialog';
+import { showProperties } from '@/lib/properties';
 
 const GRID_W = 84;
 const GRID_H = 92;
@@ -272,7 +273,18 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
         },
       },
       { kind: 'separator' as const },
-      { kind: 'item' as const, label: 'Properties', onSelect: () => {}, disabled: true },
+      {
+        kind: 'item' as const,
+        label: 'Properties',
+        disabled: icon.target.kind !== 'file',
+        onSelect: () => {
+          if (icon.target.kind !== 'file') return;
+          if (!fs) return;
+          const node = fs.stat(icon.target.path);
+          if (!node) return;
+          void showProperties({ node, path: icon.target.path, fs });
+        },
+      },
     ];
 
     showCtx(e.clientX, e.clientY, items);
