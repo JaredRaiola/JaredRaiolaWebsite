@@ -25,6 +25,12 @@
 .exp-grid .item.selected .label { background: #000080; color: white; }
 .exp-grid .item.is-dir { transition: background 0.05s; }
 .exp-grid .item[draggable] { cursor: default; }
+.exp-grid .item.cut img,
+.exp-list .item.cut img,
+.exp-details .row.cut img { opacity: 0.45; }
+.exp-grid .item.cut .label,
+.exp-list .item.cut,
+.exp-details .row.cut td { opacity: 0.55; }
 .exp-list .item, .exp-details .row {
   display: flex; align-items: center; gap: 8px; padding: 4px 8px; cursor: default; font-size: 14px;
 }

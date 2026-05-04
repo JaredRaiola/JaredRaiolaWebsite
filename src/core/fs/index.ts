@@ -27,6 +27,8 @@ export type FS = {
   rmdir(path: string, opts?: { recursive?: boolean }): Promise<void>;
   rename(from: string, to: string): Promise<void>;
   move(from: string, to: string): Promise<void>;
+  /** Recursive copy. Files duplicate their blobs. Folders mkdir + recurse. */
+  copy(from: string, to: string): Promise<void>;
   readText(path: string): Promise<string>;
   writeText(path: string, content: string): Promise<void>;
   readBlob(path: string): Promise<Blob>;
@@ -106,6 +108,31 @@ export async function createFs(initialRoot?: DirNode): Promise<FS> {
 
     async move(from, to) {
       return fs.rename(from, to);
+    },
+
+    async copy(from, to) {
+      const src = getNode(root, from);
+      if (!src) throw new Error(`Not found: ${from}`);
+      if (getNode(root, to)) throw new Error(`Destination exists: ${to}`);
+      const destParent = parent(to);
+      if (!destParent) throw new Error(`Invalid destination: ${to}`);
+      requireDir(destParent);
+      if (src.kind === 'file') {
+        const blob = await getBlob(src.blobId);
+        if (!blob) throw new Error(`Blob missing: ${from}`);
+        const newBlobId = uuid();
+        await putBlob(newBlobId, blob);
+        insertNode(root, to, makeFile(basename(to), src.mime, src.size, newBlobId));
+        schedulePersist();
+        return;
+      }
+      // Directory: mkdir at destination, then recurse over children.
+      insertNode(root, to, makeDir(basename(to)));
+      schedulePersist();
+      const fromJoin = (parent: string, child: string) => parent + '\\' + child;
+      for (const child of Object.values(src.children)) {
+        await fs.copy(fromJoin(from, child.name), fromJoin(to, child.name));
+      }
     },
 
     async readText(path) {
