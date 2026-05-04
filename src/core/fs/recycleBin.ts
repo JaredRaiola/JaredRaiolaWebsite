@@ -1,6 +1,6 @@
 import type { FS } from './index';
 import { uuid } from '@/lib/uuid';
-import { basename, parent, extname, join } from './paths';
+import { basename, parent, extname, findUniqueSibling } from './paths';
 import type { FsNode } from './tree';
 
 export const RECYCLE_BIN_DIR = 'C:\\Recycle Bin';
@@ -78,19 +78,6 @@ const findUniqueBinName = (
   return `${stem} (${Date.now()})${ext}`;
 };
 
-const findUniqueOriginName = (fs: FS, originPath: string): string => {
-  const par = parent(originPath);
-  const desired = basename(originPath);
-  if (!par) return desired;
-  const exists = (name: string) => fs.exists(join(par, name));
-  if (!exists(desired)) return desired;
-  const { stem, ext } = splitNameExt(desired);
-  for (let i = 2; i < 10000; i++) {
-    const candidate = `${stem} (${i})${ext}`;
-    if (!exists(candidate)) return candidate;
-  }
-  return `${stem} (${Date.now()})${ext}`;
-};
 
 export async function createRecycleBin(fs: FS): Promise<RecycleBin> {
   if (!fs.exists(RECYCLE_BIN_DIR)) await fs.mkdir(RECYCLE_BIN_DIR);
@@ -138,9 +125,7 @@ export async function createRecycleBin(fs: FS): Promise<RecycleBin> {
           await fs.unlinkPermanent(entry.originPath);
         } else if (conflictResolution === 'rename') {
           const par = parent(entry.originPath);
-          destPath = par
-            ? join(par, findUniqueOriginName(fs, entry.originPath))
-            : entry.originPath;
+          destPath = par ? findUniqueSibling(fs, par, basename(entry.originPath)) : entry.originPath;
         }
       }
 

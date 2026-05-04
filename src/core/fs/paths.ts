@@ -46,3 +46,21 @@ export function extname(name: string): string {
 export function eqPath(a: string, b: string): boolean {
   return normalize(a).toLowerCase() === normalize(b).toLowerCase();
 }
+
+import type { FS } from './index';
+
+/** Given a parent dir + a desired basename, returns the full target path with
+ * a unique name (` (2)`, ` (3)`, … on collision) at that location. */
+export function findUniqueSibling(fs: FS, parentDir: string, desired: string): string {
+  if (!fs.exists(join(parentDir, desired))) return join(parentDir, desired);
+  const dot = desired.lastIndexOf('.');
+  // Treat leading dot (e.g. ".gitignore") as no extension.
+  const hasExt = dot > 0;
+  const stem = hasExt ? desired.slice(0, dot) : desired;
+  const ext = hasExt ? desired.slice(dot) : '';
+  for (let i = 2; i < 10000; i++) {
+    const cand = `${stem} (${i})${ext}`;
+    if (!fs.exists(join(parentDir, cand))) return join(parentDir, cand);
+  }
+  return join(parentDir, `${stem} (${Date.now()})${ext}`);
+}
