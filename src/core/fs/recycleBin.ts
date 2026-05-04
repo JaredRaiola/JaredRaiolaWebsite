@@ -1,6 +1,6 @@
 import type { FS } from './index';
 import { uuid } from '@/lib/uuid';
-import { basename, extname } from './paths';
+import { basename, parent, extname, join } from './paths';
 import type { FsNode } from './tree';
 
 export const RECYCLE_BIN_DIR = 'C:\\Recycle Bin';
@@ -78,6 +78,20 @@ const findUniqueBinName = (
   return `${stem} (${Date.now()})${ext}`;
 };
 
+const findUniqueOriginName = (fs: FS, originPath: string): string => {
+  const par = parent(originPath);
+  const desired = basename(originPath);
+  if (!par) return desired;
+  const exists = (name: string) => fs.exists(join(par, name));
+  if (!exists(desired)) return desired;
+  const { stem, ext } = splitNameExt(desired);
+  for (let i = 2; i < 10000; i++) {
+    const candidate = `${stem} (${i})${ext}`;
+    if (!exists(candidate)) return candidate;
+  }
+  return `${stem} (${Date.now()})${ext}`;
+};
+
 export async function createRecycleBin(fs: FS): Promise<RecycleBin> {
   if (!fs.exists(RECYCLE_BIN_DIR)) await fs.mkdir(RECYCLE_BIN_DIR);
   let entries = await loadIndex(fs);
@@ -110,8 +124,30 @@ export async function createRecycleBin(fs: FS): Promise<RecycleBin> {
       await saveIndex(fs, entries);
       return created;
     },
-    async restore(_id, _conflictResolution) {
-      throw new Error('Not implemented yet');
+    async restore(id, conflictResolution) {
+      const entry = entries.find((e) => e.id === id);
+      if (!entry) return { restored: false };
+      if (conflictResolution === 'cancel') return { restored: false };
+
+      const binPath = `${RECYCLE_BIN_DIR}\\${entry.binName}`;
+      const conflict = fs.exists(entry.originPath);
+
+      let destPath = entry.originPath;
+      if (conflict) {
+        if (conflictResolution === 'replace') {
+          await fs.unlinkPermanent(entry.originPath);
+        } else if (conflictResolution === 'rename') {
+          const par = parent(entry.originPath);
+          destPath = par
+            ? join(par, findUniqueOriginName(fs, entry.originPath))
+            : entry.originPath;
+        }
+      }
+
+      await fs.move(binPath, destPath);
+      entries = entries.filter((e) => e.id !== id);
+      await saveIndex(fs, entries);
+      return { restored: true, restoredPath: destPath };
     },
     async permanentlyDelete(_id) {
       throw new Error('Not implemented yet');

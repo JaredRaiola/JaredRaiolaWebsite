@@ -122,3 +122,64 @@ describe('recycleBin.sendToBin', () => {
     expect(reloaded.list()).toHaveLength(2);
   });
 });
+
+describe('recycleBin.restore', () => {
+  beforeEach(() => {
+    indexedDB.deleteDatabase('win95-fs');
+  });
+
+  it('restores cleanly when the origin path is free', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\note.txt', 'hi');
+    const bin = await createRecycleBin(fs);
+    const [entry] = await bin.sendToBin(['C:\\note.txt']);
+    const result = await bin.restore(entry.id, 'replace');
+    expect(result).toEqual({ restored: true, restoredPath: 'C:\\note.txt' });
+    expect(fs.exists('C:\\note.txt')).toBe(true);
+    expect(await fs.readText('C:\\note.txt')).toBe('hi');
+    expect(bin.list()).toEqual([]);
+  });
+
+  it('replace overwrites a conflicting target', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\note.txt', 'old');
+    const bin = await createRecycleBin(fs);
+    const [entry] = await bin.sendToBin(['C:\\note.txt']);
+    await fs.writeText('C:\\note.txt', 'new');
+    const result = await bin.restore(entry.id, 'replace');
+    expect(result.restored).toBe(true);
+    expect(await fs.readText('C:\\note.txt')).toBe('old');
+  });
+
+  it('rename produces a unique sibling name at the origin', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\note.txt', 'old');
+    const bin = await createRecycleBin(fs);
+    const [entry] = await bin.sendToBin(['C:\\note.txt']);
+    await fs.writeText('C:\\note.txt', 'new');
+    const result = await bin.restore(entry.id, 'rename');
+    expect(result.restored).toBe(true);
+    expect(result.restoredPath).toBe('C:\\note (2).txt');
+    expect(fs.exists('C:\\note.txt')).toBe(true);
+    expect(fs.exists('C:\\note (2).txt')).toBe(true);
+  });
+
+  it('cancel is a no-op and keeps the entry', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\note.txt', 'old');
+    const bin = await createRecycleBin(fs);
+    const [entry] = await bin.sendToBin(['C:\\note.txt']);
+    await fs.writeText('C:\\note.txt', 'new');
+    const result = await bin.restore(entry.id, 'cancel');
+    expect(result).toEqual({ restored: false });
+    expect(bin.list()).toHaveLength(1);
+    expect(fs.exists('C:\\Recycle Bin\\note.txt')).toBe(true);
+  });
+
+  it('returns { restored: false } for an unknown id', async () => {
+    const fs = await createFs(seedRoot());
+    const bin = await createRecycleBin(fs);
+    const result = await bin.restore('does-not-exist', 'replace');
+    expect(result).toEqual({ restored: false });
+  });
+});
