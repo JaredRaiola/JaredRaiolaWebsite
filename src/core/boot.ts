@@ -11,6 +11,7 @@ import resumeMeta from '@/apps/resume/meta';
 import controlPanelMeta from '@/apps/controlpanel/meta';
 import calculatorMeta from '@/apps/calculator/meta';
 import cmdMeta from '@/apps/cmd/meta';
+import paintMeta from '@/apps/paint/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import { uuid } from '@/lib/uuid';
@@ -253,6 +254,7 @@ function iconUrlForNode(n: FsNode): string {
   }
   const ext = extname(n.name);
   if (ext === '.txt') return '/assets/win98/png/notepad-0.png';
+  if (ext === '.png') return '/assets/win98/png/paint_old-0.png';
   if (ext === '.url') return '/assets/win98/png/html-0.png';
   if (ext === '.lnk') return '/assets/win98/png/document-0.png';
   return '/assets/win98/png/file_lines-0.png';
@@ -320,6 +322,7 @@ function registerAllApps(): void {
   registerApp(controlPanelMeta);
   registerApp(calculatorMeta);
   registerApp(cmdMeta);
+  registerApp(paintMeta);
 }
 
 export async function boot(): Promise<void> {
