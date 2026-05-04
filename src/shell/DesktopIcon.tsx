@@ -4,6 +4,7 @@ import { useDesktopStore, type DesktopIcon as Icon } from '@/stores/desktopStore
 import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useWindowStore } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
+import { useRecycleBinStore } from '@/stores/recycleBinStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
 import {
@@ -44,6 +45,14 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   const showCtx = useContextMenuStore((s) => s.show);
   const open = useWindowStore((s) => s.open);
   const fs = useFsStore((s) => s.fs);
+
+  const recycleEntriesCount = useRecycleBinStore((s) => s.entries.length);
+  const isRecycleBinIcon = icon.id === 'icon-recycle';
+  const effectiveIconUrl = isRecycleBinIcon
+    ? (recycleEntriesCount > 0
+        ? '/assets/win98/png/recycle_bin_full-0.png'
+        : '/assets/win98/png/recycle_bin_empty-0.png')
+    : icon.iconUrl;
 
   const ref = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
@@ -200,12 +209,39 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     if (!useDesktopStore.getState().selection.has(icon.id)) {
       setSelection([icon.id]);
     }
-    showCtx(e.clientX, e.clientY, [
-      { kind: 'item', label: 'Open', onSelect: activate },
-      { kind: 'item', label: 'Open With...', onSelect: () => {}, disabled: true },
-      { kind: 'separator' },
+    const recycleBinItem = isRecycleBinIcon
+      ? {
+          kind: 'item' as const,
+          label: 'Empty Recycle Bin',
+          disabled: recycleEntriesCount === 0,
+          onSelect: () => {
+            const count = recycleEntriesCount;
+            const message =
+              count === 1
+                ? 'Are you sure you want to permanently delete this item? This action cannot be undone.'
+                : `Are you sure you want to permanently delete these ${count} items? This action cannot be undone.`;
+            void sysConfirm(message, { title: 'Confirm Multiple File Delete', icon: 'warn' }).then(
+              (ok) => {
+                if (!ok) return;
+                const bin = useRecycleBinStore.getState().bin;
+                if (!bin) return;
+                void bin.empty().then(() => {
+                  useRecycleBinStore.getState().refresh();
+                  useFsStore.getState().bump();
+                });
+              },
+            );
+          },
+        }
+      : null;
+
+    const items = [
+      { kind: 'item' as const, label: 'Open', onSelect: activate },
+      ...(recycleBinItem ? [recycleBinItem] : []),
+      { kind: 'item' as const, label: 'Open With...', onSelect: () => {}, disabled: true },
+      { kind: 'separator' as const },
       {
-        kind: 'item',
+        kind: 'item' as const,
         label: 'Rename',
         onSelect: () => {
           void sysPrompt('Enter a new name:', icon.label, { title: 'Rename' }).then((next) => {
@@ -214,17 +250,20 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
         },
       },
       {
-        kind: 'item',
+        kind: 'item' as const,
         label: 'Delete',
         disabled: isProtectedIcon(icon),
         onSelect: () => {
           if (isProtectedIcon(icon)) return;
-          void sysConfirm(`Are you sure you want to delete '${icon.label}'?`, {
-            title: 'Confirm File Delete',
-            icon: 'warn',
-          }).then((ok) => {
+          void sysConfirm(
+            `Are you sure you want to send '${icon.label}' to the Recycle Bin?`,
+            { title: 'Confirm File Delete', icon: 'warn' },
+          ).then((ok) => {
             if (!ok) return;
-            if (icon.target.kind === 'file' && icon.target.path.toLowerCase().startsWith('c:\\windows\\user\\desktop\\')) {
+            if (
+              icon.target.kind === 'file' &&
+              icon.target.path.toLowerCase().startsWith('c:\\windows\\user\\desktop\\')
+            ) {
               void fs?.unlink(icon.target.path).then(() => useFsStore.getState().bump());
             } else {
               remove(icon.id);
@@ -232,9 +271,11 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
           });
         },
       },
-      { kind: 'separator' },
-      { kind: 'item', label: 'Properties', onSelect: () => {}, disabled: true },
-    ]);
+      { kind: 'separator' as const },
+      { kind: 'item' as const, label: 'Properties', onSelect: () => {}, disabled: true },
+    ];
+
+    showCtx(e.clientX, e.clientY, items);
   };
 
   const x = drag?.x ?? icon.x;
@@ -338,6 +379,16 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     e.preventDefault();
     e.stopPropagation();
     markDropConsumed();
+    if (isRecycleBinIcon) {
+      void (async () => {
+        const bin = useRecycleBinStore.getState().bin;
+        if (!bin) return;
+        await bin.sendToBin(payload.paths);
+        useRecycleBinStore.getState().refresh();
+        useFsStore.getState().bump();
+      })();
+      return;
+    }
     void (async () => {
       if (payload.urlShortcut) {
         await createUrlShortcut(fs, dest, payload.urlShortcut.label, payload.urlShortcut.url);
@@ -367,7 +418,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       onDragOver={isFolderTarget ? onDragOver : undefined}
       onDrop={isFolderTarget ? onDrop : undefined}
     >
-      <img src={icon.iconUrl} alt="" draggable={false} />
+      <img src={effectiveIconUrl} alt="" draggable={false} />
       <div className="label">{icon.label}</div>
     </div>
   );
