@@ -29,17 +29,8 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
     return () => clearTimeout(t);
   }, [stage, onDone]);
 
-  const skip = (): void => {
-    const idx = STAGE_ORDER.indexOf(stage);
-    if (idx < STAGE_ORDER.length - 1) setStage(STAGE_ORDER[idx + 1]);
-    else {
-      setHide(true);
-      setTimeout(onDone, 200);
-    }
-  };
-
   return (
-    <div className={`boot-root ${hide ? 'fading' : ''}`} onClick={skip}>
+    <div className={`boot-root ${hide ? 'fading' : ''}`}>
       {stage === 'floppy' && <FloppyStage />}
       {stage === 'bios' && <BiosStage />}
       {stage === 'config' && <ConfigStage />}
@@ -199,13 +190,14 @@ function SplashStage() {
   return (
     <div className="boot-splash">
       <div className="boot-splash-clouds" />
+      <div className="boot-splash-corner">Microsoft</div>
       <div className="boot-splash-content">
-        <div className="boot-splash-microsoft">Microsoft</div>
         <img src="/assets/win95-logo.svg" alt="" className="boot-splash-logo" />
-        <div className="boot-splash-windows">
-          <span className="boot-splash-windows-word">Windows</span>
-          <sup className="boot-splash-r">&reg;</sup>
-          <span className="boot-splash-95">95</span>
+        <div className="boot-splash-text">
+          <div className="boot-splash-microsoft">Microsoft</div>
+          <div className="boot-splash-windows">
+            Windows<span className="boot-splash-95">95</span>
+          </div>
         </div>
       </div>
     </div>
