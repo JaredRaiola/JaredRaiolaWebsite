@@ -1,0 +1,19 @@
+.fd-root { display: flex; flex-direction: column; gap: 8px; min-width: 480px; padding: 8px; }
+.fd-toolbar { display: flex; gap: 6px; align-items: center; }
+.fd-list {
+  background: white;
+  border: 2px inset #c0c0c0;
+  height: 240px;
+  overflow-y: auto;
+  font-size: 11px;
+  padding: 4px;
+}
+.fd-row {
+  display: flex; gap: 6px; align-items: center;
+  padding: 2px 4px;
+  cursor: default;
+}
+.fd-row.selected { background: #000080; color: white; }
+.fd-row img { width: 16px; height: 16px; }
+.fd-bottom { display: flex; gap: 8px; align-items: center; }
+.fd-bottom input { flex: 1; }
