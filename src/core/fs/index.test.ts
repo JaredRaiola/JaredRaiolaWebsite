@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createFs } from './index';
 import { makeDir } from './tree';
+import { createRecycleBin } from './recycleBin';
 
 describe('FS public API', () => {
   beforeEach(() => {
@@ -39,4 +40,20 @@ describe('FS public API', () => {
     await fs.rmdir('C:\\Dir', { recursive: true });
     expect(fs.exists('C:\\Dir')).toBe(false);
   });
+});
+
+it('unlink soft-deletes a file into the Recycle Bin when wired through recycleBin', async () => {
+  const fs = await createFs(makeDir('C:'));
+  await fs.writeText('C:\\a.txt', 'A');
+  const bin = await createRecycleBin(fs);
+  // Wire fs.unlink to bin.sendToBin (mirrors the boot wiring).
+  const originalUnlink = fs.unlink;
+  fs.unlink = async (path) => {
+    if (path.toLowerCase().startsWith('c:\\recycle bin')) return originalUnlink(path);
+    await bin.sendToBin([path]);
+  };
+  await fs.unlink('C:\\a.txt');
+  expect(fs.exists('C:\\a.txt')).toBe(false);
+  expect(fs.exists('C:\\Recycle Bin\\a.txt')).toBe(true);
+  expect(bin.list()).toHaveLength(1);
 });

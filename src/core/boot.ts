@@ -312,6 +312,17 @@ export async function boot(): Promise<void> {
   useFsStore.getState().setFs(fs);
   const recycleBin = await createRecycleBin(fs);
   useRecycleBinStore.getState().setBin(recycleBin);
+  const originalUnlink = fs.unlink.bind(fs);
+  fs.unlink = async (path: string) => {
+    // Items already inside the Bin can't be re-binned. Defensive: also forward
+    // to the original (hard) unlink for any path under the Bin so bin-mode
+    // "Permanently Delete" actions don't accidentally route here.
+    if (path.toLowerCase().startsWith('c:\\recycle bin')) {
+      return originalUnlink(path);
+    }
+    await recycleBin.sendToBin([path]);
+    useRecycleBinStore.getState().refresh();
+  };
   // FS bumps drive a refresh in case anything else edits the bin folder.
   useFsStore.subscribe((s, prev) => {
     if (s.bumpVersion !== prev.bumpVersion) {

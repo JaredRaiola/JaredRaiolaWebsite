@@ -17,9 +17,22 @@ import {
   clearLastDragPos,
 } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
+import { sysAlert, sysConfirm, sysPrompt } from '@/lib/dialog';
 
 const GRID_W = 84;
 const GRID_H = 92;
+
+// Belt-and-suspenders for the protected flag: even if a stale localStorage
+// entry from before the flag existed lacks `protected: true`, these IDs are
+// always treated as undeletable.
+const PROTECTED_ICON_IDS = new Set([
+  'icon-recycle',
+  'icon-mycomputer',
+  'icon-linkedin',
+  'icon-github',
+  'icon-resume',
+]);
+const isProtectedIcon = (i: Icon): boolean => i.protected === true || PROTECTED_ICON_IDS.has(i.id);
 
 export function DesktopIcon({ icon }: { icon: Icon }) {
   const selected = useDesktopStore((s) => s.selection.has(icon.id));
@@ -108,7 +121,6 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     const dx = endX - start.x;
     const dy = endY - start.y;
     if (Math.abs(dx) <= 4 && Math.abs(dy) <= 4) {
-      setSelection([]);
       return;
     }
     const taskbar = 40;
@@ -125,7 +137,6 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
         move(id, cx, cy);
       }
     });
-    setSelection([]);
   };
 
   const onPointerDown = (e: React.PointerEvent): void => {
@@ -197,21 +208,28 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
         kind: 'item',
         label: 'Rename',
         onSelect: () => {
-          const next = window.prompt('New name:', icon.label);
-          if (next) rename(icon.id, next);
+          void sysPrompt('Enter a new name:', icon.label, { title: 'Rename' }).then((next) => {
+            if (next && next !== icon.label) rename(icon.id, next);
+          });
         },
       },
       {
         kind: 'item',
         label: 'Delete',
+        disabled: isProtectedIcon(icon),
         onSelect: () => {
-          if (!window.confirm(`Delete ${icon.label}?`)) return;
-          // If FS-backed and inside C:\Windows\Desktop, delete the actual file.
-          if (icon.target.kind === 'file' && icon.target.path.toLowerCase().startsWith('c:\\windows\\user\\desktop\\')) {
-            void fs?.unlink(icon.target.path).then(() => useFsStore.getState().bump());
-          } else {
-            remove(icon.id);
-          }
+          if (isProtectedIcon(icon)) return;
+          void sysConfirm(`Are you sure you want to delete '${icon.label}'?`, {
+            title: 'Confirm File Delete',
+            icon: 'warn',
+          }).then((ok) => {
+            if (!ok) return;
+            if (icon.target.kind === 'file' && icon.target.path.toLowerCase().startsWith('c:\\windows\\user\\desktop\\')) {
+              void fs?.unlink(icon.target.path).then(() => useFsStore.getState().bump());
+            } else {
+              remove(icon.id);
+            }
+          });
         },
       },
       { kind: 'separator' },
@@ -294,12 +312,17 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     dragStartRef.current = null;
     clearLastDragPos();
     placementDoneRef.current = false;
-    setSelection([]);
+    setDrag(null);
   };
 
   const onDragOver = (e: React.DragEvent): void => {
     if (!isFolderTarget) return;
     if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
+    // If this folder is itself one of the dragged items (multi-select that
+    // includes the folder), don't accept the drop — the user is repositioning
+    // the group, not depositing siblings into the folder. The payload isn't
+    // readable in dragover, so use selection as the proxy for "in dragSet".
+    if (useDesktopStore.getState().selection.has(icon.id)) return;
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
@@ -309,10 +332,12 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     if (!isFolderTarget || !fileTargetPath) return;
     const payload = getDndPayload(e);
     if (!payload || !fs) return;
+    // Same guard as onDragOver, but using the authoritative payload paths.
+    const dest = fileTargetPath;
+    if (payload.paths.some((p) => p.toLowerCase() === dest.toLowerCase())) return;
     e.preventDefault();
     e.stopPropagation();
     markDropConsumed();
-    const dest = fileTargetPath;
     void (async () => {
       if (payload.urlShortcut) {
         await createUrlShortcut(fs, dest, payload.urlShortcut.label, payload.urlShortcut.url);
@@ -321,7 +346,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       } else {
         const filtered = payload.paths.filter((p) => p.toLowerCase() !== dest.toLowerCase());
         const { errors } = await moveAllInto(fs, filtered, dest);
-        if (errors.length > 0) alert(errors.join('\n'));
+        if (errors.length > 0) void sysAlert(errors.join('\n'), { title: 'Move', icon: 'error' });
       }
       useFsStore.getState().bump();
     })();
