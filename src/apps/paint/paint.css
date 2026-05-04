@@ -1,0 +1,235 @@
+.paint-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #c0c0c0;
+  overflow: hidden;
+  font-family: 'MS Sans Serif', Arial, sans-serif;
+  font-size: 12px;
+  user-select: none;
+}
+
+/* ── Menu bar ── */
+.paint-menubar {
+  display: flex;
+  gap: 0;
+  padding: 2px 2px;
+  border-bottom: 1px solid #808080;
+  background: #c0c0c0;
+  flex-shrink: 0;
+}
+
+.paint-menu {
+  position: relative;
+  cursor: default;
+  padding: 2px 6px;
+}
+
+.paint-menu:hover,
+.paint-menu.open {
+  background: #000080;
+  color: #fff;
+}
+
+.paint-menu-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  box-shadow: 2px 2px 0 #000;
+  z-index: 9000;
+  min-width: 140px;
+}
+
+.paint-menu-popup .item {
+  padding: 3px 20px 3px 20px;
+  cursor: default;
+  color: #000;
+  white-space: nowrap;
+}
+
+.paint-menu-popup .item:hover:not(.disabled) {
+  background: #000080;
+  color: #fff;
+}
+
+.paint-menu-popup .item.disabled {
+  color: #808080;
+  cursor: default;
+}
+
+.paint-menu-popup .sep {
+  height: 1px;
+  background: #808080;
+  margin: 3px 2px;
+}
+
+/* ── Main workspace ── */
+.paint-workspace {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* ── Toolbox ── */
+.paint-toolbox {
+  display: grid;
+  grid-template-columns: repeat(2, 26px);
+  gap: 2px;
+  padding: 4px;
+  background: #c0c0c0;
+  border-right: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  flex-shrink: 0;
+  align-content: start;
+}
+
+.paint-tool {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.paint-tool:active,
+.paint-tool.active {
+  background: #c0c0c0;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+/* ── Canvas area ── */
+.paint-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+}
+
+.paint-canvas-wrap {
+  position: relative;
+  background: #fff;
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  display: inline-block;
+}
+
+.paint-canvas-main,
+.paint-canvas-preview {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.paint-canvas-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* ── Palette ── */
+.paint-palette {
+  display: flex;
+  gap: 8px;
+  padding: 4px 8px;
+  border-top: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  background: #c0c0c0;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.paint-fg-bg {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.paint-color-bg {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #000;
+  box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #808080;
+}
+
+.paint-color-fg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #000;
+  box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #808080;
+}
+
+.paint-swatches {
+  display: grid;
+  grid-template-columns: repeat(14, 16px);
+  grid-template-rows: repeat(2, 16px);
+  gap: 1px;
+}
+
+.paint-swatch {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid #000;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.paint-swatch:hover {
+  outline: 1px solid #fff;
+  outline-offset: 1px;
+}
+
+/* ── Size picker ── */
+.paint-sizes {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.paint-size-btn {
+  padding: 2px 6px;
+  cursor: default;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  font-size: 11px;
+}
+
+.paint-size-btn.active {
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+/* ── Status bar ── */
+.paint-status {
+  display: flex;
+  gap: 12px;
+  padding: 2px 8px;
+  background: #c0c0c0;
+  border-top: 1px solid #808080;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.paint-status-pane {
+  border: 1px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 1px 6px;
+  min-width: 80px;
+}
