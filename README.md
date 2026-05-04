@@ -1,3 +1,0 @@
-# JaredRaiolaFirebaseWebsite
-
-Personal website
