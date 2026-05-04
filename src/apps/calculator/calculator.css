@@ -1,0 +1,60 @@
+.calc-root {
+  padding: 6px;
+  user-select: none;
+  font-size: 13px;
+}
+
+.calc-display {
+  margin: 4px 0 8px;
+  padding: 4px 8px;
+  text-align: right;
+  font-family: 'Lucida Console', 'Courier New', monospace;
+  font-size: 18px;
+  background: #fff;
+  border: 2px solid;
+  border-color: #404040 #ffffff #ffffff #404040;
+  height: 28px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.calc-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calc-row {
+  display: flex;
+  gap: 4px;
+}
+
+.calc-row button {
+  flex: 1;
+  height: 28px;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.calc-grid button {
+  height: 28px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.calc-op {
+  color: #000080;
+  font-weight: bold;
+}
+
+.calc-mem {
+  color: #800000;
+}
+
+.calc-mem-active::before {
+  content: 'M';
+}
