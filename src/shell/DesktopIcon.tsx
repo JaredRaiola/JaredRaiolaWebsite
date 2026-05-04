@@ -5,7 +5,7 @@ import { useWindowStore } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
-import { setDndPayload, getDndPayload, moveAllInto } from '@/core/fs/dnd';
+import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, wasDropConsumed } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 
 const GRID_W = 84;
@@ -243,9 +243,8 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   const onDragEnd = (e: React.DragEvent): void => {
     const start = dragStartRef.current;
     dragStartRef.current = null;
-    // dropEffect is 'none' when the drag wasn't consumed by a drop target.
-    // In that case treat the gesture as a desktop reposition.
-    if (start && e.dataTransfer.dropEffect === 'none') {
+    // No drop target consumed this drag → snap to grid (desktop reposition).
+    if (start && !wasDropConsumed()) {
       const dx = e.clientX - start.x;
       const dy = e.clientY - start.y;
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
@@ -275,6 +274,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     if (!payload || !fs) return;
     e.preventDefault();
     e.stopPropagation();
+    markDropConsumed();
     const dest = fileTargetPath;
     void (async () => {
       if (payload.urlShortcut) {

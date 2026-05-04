@@ -7,7 +7,7 @@ import { useClipboardStore } from '@/stores/clipboardStore';
 import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
 import { join, parent, basename } from '@/core/fs/paths';
-import { setDndPayload, getDndPayload, moveAllInto, isPathInside } from '@/core/fs/dnd';
+import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, isPathInside } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 import './explorer.css';
 
@@ -361,6 +361,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
     if (!payload) return;
     e.preventDefault();
     e.stopPropagation();
+    markDropConsumed();
     const dest = join(cwd, destFolderName);
     void runMove(payload, dest);
   };
@@ -375,6 +376,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
     const payload = getDndPayload(e);
     if (!payload) return;
     e.preventDefault();
+    markDropConsumed();
     void runMove(payload, cwd, true);
   };
 
@@ -432,6 +434,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
     const destDir = parent(cwd);
     if (!payload || !destDir) return;
     e.preventDefault();
+    markDropConsumed();
     void runMove(payload, destDir);
   };
 

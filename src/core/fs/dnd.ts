@@ -4,6 +4,18 @@ import type { FS } from './index';
 /** Custom MIME used for in-app drag payloads. */
 export const DND_MIME = 'application/x-win95-fs';
 
+// Browser dropEffect reporting on dragend is inconsistent across engines, so
+// we use an explicit timestamp-based flag. Drop handlers that successfully
+// process a drag call markDropConsumed(); the source's onDragEnd checks
+// wasDropConsumed() to decide whether to fall back to a desktop reposition.
+let _lastDropConsumed = 0;
+export function markDropConsumed(): void {
+  _lastDropConsumed = performance.now();
+}
+export function wasDropConsumed(thresholdMs = 200): boolean {
+  return performance.now() - _lastDropConsumed < thresholdMs;
+}
+
 export type DndPayload = {
   /** Where the drag originated. */
   source: 'fs' | 'desktop';

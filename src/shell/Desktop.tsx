@@ -5,7 +5,7 @@ import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useFsStore } from '@/stores/fsStore';
 import { useThemeStore, wallpaperUrl } from '@/stores/themeStore';
 import { DesktopIcon } from './DesktopIcon';
-import { getDndPayload, moveAllInto } from '@/core/fs/dnd';
+import { getDndPayload, moveAllInto, markDropConsumed } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut } from '@/core/fs/shortcut';
 import { join } from '@/core/fs/paths';
 import { DESKTOP_DIR } from '@/core/boot';
@@ -43,6 +43,7 @@ export function Desktop() {
     // shortcut files or no-op move.
     if (payload.source === 'desktop') return;
     e.preventDefault();
+    markDropConsumed();
     void (async () => {
       if (payload.urlShortcut) {
         await createUrlShortcut(fs, DESKTOP_DIR, payload.urlShortcut.label, payload.urlShortcut.url);
