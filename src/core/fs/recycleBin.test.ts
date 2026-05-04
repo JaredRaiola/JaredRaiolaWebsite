@@ -52,3 +52,73 @@ describe('recycleBin index IO', () => {
     expect(reloaded.list()).toEqual([entry]);
   });
 });
+
+describe('recycleBin.sendToBin', () => {
+  beforeEach(() => {
+    indexedDB.deleteDatabase('win95-fs');
+  });
+
+  it('moves a file to the bin and records an entry', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\note.txt', 'hello');
+    const bin = await createRecycleBin(fs);
+    const created = await bin.sendToBin(['C:\\note.txt']);
+    expect(created).toHaveLength(1);
+    expect(created[0]).toMatchObject({
+      binName: 'note.txt',
+      originPath: 'C:\\note.txt',
+      kind: 'file',
+      size: 5,
+    });
+    expect(fs.exists('C:\\note.txt')).toBe(false);
+    expect(fs.exists('C:\\Recycle Bin\\note.txt')).toBe(true);
+    expect(bin.list()).toHaveLength(1);
+  });
+
+  it('appends " (2)", " (3)" on basename collision in the bin', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\note.txt', 'A');
+    await fs.mkdir('C:\\sub');
+    await fs.writeText('C:\\sub\\note.txt', 'B');
+    const bin = await createRecycleBin(fs);
+    await bin.sendToBin(['C:\\note.txt']);
+    await bin.sendToBin(['C:\\sub\\note.txt']);
+    const names = bin.list().map((e) => e.binName).sort();
+    expect(names).toEqual(['note (2).txt', 'note.txt']);
+  });
+
+  it('moves a folder and computes total size from contained files', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.mkdir('C:\\Folder');
+    await fs.writeText('C:\\Folder\\a.txt', 'aa');
+    await fs.writeText('C:\\Folder\\b.txt', 'bbb');
+    const bin = await createRecycleBin(fs);
+    const [entry] = await bin.sendToBin(['C:\\Folder']);
+    expect(entry.kind).toBe('dir');
+    expect(entry.size).toBe(5);
+    expect(fs.exists('C:\\Recycle Bin\\Folder\\a.txt')).toBe(true);
+  });
+
+  it('silently filters paths that are the bin itself, the index file, or anything under the bin', async () => {
+    const fs = await createFs(seedRoot());
+    const bin = await createRecycleBin(fs);
+    await fs.writeText('C:\\Recycle Bin\\already-here.txt', 'x');
+    const created = await bin.sendToBin([
+      'C:\\Recycle Bin',
+      'C:\\Recycle Bin\\.index.json',
+      'C:\\Recycle Bin\\already-here.txt',
+      'C:\\does-not-exist.txt',
+    ]);
+    expect(created).toEqual([]);
+  });
+
+  it('writes the index once per call regardless of input length', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\a.txt', '1');
+    await fs.writeText('C:\\b.txt', '22');
+    const bin = await createRecycleBin(fs);
+    await bin.sendToBin(['C:\\a.txt', 'C:\\b.txt']);
+    const reloaded = await createRecycleBin(fs);
+    expect(reloaded.list()).toHaveLength(2);
+  });
+});

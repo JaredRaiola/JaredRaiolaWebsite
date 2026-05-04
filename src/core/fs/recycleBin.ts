@@ -1,5 +1,7 @@
 import type { FS } from './index';
 import { uuid } from '@/lib/uuid';
+import { basename, extname } from './paths';
+import type { FsNode } from './tree';
 
 export const RECYCLE_BIN_DIR = 'C:\\Recycle Bin';
 export const RECYCLE_INDEX_PATH = 'C:\\Recycle Bin\\.index.json';
@@ -49,17 +51,64 @@ const saveIndex = async (fs: FS, entries: RecycleEntry[]): Promise<void> => {
   await fs.writeText(RECYCLE_INDEX_PATH, JSON.stringify(idx));
 };
 
+const splitNameExt = (name: string): { stem: string; ext: string } => {
+  const ext = extname(name);
+  return { stem: ext ? name.slice(0, -ext.length) : name, ext };
+};
+
+const computeSize = (node: FsNode): number => {
+  if (node.kind === 'file') return node.size;
+  return Object.values(node.children).reduce((sum, c) => sum + computeSize(c), 0);
+};
+
+const findUniqueBinName = (
+  fs: FS,
+  entries: RecycleEntry[],
+  desired: string,
+): string => {
+  const taken = new Set<string>(entries.map((e) => e.binName.toLowerCase()));
+  const exists = (name: string) =>
+    taken.has(name.toLowerCase()) || fs.exists(`${RECYCLE_BIN_DIR}\\${name}`);
+  if (!exists(desired)) return desired;
+  const { stem, ext } = splitNameExt(desired);
+  for (let i = 2; i < 10000; i++) {
+    const candidate = `${stem} (${i})${ext}`;
+    if (!exists(candidate)) return candidate;
+  }
+  return `${stem} (${Date.now()})${ext}`;
+};
+
 export async function createRecycleBin(fs: FS): Promise<RecycleBin> {
   if (!fs.exists(RECYCLE_BIN_DIR)) await fs.mkdir(RECYCLE_BIN_DIR);
   let entries = await loadIndex(fs);
-  // entries used by closures below; keep a `void` reference until later tasks
-  // wire sendToBin/restore/etc. so TS doesn't flag it as unused.
-  void entries;
-  void uuid;
 
   const api: RecycleBin & { _saveIndexForTests(entries: RecycleEntry[]): Promise<void> } = {
-    async sendToBin(_paths) {
-      throw new Error('Not implemented yet');
+    async sendToBin(paths) {
+      const filtered = paths.filter(
+        (p) => !isUnderBin(p) && fs.exists(p),
+      );
+      if (filtered.length === 0) return [];
+      const created: RecycleEntry[] = [];
+      for (const path of filtered) {
+        const node = fs.stat(path);
+        if (!node) continue;
+        const desired = basename(path);
+        const binName = findUniqueBinName(fs, [...entries, ...created], desired);
+        await fs.move(path, `${RECYCLE_BIN_DIR}\\${binName}`);
+        const movedNode = fs.stat(`${RECYCLE_BIN_DIR}\\${binName}`);
+        if (!movedNode) continue;
+        created.push({
+          id: uuid(),
+          binName,
+          originPath: path,
+          deletedAt: Date.now(),
+          kind: movedNode.kind,
+          size: computeSize(movedNode),
+        });
+      }
+      entries = [...entries, ...created];
+      await saveIndex(fs, entries);
+      return created;
     },
     async restore(_id, _conflictResolution) {
       throw new Error('Not implemented yet');
