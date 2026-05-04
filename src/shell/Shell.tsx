@@ -9,6 +9,8 @@ import { Window } from './Window';
 import { StartMenu } from './StartMenu';
 import { RunDialog } from './RunDialog';
 import { ContextMenu } from './ContextMenu';
+import { SystemDialogHost } from './SystemDialog';
+import { RestoreConflictDialogHost } from './RestoreConflictDialog';
 
 export function Shell() {
   const windows = useWindowStore(useShallow((s) => Object.values(s.windows)));
@@ -59,6 +61,8 @@ export function Shell() {
       <StartMenu />
       <RunDialog />
       <ContextMenu />
+      <SystemDialogHost />
+      <RestoreConflictDialogHost />
     </>
   );
 }
