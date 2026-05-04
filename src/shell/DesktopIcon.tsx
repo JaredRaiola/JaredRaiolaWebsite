@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDesktopStore, type DesktopIcon as Icon } from '@/stores/desktopStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useWindowStore } from '@/stores/windowStore';
@@ -33,6 +33,23 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
 
   const ref = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+
+  // While an HTML5 drag is in flight, update transforms on the dragged
+  // elements directly via the document dragover. This dodges React state
+  // updates per pointer move and feels instant.
+  useEffect(() => {
+    const handler = (e: DragEvent): void => {
+      const start = dragStartRef.current;
+      if (!start) return;
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      for (const el of movedElementsRef.current) {
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
+    };
+    document.addEventListener('dragover', handler);
+    return () => document.removeEventListener('dragover', handler);
+  }, []);
 
   const activate = (): void => {
     if (icon.target.kind === 'app') {
@@ -193,20 +210,40 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   const fileTargetPath = icon.target.kind === 'file' ? icon.target.path : null;
   const isFolderTarget = isFileTarget && fileTargetPath ? fs?.stat(fileTargetPath)?.kind === 'dir' : false;
 
+  // 1x1 transparent ghost so the browser doesn't render its laggy default
+  // drag image; we move icons live via direct DOM transforms instead.
+  const blankImgRef = useRef<HTMLImageElement | null>(null);
+  const movedElementsRef = useRef<HTMLElement[]>([]);
+
   const onDragStart = (e: React.DragEvent): void => {
     dragStartedRef.current = true;
     setLastDragPos(e.clientX, e.clientY);
-    // Capture start state so onDragEnd can fall back to a desktop reposition
-    // if no drop target consumed the drag.
+
+    if (!blankImgRef.current) {
+      const img = new Image(1, 1);
+      img.src =
+        'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+      blankImgRef.current = img;
+    }
+    e.dataTransfer.setDragImage(blankImgRef.current, 0, 0);
+
     const sel = useDesktopStore.getState().selection;
     const dragSet =
       sel.has(icon.id) && sel.size > 1 ? Array.from(sel) : [icon.id];
     const allIcons = useDesktopStore.getState().icons;
     const positions: Record<string, { x: number; y: number }> = {};
+    const elements: HTMLElement[] = [];
     for (const id of dragSet) {
       const i = allIcons[id];
       if (i) positions[id] = { x: i.x, y: i.y };
+      const el = document.querySelector<HTMLElement>(`.desktop-icon[data-icon-id="${id}"]`);
+      if (el) {
+        el.style.willChange = 'transform';
+        elements.push(el);
+      }
     }
+    movedElementsRef.current = elements;
+
     dragStartRef.current = {
       x: e.clientX,
       y: e.clientY,
@@ -255,6 +292,12 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     const lastPos = getLastDragPos();
     dragStartRef.current = null;
     clearLastDragPos();
+    // Clear inline transforms applied during live drag.
+    for (const el of movedElementsRef.current) {
+      el.style.transform = '';
+      el.style.willChange = '';
+    }
+    movedElementsRef.current = [];
     if (start && !wasDropConsumed() && lastPos) {
       const dx = lastPos.x - start.x;
       const dy = lastPos.y - start.y;
