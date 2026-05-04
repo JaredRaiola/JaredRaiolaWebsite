@@ -1,0 +1,134 @@
+import { useRef, useState } from 'react';
+import { useDesktopStore } from '@/stores/desktopStore';
+import { useContextMenuStore } from '@/stores/contextMenuStore';
+import { useFsStore } from '@/stores/fsStore';
+import { useThemeStore, wallpaperUrl } from '@/stores/themeStore';
+import { DesktopIcon } from './DesktopIcon';
+import { uuid } from '@/lib/uuid';
+import './Desktop.css';
+
+export function Desktop() {
+  const icons = useDesktopStore((s) => Object.values(s.icons));
+  const setSelection = useDesktopStore((s) => s.setSelection);
+  const add = useDesktopStore((s) => s.add);
+  const showCtx = useContextMenuStore((s) => s.show);
+  const fs = useFsStore((s) => s.fs);
+  const wallpaperKey = useThemeStore((s) => s.wallpaperKey);
+  const bgColor = useThemeStore((s) => s.bgColor);
+
+  const wallpaper = wallpaperUrl(wallpaperKey);
+  const ref = useRef<HTMLDivElement>(null);
+  const [lasso, setLasso] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent): void => {
+    if (e.target !== ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const startX = e.clientX - rect.left;
+    const startY = e.clientY - rect.top;
+    setSelection([]);
+    const onMove = (mv: PointerEvent) => {
+      const cx = mv.clientX - rect.left;
+      const cy = mv.clientY - rect.top;
+      setLasso({
+        x: Math.min(startX, cx),
+        y: Math.min(startY, cy),
+        w: Math.abs(cx - startX),
+        h: Math.abs(cy - startY),
+      });
+      const sel: string[] = [];
+      ref.current!.querySelectorAll<HTMLDivElement>('.desktop-icon').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        const x1 = r.left - rect.left;
+        const y1 = r.top - rect.top;
+        const x2 = x1 + r.width;
+        const y2 = y1 + r.height;
+        const lx1 = Math.min(startX, cx);
+        const ly1 = Math.min(startY, cy);
+        const lx2 = Math.max(startX, cx);
+        const ly2 = Math.max(startY, cy);
+        if (x1 < lx2 && x2 > lx1 && y1 < ly2 && y2 > ly1) {
+          sel.push(el.dataset.iconId!);
+        }
+      });
+      setSelection(sel);
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      setLasso(null);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
+  const onContextMenu = (e: React.MouseEvent): void => {
+    if (e.target !== ref.current) return;
+    e.preventDefault();
+    showCtx(e.clientX, e.clientY, [
+      {
+        kind: 'item',
+        label: 'New Folder',
+        onSelect: async () => {
+          if (!fs) return;
+          const name = window.prompt('Folder name:', 'New Folder');
+          if (!name) return;
+          add({
+            id: uuid(),
+            label: name,
+            iconUrl: '/assets/win98/png/directory_closed-0.png',
+            x: 0,
+            y: 0,
+            target: { kind: 'file', path: `C:\\Windows\\Desktop\\${name}` },
+          });
+          await fs.mkdir(`C:\\Windows\\Desktop\\${name}`);
+        },
+      },
+      {
+        kind: 'item',
+        label: 'New Text Document',
+        onSelect: async () => {
+          if (!fs) return;
+          const name = window.prompt('File name:', 'New Text Document.txt');
+          if (!name) return;
+          await fs.writeText(`C:\\Windows\\Desktop\\${name}`, '');
+          add({
+            id: uuid(),
+            label: name,
+            iconUrl: '/assets/win98/png/notepad-0.png',
+            x: 0,
+            y: 0,
+            target: { kind: 'file', path: `C:\\Windows\\Desktop\\${name}` },
+          });
+        },
+      },
+      { kind: 'separator' },
+      { kind: 'item', label: 'Refresh', onSelect: () => location.reload() },
+      { kind: 'separator' },
+      {
+        kind: 'item',
+        label: 'Properties',
+        onSelect: () => {
+          alert('Display Properties — coming in Phase 2');
+        },
+      },
+    ]);
+  };
+
+  return (
+    <div
+      ref={ref}
+      className="desktop"
+      style={{
+        backgroundColor: bgColor,
+        backgroundImage: wallpaper ? `url(${wallpaper})` : undefined,
+      }}
+      onPointerDown={onPointerDown}
+      onContextMenu={onContextMenu}
+    >
+      {icons.map((i) => (
+        <DesktopIcon key={i.id} icon={i} />
+      ))}
+      {lasso && <div className="lasso" style={{ left: lasso.x, top: lasso.y, width: lasso.w, height: lasso.h }} />}
+    </div>
+  );
+}

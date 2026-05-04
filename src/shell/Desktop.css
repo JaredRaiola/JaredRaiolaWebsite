@@ -1,0 +1,43 @@
+.desktop {
+  position: fixed;
+  inset: 0;
+  bottom: 28px;
+  background: var(--wallpaper-color, #008080);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+.desktop-icon {
+  position: absolute;
+  width: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: default;
+  padding: 4px;
+}
+.desktop-icon img { width: 32px; height: 32px; image-rendering: pixelated; }
+.desktop-icon .label {
+  color: white;
+  font-size: 11px;
+  text-shadow: 1px 1px 0 black;
+  margin-top: 2px;
+  padding: 1px 3px;
+  word-wrap: break-word;
+  max-width: 76px;
+}
+.desktop-icon.selected .label {
+  background: #000080;
+  color: white;
+  outline: 1px dotted white;
+}
+.desktop-icon.selected img {
+  filter: brightness(0.7) sepia(1) hue-rotate(190deg);
+}
+.lasso {
+  position: absolute;
+  border: 1px dotted white;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
