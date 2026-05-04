@@ -4,6 +4,7 @@ import { useWindowStore } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
+import { sysAlert } from '@/lib/dialog';
 
 const HISTORY_KEY = 'win95.run.history';
 
@@ -26,7 +27,9 @@ export function RunDialog() {
   const fs = useFsStore((s) => s.fs);
   const [value, setValue] = useState('');
   const [history, setHistory] = useState<string[]>(() => loadHistory());
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const winRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -39,6 +42,30 @@ export function RunDialog() {
 
   if (!open) return null;
 
+  const onTitlePointerDown = (e: React.PointerEvent): void => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    e.preventDefault();
+    const el = winRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos({ x: rect.left, y: rect.top });
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    const onMove = (mv: PointerEvent) => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const nx = Math.max(0, Math.min(window.innerWidth - w, mv.clientX - offsetX));
+      const ny = Math.max(0, Math.min(window.innerHeight - h, mv.clientY - offsetY));
+      setPos({ x: nx, y: ny });
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   const submit = (): void => {
     const v = value.trim();
     if (!v) return;
@@ -49,7 +76,7 @@ export function RunDialog() {
     if (v.includes('\\') || v.toLowerCase().startsWith('c:')) {
       if (!fs) return;
       if (!fs.exists(v)) {
-        alert(`Cannot find "${v}"`);
+        void sysAlert(`Cannot find "${v}"`, { title: 'Run', icon: 'error' });
         return;
       }
       const node = fs.stat(v);
@@ -65,7 +92,7 @@ export function RunDialog() {
       } else {
         const appId = resolveAssociation(v);
         if (!appId) {
-          alert('No application is associated with that file.');
+          void sysAlert('No application is associated with that file.', { title: 'Run', icon: 'error' });
           return;
         }
         const app = getApp(appId);
@@ -80,7 +107,7 @@ export function RunDialog() {
     } else {
       const app = getApp(v.toLowerCase());
       if (!app) {
-        alert(`Cannot find program "${v}"`);
+        void sysAlert(`Cannot find program "${v}"`, { title: 'Run', icon: 'error' });
         return;
       }
       openWindow(app.id, undefined, {
@@ -94,6 +121,11 @@ export function RunDialog() {
     close();
   };
 
+  const baseWinStyle: React.CSSProperties = { minWidth: 420, fontSize: 14 };
+  const winStyle: React.CSSProperties = pos
+    ? { ...baseWinStyle, position: 'fixed', left: pos.x, top: pos.y, margin: 0 }
+    : baseWinStyle;
+
   return (
     <div
       style={{
@@ -102,17 +134,23 @@ export function RunDialog() {
         background: 'rgba(0,0,0,0.15)', zIndex: 99000,
       }}
     >
-      <div className="window" style={{ minWidth: 360 }}>
-        <div className="title-bar">
-          <div className="title-bar-text">Run</div>
+      <div ref={winRef} className="window" style={winStyle}>
+        <div
+          className="title-bar"
+          onPointerDown={onTitlePointerDown}
+          style={{ cursor: 'move', userSelect: 'none', fontSize: 14 }}
+        >
+          <div className="title-bar-text" style={{ fontSize: 14 }}>Run</div>
           <div className="title-bar-controls">
             <button aria-label="Close" onClick={close} />
           </div>
         </div>
-        <div className="window-body">
-          <p>Type the name of a program or path, and Windows will open it for you.</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <label htmlFor="run-input">Open:</label>
+        <div className="window-body" style={{ fontSize: 14 }}>
+          <p style={{ fontSize: 14, marginTop: 0 }}>
+            Type the name of a program or path, and Windows will open it for you.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <label htmlFor="run-input" style={{ fontSize: 14 }}>Open:</label>
             <input
               id="run-input"
               ref={inputRef}
@@ -124,7 +162,7 @@ export function RunDialog() {
                 if (e.key === 'Enter') submit();
                 if (e.key === 'Escape') close();
               }}
-              style={{ flex: 1 }}
+              style={{ flex: 1, fontSize: 14, padding: '4px 5px' }}
             />
             <datalist id="run-history">
               {history.map((h) => (
@@ -132,10 +170,10 @@ export function RunDialog() {
               ))}
             </datalist>
           </div>
-          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 12 }}>
-            <button onClick={submit}>OK</button>
-            <button onClick={close}>Cancel</button>
-            <button disabled>Browse...</button>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 14 }}>
+            <button onClick={submit} style={{ fontSize: 14, minWidth: 88, height: 28 }}>OK</button>
+            <button onClick={close} style={{ fontSize: 14, minWidth: 88, height: 28 }}>Cancel</button>
+            <button disabled style={{ fontSize: 14, minWidth: 88, height: 28 }}>Browse...</button>
           </div>
         </div>
       </div>

@@ -16,14 +16,36 @@ class RootErrorBoundary extends Component<{ children: ReactNode }, { error: Erro
   }
   render() {
     if (this.state.error) {
+      const errorText = this.state.error.stack || String(this.state.error);
+      const copyError = () => {
+        const fallback = () => {
+          const ta = document.createElement('textarea');
+          ta.value = errorText;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand('copy');
+          } finally {
+            document.body.removeChild(ta);
+          }
+        };
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(errorText).catch(fallback);
+        } else {
+          fallback();
+        }
+      };
       return (
         <div style={{ padding: 20, fontFamily: 'monospace', color: '#fff', background: '#008080', height: '100vh', overflow: 'auto' }}>
           <h2 style={{ marginTop: 0 }}>Render error</h2>
           <pre style={{ whiteSpace: 'pre-wrap', background: 'rgba(0,0,0,0.4)', padding: 12 }}>
-            {this.state.error.stack || String(this.state.error)}
+            {errorText}
           </pre>
           <button onClick={() => this.setState({ error: null })}>Try again</button>
           <button onClick={() => location.reload()} style={{ marginLeft: 8 }}>Reload</button>
+          <button onClick={copyError} style={{ marginLeft: 8 }}>Copy error</button>
         </div>
       );
     }
@@ -65,13 +87,35 @@ function AppInner() {
 
   if (isMobile) return <MobileFallback />;
   if (bootError) {
+    const errorText = bootError.stack || String(bootError);
+    const copyError = () => {
+      const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = errorText;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+        } finally {
+          document.body.removeChild(ta);
+        }
+      };
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(errorText).catch(fallback);
+      } else {
+        fallback();
+      }
+    };
     return (
       <div style={{ padding: 20, fontFamily: 'monospace', color: '#fff', background: '#008080', height: '100vh', overflow: 'auto' }}>
         <h2 style={{ marginTop: 0 }}>Boot error</h2>
         <pre style={{ whiteSpace: 'pre-wrap', background: 'rgba(0,0,0,0.4)', padding: 12 }}>
-          {bootError.stack || String(bootError)}
+          {errorText}
         </pre>
         <button onClick={() => location.reload()}>Reload</button>
+        <button onClick={copyError} style={{ marginLeft: 8 }}>Copy error</button>
       </div>
     );
   }

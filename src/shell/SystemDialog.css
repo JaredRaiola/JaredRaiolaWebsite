@@ -1,0 +1,125 @@
+.sysdialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+}
+
+.sysdialog {
+  min-width: 360px;
+  max-width: 520px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080, 2px 2px 0 rgba(0, 0, 0, 0.3);
+  font-family: 'MS Sans Serif', 'Microsoft Sans Serif', Tahoma, sans-serif;
+  font-size: 14px;
+}
+
+.sysdialog-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+  padding: 2px 3px;
+  background: #000080;
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: move;
+  user-select: none;
+}
+
+.sysdialog-title {
+  padding: 0 4px;
+}
+
+.sysdialog-x {
+  width: 22px;
+  height: 20px;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: bold;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #c0c0c0;
+  color: #000;
+  border: 1px solid;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  cursor: pointer;
+}
+.sysdialog-x:active {
+  border-color: #404040 #ffffff #ffffff #404040;
+}
+
+.sysdialog-body {
+  padding: 18px 16px 12px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.sysdialog-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.sysdialog-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.sysdialog-message {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.sysdialog-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 16px;
+  height: 32px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 2px solid;
+  border-color: #404040 #ffffff #ffffff #404040;
+  outline: none;
+}
+
+.sysdialog-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px 14px;
+}
+
+.sysdialog-buttons button {
+  min-width: 88px;
+  height: 28px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  cursor: pointer;
+  padding: 0 14px;
+}
+.sysdialog-buttons button:focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+.sysdialog-buttons button:active {
+  border-color: #404040 #ffffff #ffffff #404040;
+  padding: 1px 11px 0 13px;
+}

@@ -31,7 +31,9 @@ export function buildSeedTree(): DirNode {
   insertNode(root, 'C:\\Windows\\User\\Desktop', makeDir('Desktop', now));
   insertNode(root, 'C:\\Windows\\User\\My Documents', makeDir('My Documents', now));
   insertNode(root, 'C:\\Windows\\User\\My Documents\\Projects', makeDir('Projects', now));
-  insertNode(root, 'C:\\Windows\\User\\Desktop\\Recycle Bin', makeDir('Recycle Bin', now));
+  // Recycle Bin lives at the C:\ root (matches Win9x reality); the desktop
+  // shows a shortcut-style icon that points back here.
+  insertNode(root, 'C:\\Recycle Bin', makeDir('Recycle Bin', now));
 
   const readmeBlob = uuid();
   insertNode(

@@ -12,6 +12,8 @@ export type DesktopIcon = {
   x: number;
   y: number;
   target: IconTarget;
+  /** System icons (My Computer, Recycle Bin, profile shortcuts) — can't be deleted or renamed. */
+  protected?: boolean;
 };
 
 type DesktopStore = {

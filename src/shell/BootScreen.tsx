@@ -12,9 +12,30 @@ const STAGE_DURATIONS: Record<Stage, number> = {
   splash: 2500,
 };
 
+// The floppy intro is a one-time gag for first-time visitors — every other
+// boot (including post-reset) starts at the BIOS stage. The flag is set here
+// instead of in App so it survives whatever the rest of boot does, and is
+// preserved across `Reset Computer` (see PRESERVED_KEYS in core/reset.ts).
+const FIRST_BOOT_KEY = 'win95.firstBootSeen';
+const isFirstBoot = (): boolean => {
+  try {
+    return localStorage.getItem(FIRST_BOOT_KEY) !== '1';
+  } catch {
+    return true;
+  }
+};
+
 export function BootScreen({ onDone }: { onDone: () => void }) {
-  const [stage, setStage] = useState<Stage>('floppy');
+  const [stage, setStage] = useState<Stage>(() => (isFirstBoot() ? 'floppy' : 'bios'));
   const [hide, setHide] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(FIRST_BOOT_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {

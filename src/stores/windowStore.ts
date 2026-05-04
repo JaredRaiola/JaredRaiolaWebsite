@@ -3,6 +3,28 @@ import { uuid } from '@/lib/uuid';
 
 export type Bounds = { x: number; y: number; width: number; height: number };
 
+// Per-app remembered bounds (last position + size). Restored on next open of
+// the same app so users don't have to reposition every time. Persisted under
+// `win95.windows.lastBounds` so it survives reloads but is wiped on Reset.
+const LAST_BOUNDS_KEY = 'win95.windows.lastBounds';
+
+const loadLastBounds = (): Record<string, Bounds> => {
+  try {
+    const raw = localStorage.getItem(LAST_BOUNDS_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, Bounds>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveLastBounds = (map: Record<string, Bounds>): void => {
+  try {
+    localStorage.setItem(LAST_BOUNDS_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore quota errors */
+  }
+};
+
 export type WindowState = {
   id: string;
   appId: string;
@@ -34,6 +56,7 @@ type Store = {
   focusedId: string | null;
   zCounter: number;
   cascadeIndex: number;
+  lastBoundsByApp: Record<string, Bounds>;
   open(appId: string, args: unknown, opts: OpenOpts): string;
   close(id: string): void;
   focus(id: string): void;
@@ -59,6 +82,7 @@ export const useWindowStore = create<Store>((set, get) => ({
   focusedId: null,
   zCounter: 0,
   cascadeIndex: 0,
+  lastBoundsByApp: loadLastBounds(),
 
   open(appId, args, opts) {
     if (opts.singleInstance) {
@@ -70,16 +94,23 @@ export const useWindowStore = create<Store>((set, get) => ({
     }
     const id = uuid();
     const z = get().zCounter + 1;
+    // Use the app's last remembered bounds when the caller didn't specify
+    // an explicit position. Width/height fall back to the app default.
+    const remembered = get().lastBoundsByApp[appId];
     const cascade = cascadePosition(get().cascadeIndex);
+    const startX = opts.x ?? remembered?.x ?? cascade.x;
+    const startY = opts.y ?? remembered?.y ?? cascade.y;
+    const startW = remembered?.width ?? opts.width;
+    const startH = remembered?.height ?? opts.height;
     const w: WindowState = {
       id,
       appId,
       title: opts.title,
       icon: opts.icon,
-      x: opts.x ?? cascade.x,
-      y: opts.y ?? cascade.y,
-      width: opts.width,
-      height: opts.height,
+      x: startX,
+      y: startY,
+      width: startW,
+      height: startH,
       zIndex: z,
       state: 'normal',
       args,
@@ -156,7 +187,15 @@ export const useWindowStore = create<Store>((set, get) => ({
     set((s) => {
       const w = s.windows[id];
       if (!w) return s;
-      return { windows: { ...s.windows, [id]: { ...w, x, y } } };
+      const next = { ...w, x, y };
+      // Don't overwrite remembered bounds while maximized — that'd capture
+      // 0,0/full-screen, which isn't useful for restoring on next open.
+      const lastBoundsByApp =
+        w.state === 'maximized'
+          ? s.lastBoundsByApp
+          : { ...s.lastBoundsByApp, [w.appId]: { x, y, width: w.width, height: w.height } };
+      if (w.state !== 'maximized') saveLastBounds(lastBoundsByApp);
+      return { windows: { ...s.windows, [id]: next }, lastBoundsByApp };
     });
   },
 
@@ -164,7 +203,13 @@ export const useWindowStore = create<Store>((set, get) => ({
     set((s) => {
       const w = s.windows[id];
       if (!w) return s;
-      return { windows: { ...s.windows, [id]: { ...w, width, height } } };
+      const next = { ...w, width, height };
+      const lastBoundsByApp =
+        w.state === 'maximized'
+          ? s.lastBoundsByApp
+          : { ...s.lastBoundsByApp, [w.appId]: { x: w.x, y: w.y, width, height } };
+      if (w.state !== 'maximized') saveLastBounds(lastBoundsByApp);
+      return { windows: { ...s.windows, [id]: next }, lastBoundsByApp };
     });
   },
 

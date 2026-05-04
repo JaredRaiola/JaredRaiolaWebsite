@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useTaskbarStore } from '@/stores/taskbarStore';
 import { useWindowStore } from '@/stores/windowStore';
 import { listApps, getApp } from '@/core/apps/registry';
+import { resetComputer } from '@/core/reset';
+import { sysConfirm } from '@/lib/dialog';
 import './StartMenu.css';
 
 export function StartMenu() {
@@ -82,6 +84,21 @@ export function StartMenu() {
           Run...
         </div>
         <div className="start-sep" />
+        <div
+          className="start-item"
+          onClick={() => {
+            close();
+            void sysConfirm(
+              'This will erase all files, icons, and settings and restore the original state.\n\nAre you sure?',
+              { title: 'Reset Computer', icon: 'warn' },
+            ).then((ok) => {
+              if (ok) void resetComputer();
+            });
+          }}
+        >
+          <img src="/assets/win98/png/recycle_bin_empty-0.png" alt="" />
+          Reset Computer...
+        </div>
         <div
           className="start-item"
           onClick={() => {
