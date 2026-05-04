@@ -60,7 +60,7 @@ export async function createFs(initialRoot?: DirNode): Promise<FS> {
     return n;
   };
 
-  return {
+  const fs: FS = {
     list: (p) => listChildren(root, p),
     stat: (p) => getNode(root, p),
     exists: (p) => getNode(root, p) !== null,
@@ -105,7 +105,7 @@ export async function createFs(initialRoot?: DirNode): Promise<FS> {
     },
 
     async move(from, to) {
-      return this.rename(from, to);
+      return fs.rename(from, to);
     },
 
     async readText(path) {
@@ -117,7 +117,7 @@ export async function createFs(initialRoot?: DirNode): Promise<FS> {
 
     async writeText(path, content) {
       const blob = new Blob([content], { type: 'text/plain' });
-      await this.writeBlob(path, blob, 'text/plain');
+      await fs.writeBlob(path, blob, 'text/plain');
     },
 
     async readBlob(path) {
@@ -140,14 +140,14 @@ export async function createFs(initialRoot?: DirNode): Promise<FS> {
 
     async unlink(path) {
       // Phase 1: hard delete (Phase 2 will route to Recycle Bin)
-      return this.unlinkPermanent(path);
+      return fs.unlinkPermanent(path);
     },
 
     async unlinkPermanent(path) {
       const node = getNode(root, path);
       if (!node) return;
       if (node.kind === 'dir') {
-        return this.rmdir(path, { recursive: true });
+        return fs.rmdir(path, { recursive: true });
       }
       await deleteBlob(node.blobId);
       removeNode(root, path);
@@ -158,4 +158,5 @@ export async function createFs(initialRoot?: DirNode): Promise<FS> {
 
     _root: () => root,
   };
+  return fs;
 }

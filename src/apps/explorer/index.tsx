@@ -22,6 +22,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
   const cwd = history[hi];
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAddr(cwd);
     api.setTitle(`${basename(cwd)} - My Computer`);
   }, [cwd, api]);

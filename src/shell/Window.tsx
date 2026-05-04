@@ -1,4 +1,4 @@
-import { Component, Suspense, lazy, useMemo, useState, type ComponentType, type ReactNode } from 'react';
+import { Component, Suspense, lazy, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react';
 import { Rnd } from 'react-rnd';
 import { useWindowStore, TASKBAR_HEIGHT, type WindowState } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
@@ -47,10 +47,15 @@ export function Window({ window: w }: Props) {
 
   const def = getApp(w.appId);
 
-  const Comp = useMemo<ComponentType<AppProps> | null>(() => {
-    if (!def) return null;
-    return lazy(def.component);
-  }, [def]);
+  const [Comp, setComp] = useState<ComponentType<AppProps> | null>(() =>
+    def ? lazy(def.component) : null,
+  );
+  // Update lazy component only when the appId changes (should never happen for a given window)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setComp(def ? lazy(def.component) : null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [w.appId]);
 
   const api: WindowApi = useMemo(
     () => ({

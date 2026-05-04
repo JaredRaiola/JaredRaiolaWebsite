@@ -30,9 +30,11 @@ export function RunDialog() {
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValue(history[0] ?? '');
       setTimeout(() => inputRef.current?.focus(), 50);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   if (!open) return null;
