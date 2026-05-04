@@ -39,11 +39,23 @@
 .exp-grid .item.cut .label,
 .exp-list .item.cut,
 .exp-details .row.cut td { opacity: 0.55; }
-.exp-list .item, .exp-details .row {
+.exp-list .item {
   display: flex; align-items: center; gap: 8px; padding: 4px 8px; cursor: default; font-size: 14px;
 }
-.exp-list .item img, .exp-details .row img { width: 20px; height: 20px; image-rendering: pixelated; }
-.exp-list .item.selected, .exp-details .row.selected { background: #000080; color: white; }
-.exp-details table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.exp-details th { text-align: left; padding: 4px 8px; background: #c0c0c0; border-right: 1px solid #808080; font-weight: normal; }
-.exp-details td { padding: 4px 8px; }
+.exp-list .item img { width: 20px; height: 20px; image-rendering: pixelated; }
+.exp-list .item.selected { background: #000080; color: white; }
+/* Details view uses real table layout — never flex on the <tr>, or the body
+   cells stop aligning with the <th> columns. */
+.exp-details .row { cursor: default; font-size: 14px; }
+.exp-details .row img { width: 20px; height: 20px; image-rendering: pixelated; vertical-align: middle; }
+.exp-details .row.selected td { background: #000080; color: white; }
+.exp-details table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: auto; }
+.exp-details th { text-align: left; padding: 4px 8px; background: #c0c0c0; border-right: 1px solid #808080; font-weight: normal; white-space: nowrap; }
+.exp-details td { padding: 4px 8px; white-space: nowrap; }
+.exp-details td:first-child { width: 100%; }
+.exp-details th:not(:first-child), .exp-details td:not(:first-child) { width: 1%; }
+.exp-toolbar-bin button {
+  height: 26px;
+  padding: 0 12px;
+  font-size: 13px;
+}

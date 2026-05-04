@@ -4,11 +4,15 @@ import { useFsStore } from '@/stores/fsStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useWindowStore } from '@/stores/windowStore';
 import { useClipboardStore } from '@/stores/clipboardStore';
+import { useRecycleBinStore } from '@/stores/recycleBinStore';
+import { showRestoreConflict, type RestoreConflictResolution } from '@/lib/restoreConflict';
 import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
 import { join, parent, basename } from '@/core/fs/paths';
+import { RECYCLE_BIN_DIR } from '@/core/fs/recycleBin';
 import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, isPathInside } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
+import { sysAlert, sysConfirm, sysPrompt } from '@/lib/dialog';
 import './explorer.css';
 
 type Args = { path?: string };
@@ -31,6 +35,9 @@ export default function Explorer({ api, fs, args }: AppProps) {
   const clipOp = useClipboardStore((s) => s.op);
 
   const cwd = history[hi];
+  const isBinMode = cwd.toLowerCase() === RECYCLE_BIN_DIR.toLowerCase();
+  const recycleEntries = useRecycleBinStore((s) => s.entries);
+  const recycleBin = useRecycleBinStore((s) => s.bin);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -38,11 +45,36 @@ export default function Explorer({ api, fs, args }: AppProps) {
     api.setTitle(`${basename(cwd)} - My Computer`);
   }, [cwd, api]);
 
-  const items = fs.list(cwd);
-
-  // bumpVersion is a render-trigger only; reference it so React 19's
-  // unused-prop warning doesn't strip it
-  void bumpVersion;
+  const items = useMemo<FsNode[]>(() => {
+    if (isBinMode) {
+      return recycleEntries.map((entry) => {
+        const node = fs.stat(`${RECYCLE_BIN_DIR}\\${entry.binName}`);
+        if (node) return node;
+        // Fallback FsNode shape if FS hasn't synced yet (rare).
+        if (entry.kind === 'file') {
+          return {
+            kind: 'file',
+            name: entry.binName,
+            mime: 'application/octet-stream',
+            size: entry.size,
+            blobId: '',
+            modifiedAt: entry.deletedAt,
+          } as FsNode;
+        }
+        return {
+          kind: 'dir',
+          name: entry.binName,
+          children: {},
+          createdAt: entry.deletedAt,
+          modifiedAt: entry.deletedAt,
+        } as FsNode;
+      });
+    }
+    // Defense-in-depth: filter .index.json even if someone navigates here via address bar.
+    return fs
+      .list(cwd)
+      .filter((n) => !(cwd.toLowerCase() === RECYCLE_BIN_DIR.toLowerCase() && n.name === '.index.json'));
+  }, [cwd, fs, bumpVersion, isBinMode, recycleEntries]);
 
   const navigate = (path: string): void => {
     if (!fs.exists(path) || fs.stat(path)?.kind !== 'dir') return;
@@ -164,7 +196,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
         setSelection(newSelection);
         setAnchor(Array.from(newSelection)[0]);
       }
-      if (errors.length > 0) alert(errors.join('\n'));
+      if (errors.length > 0) void sysAlert(errors.join('\n'), { title: 'Paste', icon: 'error' });
     })();
   };
 
@@ -172,27 +204,58 @@ export default function Explorer({ api, fs, args }: AppProps) {
     if (selection.size === 0) return;
     const list = Array.from(selection);
     const msg =
-      list.length === 1 ? `Delete ${list[0]}?` : `Delete ${list.length} items?`;
-    if (!window.confirm(msg)) return;
-    void (async () => {
-      for (const name of list) {
-        await fs.unlink(join(cwd, name));
+      list.length === 1 ? `Are you sure you want to delete '${list[0]}'?` : `Are you sure you want to delete these ${list.length} items?`;
+    void sysConfirm(msg, { title: 'Confirm File Delete', icon: 'warn' }).then((ok) => {
+      if (!ok) return;
+      void (async () => {
+        for (const name of list) {
+          await fs.unlink(join(cwd, name));
+        }
+        setSelection(new Set());
+        useFsStore.getState().bump();
+      })();
+    });
+  };
+
+  const restoreSelection = async (binNames: string[]): Promise<void> => {
+    if (!recycleBin) return;
+    const queue = recycleEntries.filter((e) => binNames.includes(e.binName));
+    let stickyResolution: RestoreConflictResolution | null = null;
+    for (let i = 0; i < queue.length; i++) {
+      const entry = queue[i];
+      const conflict = fs.exists(entry.originPath);
+      let resolution: RestoreConflictResolution = 'replace';
+      if (conflict) {
+        if (stickyResolution) {
+          resolution = stickyResolution;
+        } else {
+          const result = await showRestoreConflict({
+            binName: entry.binName,
+            originPath: entry.originPath,
+            multi: queue.length - i > 1,
+          });
+          resolution = result.resolution;
+          if (result.applyToAll) stickyResolution = result.resolution;
+        }
       }
-      setSelection(new Set());
-      useFsStore.getState().bump();
-    })();
+      await recycleBin.restore(entry.id, resolution);
+    }
+    useRecycleBinStore.getState().refresh();
+    useFsStore.getState().bump();
+    setSelection(new Set());
   };
 
   const renameSelected = (): void => {
     if (selection.size !== 1) return;
     const name = Array.from(selection)[0];
     const path = join(cwd, name);
-    const nu = window.prompt('New name:', name);
-    if (!nu || nu === name) return;
-    void fs.rename(path, join(cwd, nu)).then(() => {
-      setSelection(new Set([nu]));
-      setAnchor(nu);
-      useFsStore.getState().bump();
+    void sysPrompt('Enter a new name:', name, { title: 'Rename' }).then((nu) => {
+      if (!nu || nu === name) return;
+      void fs.rename(path, join(cwd, nu)).then(() => {
+        setSelection(new Set([nu]));
+        setAnchor(nu);
+        useFsStore.getState().bump();
+      });
     });
   };
 
@@ -247,13 +310,12 @@ export default function Explorer({ api, fs, args }: AppProps) {
         kind: 'item',
         label: 'Rename',
         onSelect: () => {
-          void (async () => {
-            const nu = window.prompt('New name:', n.name);
+          void sysPrompt('Enter a new name:', n.name, { title: 'Rename' }).then(async (nu) => {
             if (nu && nu !== n.name) {
               await fs.rename(path, join(cwd, nu));
               useFsStore.getState().bump();
             }
-          })();
+          });
         },
       },
       { kind: 'separator' },
@@ -269,24 +331,22 @@ export default function Explorer({ api, fs, args }: AppProps) {
         kind: 'item',
         label: 'New Folder',
         onSelect: () => {
-          void (async () => {
-            const name = window.prompt('Folder name:', 'New Folder');
+          void sysPrompt('Enter a name for the new folder:', 'New Folder', { title: 'New Folder' }).then(async (name) => {
             if (!name) return;
             await fs.mkdir(join(cwd, name));
             useFsStore.getState().bump();
-          })();
+          });
         },
       },
       {
         kind: 'item',
         label: 'New Text Document',
         onSelect: () => {
-          void (async () => {
-            const name = window.prompt('File name:', 'New Text Document.txt');
+          void sysPrompt('Enter a name for the new file:', 'New Text Document.txt', { title: 'New Text Document' }).then(async (name) => {
             if (!name) return;
             await fs.writeText(join(cwd, name), '');
             useFsStore.getState().bump();
-          })();
+          });
         },
       },
       { kind: 'separator' },
@@ -457,7 +517,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
     // Don't try to move the destination folder into itself.
     const filtered = payload.paths.filter((p) => p.toLowerCase() !== dest.toLowerCase());
     const { errors } = await moveAllInto(fs, filtered, dest, { silentSameFolder });
-    if (errors.length > 0) alert(errors.join('\n'));
+    if (errors.length > 0) void sysAlert(errors.join('\n'), { title: 'Move', icon: 'error' });
     useFsStore.getState().bump();
   };
 
@@ -470,23 +530,59 @@ export default function Explorer({ api, fs, args }: AppProps) {
         <div onClick={() => setView(view === 'icons' ? 'list' : view === 'list' ? 'details' : 'icons')}>View ({view})</div>
         <div>Help</div>
       </div>
-      <div className="exp-toolbar">
-        <button disabled={hi === 0} onClick={goBack} title="Back">←</button>
-        <button disabled={hi >= history.length - 1} onClick={goForward} title="Forward">→</button>
-        <button
-          disabled={!parent(cwd)}
-          onClick={goUp}
-          onDragOver={onUpDragOver}
-          onDrop={onUpDrop}
-          title="Up (drop here to move out of this folder)"
-        >
-          ↑
-        </button>
-        <span style={{ width: 8 }} />
-        <button onClick={cutSelection} disabled={selection.size === 0} title="Cut (Ctrl+X)">✂</button>
-        <button onClick={copySelection} disabled={selection.size === 0} title="Copy (Ctrl+C)">⎘</button>
-        <button onClick={paste} disabled={clipPaths.length === 0} title="Paste (Ctrl+V)">📋</button>
-      </div>
+      {isBinMode ? (
+        <div className="exp-toolbar exp-toolbar-bin">
+          <button
+            disabled={recycleEntries.length === 0}
+            onClick={() => {
+              const count = recycleEntries.length;
+              const message =
+                count === 1
+                  ? 'Are you sure you want to permanently delete this item? This action cannot be undone.'
+                  : `Are you sure you want to permanently delete these ${count} items? This action cannot be undone.`;
+              void sysConfirm(message, { title: 'Confirm Multiple File Delete', icon: 'warn' }).then((ok) => {
+                if (!ok || !recycleBin) return;
+                void recycleBin.empty().then(() => {
+                  useRecycleBinStore.getState().refresh();
+                  useFsStore.getState().bump();
+                });
+              });
+            }}
+          >
+            Empty Recycle Bin
+          </button>
+          <button
+            disabled={recycleEntries.length === 0}
+            onClick={() => void restoreSelection(recycleEntries.map((e) => e.binName))}
+          >
+            Restore All
+          </button>
+          <button
+            disabled={selection.size === 0}
+            onClick={() => void restoreSelection(Array.from(selection))}
+          >
+            Restore
+          </button>
+        </div>
+      ) : (
+        <div className="exp-toolbar">
+          <button disabled={hi === 0} onClick={goBack} title="Back">←</button>
+          <button disabled={hi >= history.length - 1} onClick={goForward} title="Forward">→</button>
+          <button
+            disabled={!parent(cwd)}
+            onClick={goUp}
+            onDragOver={onUpDragOver}
+            onDrop={onUpDrop}
+            title="Up (drop here to move out of this folder)"
+          >
+            ↑
+          </button>
+          <span style={{ width: 8 }} />
+          <button onClick={cutSelection} disabled={selection.size === 0} title="Cut (Ctrl+X)">✂</button>
+          <button onClick={copySelection} disabled={selection.size === 0} title="Copy (Ctrl+C)">⎘</button>
+          <button onClick={paste} disabled={clipPaths.length === 0} title="Paste (Ctrl+V)">📋</button>
+        </div>
+      )}
       <div className="exp-addr">
         <label>Address:</label>
         <input
@@ -520,13 +616,13 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 data-item-name={n.name}
                 className={`item ${itemClass(n)}`}
                 onClick={(e) => onItemClick(e, n.name)}
-                onDoubleClick={() => openItem(n)}
+                onDoubleClick={() => (isBinMode ? undefined : openItem(n))}
                 onContextMenu={(e) => onItemContext(e, n)}
                 draggable
                 onDragStart={(e) => onItemDragStart(e, n)}
                 onDragEnd={onItemDragEnd}
-                onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
-                onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
+                onDragOver={!isBinMode && n.kind === 'dir' ? onFolderDragOver : undefined}
+                onDrop={!isBinMode && n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >
                 <img src={renderIcon(n)} alt="" />
                 <div className="label">{n.name}</div>
@@ -542,13 +638,13 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 data-item-name={n.name}
                 className={`item ${itemClass(n)}`}
                 onClick={(e) => onItemClick(e, n.name)}
-                onDoubleClick={() => openItem(n)}
+                onDoubleClick={() => (isBinMode ? undefined : openItem(n))}
                 onContextMenu={(e) => onItemContext(e, n)}
                 draggable
                 onDragStart={(e) => onItemDragStart(e, n)}
                 onDragEnd={onItemDragEnd}
-                onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
-                onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
+                onDragOver={!isBinMode && n.kind === 'dir' ? onFolderDragOver : undefined}
+                onDrop={!isBinMode && n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >
                 <img src={renderIcon(n)} alt="" />
                 {n.name}
@@ -562,34 +658,43 @@ export default function Explorer({ api, fs, args }: AppProps) {
               <thead>
                 <tr>
                   <th>Name</th>
+                  {isBinMode && <th>Original Location</th>}
+                  {isBinMode && <th>Date Deleted</th>}
                   <th>Size</th>
                   <th>Type</th>
-                  <th>Modified</th>
+                  {!isBinMode && <th>Modified</th>}
                 </tr>
               </thead>
               <tbody>
-                {items.map((n) => (
-                  <tr
-                    key={n.name}
-                    data-item-name={n.name}
-                    className={`row ${itemClass(n)}`}
-                    onClick={(e) => onItemClick(e, n.name)}
-                    onDoubleClick={() => openItem(n)}
-                    onContextMenu={(e) => onItemContext(e, n)}
-                    draggable
-                    onDragStart={(e) => onItemDragStart(e, n)}
-                    onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
-                    onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
-                  >
-                    <td>
-                      <img src={renderIcon(n)} alt="" style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                      {n.name}
-                    </td>
-                    <td>{n.kind === 'file' ? `${n.size} B` : ''}</td>
-                    <td>{n.kind === 'dir' ? 'File Folder' : 'Text Document'}</td>
-                    <td>{new Date(n.modifiedAt).toLocaleDateString()}</td>
-                  </tr>
-                ))}
+                {items.map((n) => {
+                  const entry = isBinMode
+                    ? recycleEntries.find((e) => e.binName === n.name)
+                    : null;
+                  return (
+                    <tr
+                      key={n.name}
+                      data-item-name={n.name}
+                      className={`row ${itemClass(n)}`}
+                      onClick={(e) => onItemClick(e, n.name)}
+                      onDoubleClick={() => (isBinMode ? undefined : openItem(n))}
+                      onContextMenu={(e) => onItemContext(e, n)}
+                      draggable
+                      onDragStart={(e) => onItemDragStart(e, n)}
+                      onDragOver={!isBinMode && n.kind === 'dir' ? onFolderDragOver : undefined}
+                      onDrop={!isBinMode && n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
+                    >
+                      <td>
+                        <img src={renderIcon(n)} alt="" style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                        {n.name}
+                      </td>
+                      {isBinMode && <td>{entry?.originPath ?? ''}</td>}
+                      {isBinMode && <td>{entry ? new Date(entry.deletedAt).toLocaleString() : ''}</td>}
+                      <td>{n.kind === 'file' ? `${n.size} B` : ''}</td>
+                      <td>{n.kind === 'dir' ? 'File Folder' : 'Text Document'}</td>
+                      {!isBinMode && <td>{new Date(n.modifiedAt).toLocaleDateString()}</td>}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
