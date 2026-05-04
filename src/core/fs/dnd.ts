@@ -31,10 +31,20 @@ export function setLastDragPos(x: number, y: number): void {
 }
 
 if (typeof window !== 'undefined') {
+  // Capture cursor position for any of our drags (more reliable than dragend's
+  // clientX/Y).
   window.addEventListener('dragover', (e: DragEvent) => {
+    if (!e.dataTransfer?.types.includes(DND_MIME)) return;
     if (e.clientX > 0 && e.clientY > 0) {
       _lastDragPos = { x: e.clientX, y: e.clientY };
     }
+    // Always preventDefault so the document acts as a fallback drop target.
+    // Without this, drops on areas with no handler trigger the browser's
+    // ~300ms snap-back animation, which delays our dragend.
+    e.preventDefault();
+  });
+  window.addEventListener('drop', (e: DragEvent) => {
+    if (e.dataTransfer?.types.includes(DND_MIME)) e.preventDefault();
   });
 }
 
