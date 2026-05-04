@@ -137,9 +137,10 @@ function BiosStage() {
         <span className="boot-bios-line boot-bios-l7">Copyright (C) 1995, Award Software, Inc.</span>
         <span className="boot-bios-line boot-bios-l8">  Detecting HDD Primary Master  ... WDC AC34300L</span>
         <span className="boot-bios-line boot-bios-l9">  Detecting HDD Primary Slave   ... [Press F4 to skip]</span>
+        <span className="boot-bios-line boot-bios-l10">  Detecting HDD Secondary Slave   ... [Press F4 to skip]</span>
         {'\n\n'}
-        <span className="boot-bios-line boot-bios-l10">Initializing Plug and Play Cards...</span>
-        <span className="boot-bios-line boot-bios-l11">
+        <span className="boot-bios-line boot-bios-l11">Initializing Plug and Play Cards...</span>
+        <span className="boot-bios-line boot-bios-l12">
           Card-01 Creative SB16 PnP<span className="boot-bios-cursor">_</span>
         </span>
       </pre>
@@ -162,19 +163,31 @@ function ConfigStage() {
     ['Sec. Slave  Disk', ': None', 'L2 Cache SRAM', ': Pipeline'],
   ];
   const fmt = (r: [string, string, string, string]): string =>
-    ' │ ' + r[0].padEnd(17) + r[1].padEnd(22) + r[2].padEnd(18) + r[3].padEnd(13) + '│\n';
+    ' │ ' + r[0].padEnd(17) + r[1].padEnd(22) + r[2].padEnd(18) + r[3].padEnd(13) + '│';
   return (
     <div className="boot-bios">
       <pre className="boot-bios-text">
-        {'                       Award Software, Inc.\n'}
-        {'                       System Configurations\n'}
-        {' ┌──────────────────────────────────────────────────────────────────┐\n'}
-        {top.map(fmt).join('')}
-        {' ├──────────────────────────────────────────────────────────────────┤\n'}
-        {bot.map(fmt).join('')}
-        {' └──────────────────────────────────────────────────────────────────┘\n'}
+        <span className="boot-cfg-line" style={{ animationDelay: '0s' }}>{'                       Award Software, Inc.'}</span>
+        <span className="boot-cfg-line" style={{ animationDelay: '0.1s' }}>{'                       System Configurations'}</span>
+        <span className="boot-cfg-line" style={{ animationDelay: '0.2s' }}>{' ┌──────────────────────────────────────────────────────────────────┐'}</span>
+        {top.map((r, i) => (
+          <span key={`t${i}`} className="boot-cfg-line" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
+            {fmt(r)}
+          </span>
+        ))}
+        <span className="boot-cfg-line" style={{ animationDelay: `${0.3 + top.length * 0.08}s` }}>
+          {' ├──────────────────────────────────────────────────────────────────┤'}
+        </span>
+        {bot.map((r, i) => (
+          <span key={`b${i}`} className="boot-cfg-line" style={{ animationDelay: `${0.4 + (top.length + i) * 0.08}s` }}>
+            {fmt(r)}
+          </span>
+        ))}
+        <span className="boot-cfg-line" style={{ animationDelay: `${0.4 + (top.length + bot.length) * 0.08}s` }}>
+          {' └──────────────────────────────────────────────────────────────────┘'}
+        </span>
         {'\n'}
-        <span className="boot-bios-starting">
+        <span className="boot-bios-starting" style={{ animationDelay: `${0.6 + (top.length + bot.length) * 0.08}s` }}>
           Starting Windows 95...<span className="boot-bios-cursor">_</span>
         </span>
       </pre>
@@ -188,16 +201,7 @@ function SplashStage() {
       <div className="boot-splash-clouds" />
       <div className="boot-splash-content">
         <div className="boot-splash-microsoft">Microsoft</div>
-        <div className="boot-splash-logo">
-          <svg viewBox="0 0 220 160" width="280" height="200" xmlns="http://www.w3.org/2000/svg">
-            <g transform="skewY(-10) translate(0 30)" stroke="#ffffff" strokeWidth="2">
-              <rect x="20" y="20" width="80" height="50" fill="#ff3a2c" />
-              <rect x="110" y="20" width="80" height="50" fill="#7adf3a" />
-              <rect x="20" y="80" width="80" height="50" fill="#2c9bff" />
-              <rect x="110" y="80" width="80" height="50" fill="#ffd23a" />
-            </g>
-          </svg>
-        </div>
+        <img src="/assets/win95-logo.svg" alt="" className="boot-splash-logo" />
         <div className="boot-splash-windows">
           <span className="boot-splash-windows-word">Windows</span>
           <sup className="boot-splash-r">&reg;</sup>

@@ -79,18 +79,21 @@
 
 /* ---------- BIOS / Config stage (shared) ---------- */
 .boot-bios {
+  position: absolute;
+  inset: 0;
   width: 100vw;
   height: 100vh;
-  background: #000;
+  background: #000 !important;
   padding: 24px 32px;
   overflow: hidden;
   display: block;
 }
 .boot-bios-text {
   font-family: 'Courier New', 'Lucida Console', monospace;
-  color: #c8c8c8;
+  color: #ffffff !important;
+  background: #000 !important;
   font-size: 16px;
-  line-height: 1.25;
+  line-height: 1.3;
   white-space: pre;
   margin: 0;
 }
@@ -98,25 +101,38 @@
 .boot-bios-line {
   display: block;
   opacity: 0;
-  animation: boot-line-in 0.05s linear forwards;
+  transform: translateY(8px);
+  animation: boot-line-in 0.25s ease-out forwards;
+  color: #ffffff;
 }
-.boot-bios-l1 { animation-delay: 0.0s; }
-.boot-bios-l2 { animation-delay: 0.15s; }
-.boot-bios-l3 { animation-delay: 0.4s; }
-.boot-bios-l4 { animation-delay: 0.7s; }
-.boot-bios-l5 { animation-delay: 1.4s; }
-.boot-bios-l6 { animation-delay: 1.8s; }
-.boot-bios-l7 { animation-delay: 1.95s; }
-.boot-bios-l8 { animation-delay: 2.3s; }
-.boot-bios-l9 { animation-delay: 2.7s; }
-.boot-bios-l10 { animation-delay: 3.0s; }
-.boot-bios-l11 { animation-delay: 3.3s; }
+.boot-bios-l1 { animation-delay: 0.05s; }
+.boot-bios-l2 { animation-delay: 0.30s; }
+.boot-bios-l3 { animation-delay: 0.55s; }
+.boot-bios-l4 { animation-delay: 0.85s; }
+.boot-bios-l5 { animation-delay: 1.25s; }
+.boot-bios-l6 { animation-delay: 1.65s; }
+.boot-bios-l7 { animation-delay: 1.85s; }
+.boot-bios-l8 { animation-delay: 2.15s; }
+.boot-bios-l9 { animation-delay: 2.45s; }
+.boot-bios-l10 { animation-delay: 2.75s; }
+.boot-bios-l11 { animation-delay: 3.05s; }
+.boot-bios-l12 { animation-delay: 3.35s; }
 .boot-bios-starting {
   display: block;
   margin-top: 24px;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: boot-line-in 0.3s ease-out forwards;
+}
+.boot-cfg-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: boot-line-in 0.25s ease-out forwards;
+  color: #ffffff;
 }
 @keyframes boot-line-in {
-  to { opacity: 1; }
+  to { opacity: 1; transform: none; }
 }
 .boot-bios-cursor {
   display: inline-block;
@@ -175,8 +191,15 @@
   letter-spacing: 1px;
 }
 .boot-splash-logo {
-  margin: -12px 0;
-  filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.25));
+  margin: -8px 0;
+  width: 280px;
+  height: auto;
+  filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.3));
+  animation: boot-splash-logo-in 0.7s ease-out;
+}
+@keyframes boot-splash-logo-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.92); }
+  to { opacity: 1; transform: none; }
 }
 .boot-splash-windows {
   display: flex;
