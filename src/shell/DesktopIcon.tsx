@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useDesktopStore, type DesktopIcon as Icon } from '@/stores/desktopStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useWindowStore } from '@/stores/windowStore';
@@ -260,15 +261,20 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
         const taskbar = 40;
         const maxX = Math.max(0, window.innerWidth - GRID_W);
         const maxY = Math.max(0, window.innerHeight - taskbar - GRID_H);
-        for (const id of start.selection) {
-          const orig = start.positions[id];
-          if (!orig) continue;
-          const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
-          const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
-          const cx = Math.max(0, Math.min(maxX, nx));
-          const cy = Math.max(0, Math.min(maxY, ny));
-          move(id, cx, cy);
-        }
+        // flushSync forces React to commit the position update before
+        // returning, otherwise the visual move can be deferred to the next
+        // user event.
+        flushSync(() => {
+          for (const id of start.selection) {
+            const orig = start.positions[id];
+            if (!orig) continue;
+            const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
+            const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
+            const cx = Math.max(0, Math.min(maxX, nx));
+            const cy = Math.max(0, Math.min(maxY, ny));
+            move(id, cx, cy);
+          }
+        });
       }
     }
     setSelection([]);
