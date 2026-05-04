@@ -12,9 +12,9 @@ import type { FsNode, DirNode } from '@/core/fs/tree';
 
 const DESKTOP_KEY = 'win95.desktop.icons';
 const DESKTOP_VERSION_KEY = 'win95.desktop.version';
-const DESKTOP_VERSION = '4';
+const DESKTOP_VERSION = '5';
 const FS_LAYOUT_KEY = 'win95.fs.layout';
-const FS_LAYOUT_VERSION = '2';
+const FS_LAYOUT_VERSION = '3';
 
 export const DESKTOP_DIR = 'C:\\Windows\\User\\Desktop';
 const DESKTOP_DIR_LOWER = DESKTOP_DIR.toLowerCase();
@@ -40,7 +40,7 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
     iconUrl: '/assets/win98/png/recycle_bin_empty-0.png',
     x: 0,
     y: 1,
-    target: { kind: 'file', path: 'C:\\Windows\\User\\Recycle Bin' },
+    target: { kind: 'file', path: 'C:\\Windows\\User\\Desktop\\Recycle Bin' },
   },
   {
     id: 'icon-mydocs',
@@ -139,13 +139,21 @@ async function migrateFsLayout(): Promise<void> {
     }
   }
 
-  // Move C:\Recycle Bin → C:\Windows\User\Recycle Bin (sibling of Desktop)
-  const oldRecycle = detachChild(tree, 'Recycle Bin');
-  if (oldRecycle && !findChildKey(userDir, 'Recycle Bin')) {
-    userDir.children['Recycle Bin'] = oldRecycle;
-    userDir.modifiedAt = Date.now();
-  } else if (!findChildKey(userDir, 'Recycle Bin')) {
-    getOrCreateDir(userDir, 'Recycle Bin');
+  // Move C:\Recycle Bin → C:\Windows\User\Desktop\Recycle Bin (so it shows on
+  // the desktop). Also relocate any leftover at C:\Windows\User\Recycle Bin
+  // from a prior intermediate layout.
+  const oldRecycleAtRoot = detachChild(tree, 'Recycle Bin');
+  if (oldRecycleAtRoot && !findChildKey(newDesktop, 'Recycle Bin')) {
+    newDesktop.children['Recycle Bin'] = oldRecycleAtRoot;
+    newDesktop.modifiedAt = Date.now();
+  }
+  const oldRecycleAtUser = detachChild(userDir, 'Recycle Bin');
+  if (oldRecycleAtUser && !findChildKey(newDesktop, 'Recycle Bin')) {
+    newDesktop.children['Recycle Bin'] = oldRecycleAtUser;
+    newDesktop.modifiedAt = Date.now();
+  }
+  if (!findChildKey(newDesktop, 'Recycle Bin')) {
+    getOrCreateDir(newDesktop, 'Recycle Bin');
   }
 
   // Old README at C:\Windows\README.txt → C:\Windows\User\Desktop\README.txt

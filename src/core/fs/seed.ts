@@ -31,7 +31,7 @@ export function buildSeedTree(): DirNode {
   insertNode(root, 'C:\\Windows\\User\\Desktop', makeDir('Desktop', now));
   insertNode(root, 'C:\\Windows\\User\\My Documents', makeDir('My Documents', now));
   insertNode(root, 'C:\\Windows\\User\\My Documents\\Projects', makeDir('Projects', now));
-  insertNode(root, 'C:\\Windows\\User\\Recycle Bin', makeDir('Recycle Bin', now));
+  insertNode(root, 'C:\\Windows\\User\\Desktop\\Recycle Bin', makeDir('Recycle Bin', now));
 
   const readmeBlob = uuid();
   insertNode(
