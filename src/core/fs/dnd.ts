@@ -50,11 +50,13 @@ if (typeof window !== 'undefined') {
 
 export type DndPayload = {
   /** Where the drag originated. */
-  source: 'fs' | 'desktop';
+  source: 'fs' | 'desktop' | 'recycle-bin';
   /** Filesystem paths of all dragged items (supports multi-select drag). */
   paths: string[];
   /** Desktop icon IDs corresponding to each path, only when source === 'desktop'. */
   iconIds?: string[];
+  /** When source === 'recycle-bin', the entry ids matching `paths`. */
+  restoreIds?: string[];
   /** Set when dragging a desktop URL shortcut (LinkedIn/GitHub/etc.). On drop,
    * the receiver creates a `.url` shortcut file at the destination. */
   urlShortcut?: { url: string; label: string };

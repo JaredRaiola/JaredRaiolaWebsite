@@ -10,7 +10,7 @@ import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
 import { join, parent, basename } from '@/core/fs/paths';
 import { RECYCLE_BIN_DIR } from '@/core/fs/recycleBin';
-import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, isPathInside } from '@/core/fs/dnd';
+import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, wasDropConsumed, isPathInside } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 import { sysAlert, sysConfirm, sysPrompt } from '@/lib/dialog';
 import './explorer.css';
@@ -260,25 +260,55 @@ export default function Explorer({ api, fs, args }: AppProps) {
   };
 
   // ---- Hotkeys ------------------------------------------------------------
+  const permDeleteSelectedBinEntries = (): void => {
+    if (selection.size === 0) return;
+    const selectedNames = Array.from(selection);
+    const count = selectedNames.length;
+    const msg =
+      count === 1
+        ? `Are you sure you want to permanently delete '${selectedNames[0]}'? This action cannot be undone.`
+        : `Are you sure you want to permanently delete these ${count} items? This action cannot be undone.`;
+    void sysConfirm(msg, { title: 'Confirm File Delete', icon: 'warn' }).then(async (ok) => {
+      if (!ok || !recycleBin) return;
+      for (const name of selectedNames) {
+        const entry = recycleEntries.find((e) => e.binName === name);
+        if (entry) await recycleBin.permanentlyDelete(entry.id);
+      }
+      useRecycleBinStore.getState().refresh();
+      useFsStore.getState().bump();
+      setSelection(new Set());
+    });
+  };
+
   useHotkeys(
-    {
-      'alt+left': goBack,
-      'alt+right': goForward,
-      backspace: goUp,
-      f5: () => useFsStore.getState().bump(),
-      delete: deleteSelection,
-      f2: renameSelected,
-      enter: () => {
-        if (selection.size !== 1) return;
-        const name = Array.from(selection)[0];
-        const node = fs.stat(join(cwd, name));
-        if (node) openItem(node);
-      },
-      'ctrl+x': cutSelection,
-      'ctrl+c': copySelection,
-      'ctrl+v': paste,
-      'ctrl+a': selectAll,
-    },
+    isBinMode
+      ? {
+          'alt+left': goBack,
+          'alt+right': goForward,
+          backspace: goUp,
+          f5: () => useFsStore.getState().bump(),
+          delete: permDeleteSelectedBinEntries,
+          'shift+delete': permDeleteSelectedBinEntries,
+          'ctrl+a': selectAll,
+        }
+      : {
+          'alt+left': goBack,
+          'alt+right': goForward,
+          backspace: goUp,
+          f5: () => useFsStore.getState().bump(),
+          delete: deleteSelection,
+          f2: renameSelected,
+          enter: () => {
+            if (selection.size !== 1) return;
+            const name = Array.from(selection)[0];
+            const node = fs.stat(join(cwd, name));
+            if (node) openItem(node);
+          },
+          'ctrl+x': cutSelection,
+          'ctrl+c': copySelection,
+          'ctrl+v': paste,
+          'ctrl+a': selectAll,
+        },
     { enabled: focused, ignoreInInputs: true },
   );
 
@@ -288,6 +318,50 @@ export default function Explorer({ api, fs, args }: AppProps) {
     e.stopPropagation();
     if (!selection.has(n.name)) selectOnly(n.name);
     const path = join(cwd, n.name);
+
+    if (isBinMode) {
+      const selectedNames = Array.from(
+        selection.size > 0 && selection.has(n.name) ? selection : new Set([n.name]),
+      );
+      const entry = recycleEntries.find((e2) => e2.binName === n.name);
+      showCtx(e.clientX, e.clientY, [
+        {
+          kind: 'item',
+          label: 'Restore',
+          disabled: !entry,
+          onSelect: () => void restoreSelection(selectedNames),
+        },
+        { kind: 'separator' },
+        { kind: 'item', label: 'Cut', onSelect: () => {}, disabled: true },
+        { kind: 'item', label: 'Copy', onSelect: () => {}, disabled: true },
+        { kind: 'separator' },
+        {
+          kind: 'item',
+          label: 'Permanently Delete',
+          onSelect: () => {
+            const count = selectedNames.length;
+            const msg =
+              count === 1
+                ? `Are you sure you want to permanently delete '${selectedNames[0]}'? This action cannot be undone.`
+                : `Are you sure you want to permanently delete these ${count} items? This action cannot be undone.`;
+            void sysConfirm(msg, { title: 'Confirm File Delete', icon: 'warn' }).then(async (ok) => {
+              if (!ok || !recycleBin) return;
+              for (const name of selectedNames) {
+                const target = recycleEntries.find((e2) => e2.binName === name);
+                if (target) await recycleBin.permanentlyDelete(target.id);
+              }
+              useRecycleBinStore.getState().refresh();
+              useFsStore.getState().bump();
+              setSelection(new Set());
+            });
+          },
+        },
+        { kind: 'separator' },
+        { kind: 'item', label: 'Properties', onSelect: () => {}, disabled: true },
+      ]);
+      return;
+    }
+
     showCtx(e.clientX, e.clientY, [
       { kind: 'item', label: 'Open', onSelect: () => openItem(n) },
       { kind: 'item', label: 'Open With...', onSelect: () => {}, disabled: true },
@@ -326,6 +400,36 @@ export default function Explorer({ api, fs, args }: AppProps) {
   const onBgContext = (e: React.MouseEvent): void => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isBinMode) {
+      showCtx(e.clientX, e.clientY, [
+        {
+          kind: 'item',
+          label: 'Empty Recycle Bin',
+          disabled: recycleEntries.length === 0,
+          onSelect: () => {
+            const count = recycleEntries.length;
+            const msg =
+              count === 1
+                ? 'Are you sure you want to permanently delete this item? This action cannot be undone.'
+                : `Are you sure you want to permanently delete these ${count} items? This action cannot be undone.`;
+            void sysConfirm(msg, { title: 'Confirm Multiple File Delete', icon: 'warn' }).then((ok) => {
+              if (!ok || !recycleBin) return;
+              void recycleBin.empty().then(() => {
+                useRecycleBinStore.getState().refresh();
+                useFsStore.getState().bump();
+              });
+            });
+          },
+        },
+        { kind: 'separator' },
+        { kind: 'item', label: 'Refresh', onSelect: () => useFsStore.getState().bump() },
+        { kind: 'separator' },
+        { kind: 'item', label: 'Properties', onSelect: () => {}, disabled: true },
+      ]);
+      return;
+    }
+
     showCtx(e.clientX, e.clientY, [
       {
         kind: 'item',
@@ -391,14 +495,21 @@ export default function Explorer({ api, fs, args }: AppProps) {
 
   // ---- Drag and drop ------------------------------------------------------
   const onItemDragStart = (e: React.DragEvent, n: FsNode): void => {
-    // Drag whatever's selected if this item is already selected; otherwise drag just this one.
-    let paths: string[];
-    if (selection.has(n.name)) {
-      paths = Array.from(selection).map((name) => join(cwd, name));
-    } else {
-      selectOnly(n.name);
-      paths = [join(cwd, n.name)];
+    const selectedNames = selection.has(n.name) && selection.size > 1
+      ? Array.from(selection)
+      : [n.name];
+    const paths = selectedNames.map((name) => join(cwd, name));
+
+    if (isBinMode) {
+      const restoreIds = selectedNames
+        .map((name) => recycleEntries.find((e2) => e2.binName === name)?.id)
+        .filter((id): id is string => Boolean(id));
+      setDndPayload(e, { source: 'recycle-bin', paths, restoreIds });
+      return;
     }
+
+    // Drag whatever's selected if this item is already selected; otherwise drag just this one.
+    if (!selection.has(n.name)) selectOnly(n.name);
     setDndPayload(e, { source: 'fs', paths });
   };
 
@@ -407,6 +518,20 @@ export default function Explorer({ api, fs, args }: AppProps) {
     // happened the items are gone, if not the user is unlikely to want them
     // selected anymore).
     setSelection(new Set());
+  };
+
+  const onBinItemDragEnd = async (_e: React.DragEvent): Promise<void> => {
+    if (!recycleBin) return;
+    if (!wasDropConsumed()) return;
+    // After a successful drag-out, the bin folder no longer contains the item;
+    // reconcile by dropping any index entry whose binPath is gone.
+    const removedIds = recycleEntries
+      .filter((e) => !fs.exists(`${RECYCLE_BIN_DIR}\\${e.binName}`))
+      .map((e) => e.id);
+    if (removedIds.length === 0) return;
+    for (const id of removedIds) await recycleBin.permanentlyDelete(id);
+    useRecycleBinStore.getState().refresh();
+    useFsStore.getState().bump();
   };
 
   const onFolderDragOver = (e: React.DragEvent): void => {
@@ -620,7 +745,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 onContextMenu={(e) => onItemContext(e, n)}
                 draggable
                 onDragStart={(e) => onItemDragStart(e, n)}
-                onDragEnd={onItemDragEnd}
+                onDragEnd={isBinMode ? onBinItemDragEnd : onItemDragEnd}
                 onDragOver={!isBinMode && n.kind === 'dir' ? onFolderDragOver : undefined}
                 onDrop={!isBinMode && n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >
@@ -642,7 +767,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 onContextMenu={(e) => onItemContext(e, n)}
                 draggable
                 onDragStart={(e) => onItemDragStart(e, n)}
-                onDragEnd={onItemDragEnd}
+                onDragEnd={isBinMode ? onBinItemDragEnd : onItemDragEnd}
                 onDragOver={!isBinMode && n.kind === 'dir' ? onFolderDragOver : undefined}
                 onDrop={!isBinMode && n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >
@@ -680,6 +805,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
                       onContextMenu={(e) => onItemContext(e, n)}
                       draggable
                       onDragStart={(e) => onItemDragStart(e, n)}
+                      onDragEnd={isBinMode ? onBinItemDragEnd : onItemDragEnd}
                       onDragOver={!isBinMode && n.kind === 'dir' ? onFolderDragOver : undefined}
                       onDrop={!isBinMode && n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
                     >
