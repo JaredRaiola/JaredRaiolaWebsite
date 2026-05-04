@@ -6,6 +6,8 @@ import { useFsStore } from '@/stores/fsStore';
 import { useThemeStore, wallpaperUrl } from '@/stores/themeStore';
 import { DesktopIcon } from './DesktopIcon';
 import { uuid } from '@/lib/uuid';
+import { getDndPayload } from '@/core/fs/dnd';
+import { basename } from '@/core/fs/paths';
 import './Desktop.css';
 
 export function Desktop() {
@@ -26,6 +28,45 @@ export function Desktop() {
     setRefreshing(true);
     useFsStore.getState().bump();
     setTimeout(() => setRefreshing(false), 120);
+  };
+
+  // Drop handler: when a file is dragged from explorer onto the desktop
+  // background, create a desktop shortcut icon pointing at it (does not move
+  // the underlying file). Dragging an existing desktop icon onto the desktop
+  // is a no-op (icon dragging itself is handled by DesktopIcon).
+  const onDesktopDragOver = (e: React.DragEvent): void => {
+    if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+  const onDesktopDrop = (e: React.DragEvent): void => {
+    const payload = getDndPayload(e);
+    if (!payload) return;
+    if (payload.source === 'desktop') return; // desktop icon repositioning is handled elsewhere
+    e.preventDefault();
+    if (!fs) return;
+    const node = fs.stat(payload.path);
+    if (!node) return;
+    // Skip if a shortcut already exists for this path
+    const existing = Object.values(useDesktopStore.getState().icons).find(
+      (i) => i.target.kind === 'file' && i.target.path.toLowerCase() === payload.path.toLowerCase(),
+    );
+    if (existing) return;
+    const dropX = Math.max(0, Math.round((e.clientX - 40) / 84) * 84);
+    const dropY = Math.max(0, Math.round((e.clientY - 40) / 92) * 92);
+    add({
+      id: uuid(),
+      label: basename(payload.path),
+      iconUrl:
+        node.kind === 'dir'
+          ? '/assets/win98/png/directory_closed-0.png'
+          : payload.path.toLowerCase().endsWith('.txt')
+            ? '/assets/win98/png/notepad-0.png'
+            : '/assets/win98/png/file_lines-0.png',
+      x: dropX,
+      y: dropY,
+      target: { kind: 'file', path: payload.path },
+    });
   };
 
   const onPointerDown = (e: React.PointerEvent): void => {
@@ -132,6 +173,8 @@ export function Desktop() {
       }}
       onPointerDown={onPointerDown}
       onContextMenu={onContextMenu}
+      onDragOver={onDesktopDragOver}
+      onDrop={onDesktopDrop}
     >
       {icons.map((i) => (
         <DesktopIcon key={i.id} icon={i} />

@@ -6,6 +6,7 @@ import { useWindowStore } from '@/stores/windowStore';
 import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
 import { join, parent, basename } from '@/core/fs/paths';
+import { setDndPayload, getDndPayload, moveInto } from '@/core/fs/dnd';
 import './explorer.css';
 
 type Args = { path?: string };
@@ -166,6 +167,63 @@ export default function Explorer({ api, fs, args }: AppProps) {
     return '/assets/win98/png/file_lines-0.png';
   };
 
+  const onItemDragStart = (e: React.DragEvent, n: FsNode): void => {
+    setDndPayload(e, { source: 'fs', path: join(cwd, n.name) });
+  };
+
+  const onFolderDragOver = (e: React.DragEvent): void => {
+    if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const onFolderDrop = (e: React.DragEvent, destFolderName: string): void => {
+    const payload = getDndPayload(e);
+    if (!payload) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const dest = join(cwd, destFolderName);
+    void (async () => {
+      const result = await moveInto(fs, payload.path, dest);
+      if (!result.ok) {
+        alert(result.reason);
+        return;
+      }
+      // If it came from desktop, remove the desktop icon for it.
+      if (payload.source === 'desktop' && payload.iconId) {
+        const { useDesktopStore } = await import('@/stores/desktopStore');
+        useDesktopStore.getState().remove(payload.iconId);
+      }
+      useFsStore.getState().bump();
+    })();
+  };
+
+  const onBodyDragOver = (e: React.DragEvent): void => {
+    if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const onBodyDrop = (e: React.DragEvent): void => {
+    const payload = getDndPayload(e);
+    if (!payload) return;
+    e.preventDefault();
+    void (async () => {
+      const result = await moveInto(fs, payload.path, cwd);
+      if (!result.ok) {
+        // Silently ignore "already in this folder"; otherwise surface
+        if (result.reason !== 'Already in this folder.') alert(result.reason);
+        return;
+      }
+      if (payload.source === 'desktop' && payload.iconId) {
+        const { useDesktopStore } = await import('@/stores/desktopStore');
+        useDesktopStore.getState().remove(payload.iconId);
+      }
+      useFsStore.getState().bump();
+    })();
+  };
+
   return (
     <div className="exp-root" data-bump={bumpVersion}>
       <div className="exp-menubar">
@@ -193,16 +251,25 @@ export default function Explorer({ api, fs, args }: AppProps) {
           }}
         />
       </div>
-      <div className="exp-body" onContextMenu={onBgContext}>
+      <div
+        className="exp-body"
+        onContextMenu={onBgContext}
+        onDragOver={onBodyDragOver}
+        onDrop={onBodyDrop}
+      >
         {view === 'icons' && (
           <div className="exp-grid">
             {items.map((n) => (
               <div
                 key={n.name}
-                className={`item ${selected === n.name ? 'selected' : ''}`}
+                className={`item ${selected === n.name ? 'selected' : ''} ${n.kind === 'dir' ? 'is-dir' : ''}`}
                 onClick={() => setSelected(n.name)}
                 onDoubleClick={() => openItem(n)}
                 onContextMenu={(e) => onItemContext(e, n)}
+                draggable
+                onDragStart={(e) => onItemDragStart(e, n)}
+                onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
+                onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >
                 <img src={renderIcon(n)} alt="" />
                 <div className="label">{n.name}</div>
@@ -215,10 +282,14 @@ export default function Explorer({ api, fs, args }: AppProps) {
             {items.map((n) => (
               <div
                 key={n.name}
-                className={`item ${selected === n.name ? 'selected' : ''}`}
+                className={`item ${selected === n.name ? 'selected' : ''} ${n.kind === 'dir' ? 'is-dir' : ''}`}
                 onClick={() => setSelected(n.name)}
                 onDoubleClick={() => openItem(n)}
                 onContextMenu={(e) => onItemContext(e, n)}
+                draggable
+                onDragStart={(e) => onItemDragStart(e, n)}
+                onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
+                onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >
                 <img src={renderIcon(n)} alt="" />
                 {n.name}
@@ -241,10 +312,14 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 {items.map((n) => (
                   <tr
                     key={n.name}
-                    className={`row ${selected === n.name ? 'selected' : ''}`}
+                    className={`row ${selected === n.name ? 'selected' : ''} ${n.kind === 'dir' ? 'is-dir' : ''}`}
                     onClick={() => setSelected(n.name)}
                     onDoubleClick={() => openItem(n)}
                     onContextMenu={(e) => onItemContext(e, n)}
+                    draggable
+                    onDragStart={(e) => onItemDragStart(e, n)}
+                    onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
+                    onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
                   >
                     <td>
                       <img src={renderIcon(n)} alt="" style={{ verticalAlign: 'middle', marginRight: 4 }} />

@@ -23,6 +23,8 @@
 .exp-grid .item img { width: 48px; height: 48px; image-rendering: pixelated; }
 .exp-grid .item .label { font-size: 14px; margin-top: 6px; word-wrap: break-word; max-width: 100px; line-height: 1.2; }
 .exp-grid .item.selected .label { background: #000080; color: white; }
+.exp-grid .item.is-dir { transition: background 0.05s; }
+.exp-grid .item[draggable] { cursor: default; }
 .exp-list .item, .exp-details .row {
   display: flex; align-items: center; gap: 8px; padding: 4px 8px; cursor: default; font-size: 14px;
 }

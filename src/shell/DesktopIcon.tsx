@@ -5,6 +5,7 @@ import { useWindowStore } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
+import { setDndPayload, getDndPayload, moveInto } from '@/core/fs/dnd';
 
 const GRID_W = 84;
 const GRID_H = 92;
@@ -120,6 +121,42 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   const x = drag?.x ?? icon.x;
   const y = drag?.y ?? icon.y;
 
+  const isFileTarget = icon.target.kind === 'file';
+  const isFolderTarget = isFileTarget && fs?.stat(icon.target.kind === 'file' ? icon.target.path : '')?.kind === 'dir';
+
+  const onDragStart = (e: React.DragEvent): void => {
+    if (icon.target.kind !== 'file') return;
+    setDndPayload(e, { source: 'desktop', path: icon.target.path, iconId: icon.id });
+  };
+
+  const onDragOver = (e: React.DragEvent): void => {
+    if (!isFolderTarget) return;
+    if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const onDrop = (e: React.DragEvent): void => {
+    if (!isFolderTarget || icon.target.kind !== 'file') return;
+    const payload = getDndPayload(e);
+    if (!payload || !fs) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const dest = icon.target.path;
+    void (async () => {
+      const result = await moveInto(fs, payload.path, dest);
+      if (!result.ok) {
+        if (result.reason !== 'Already in this folder.') alert(result.reason);
+        return;
+      }
+      if (payload.source === 'desktop' && payload.iconId && payload.iconId !== icon.id) {
+        useDesktopStore.getState().remove(payload.iconId);
+      }
+      useFsStore.getState().bump();
+    })();
+  };
+
   return (
     <div
       ref={ref}
@@ -129,6 +166,10 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       onDoubleClick={activate}
       onContextMenu={onContextMenu}
       data-icon-id={icon.id}
+      draggable={isFileTarget}
+      onDragStart={isFileTarget ? onDragStart : undefined}
+      onDragOver={isFolderTarget ? onDragOver : undefined}
+      onDrop={isFolderTarget ? onDrop : undefined}
     >
       <img src={icon.iconUrl} alt="" draggable={false} />
       <div className="label">{icon.label}</div>
