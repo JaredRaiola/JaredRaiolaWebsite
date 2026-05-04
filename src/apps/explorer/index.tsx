@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
 import { useFsStore } from '@/stores/fsStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
@@ -21,6 +21,8 @@ export default function Explorer({ api, fs, args }: AppProps) {
   const [view, setView] = useState<View>('icons');
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [anchor, setAnchor] = useState<string | null>(null);
+  const [lasso, setLasso] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const bumpVersion = useFsStore((s) => s.bumpVersion);
   const showCtx = useContextMenuStore((s) => s.show);
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
@@ -361,6 +363,49 @@ export default function Explorer({ api, fs, args }: AppProps) {
     void runMove(payload, cwd, true);
   };
 
+  // Lasso-select inside the explorer body. Only fires when the pointerdown
+  // target is the body itself (not on an item).
+  const onBodyPointerDown = (e: React.PointerEvent): void => {
+    if (!bodyRef.current) return;
+    if (e.target !== bodyRef.current && (e.target as HTMLElement).closest('.item, .row')) return;
+    if (e.button !== 0) return; // left button only
+    const rect = bodyRef.current.getBoundingClientRect();
+    const sx = e.clientX - rect.left + bodyRef.current.scrollLeft;
+    const sy = e.clientY - rect.top + bodyRef.current.scrollTop;
+    setSelection(new Set());
+    setAnchor(null);
+    const onMove = (mv: PointerEvent) => {
+      if (!bodyRef.current) return;
+      const r = bodyRef.current.getBoundingClientRect();
+      const cx = mv.clientX - r.left + bodyRef.current.scrollLeft;
+      const cy = mv.clientY - r.top + bodyRef.current.scrollTop;
+      const lx1 = Math.min(sx, cx);
+      const ly1 = Math.min(sy, cy);
+      const lx2 = Math.max(sx, cx);
+      const ly2 = Math.max(sy, cy);
+      setLasso({ x: lx1, y: ly1, w: lx2 - lx1, h: ly2 - ly1 });
+      const sel = new Set<string>();
+      bodyRef.current.querySelectorAll<HTMLElement>('[data-item-name]').forEach((el) => {
+        const er = el.getBoundingClientRect();
+        const x1 = er.left - r.left + bodyRef.current!.scrollLeft;
+        const y1 = er.top - r.top + bodyRef.current!.scrollTop;
+        const x2 = x1 + er.width;
+        const y2 = y1 + er.height;
+        if (x1 < lx2 && x2 > lx1 && y1 < ly2 && y2 > ly1) {
+          sel.add(el.dataset.itemName!);
+        }
+      });
+      setSelection(sel);
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      setLasso(null);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   const onUpDragOver = (e: React.DragEvent): void => {
     if (!parent(cwd)) return;
     if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
@@ -422,10 +467,12 @@ export default function Explorer({ api, fs, args }: AppProps) {
         />
       </div>
       <div
+        ref={bodyRef}
         className="exp-body"
         onContextMenu={onBgContext}
         onDragOver={onBodyDragOver}
         onDrop={onBodyDrop}
+        onPointerDown={onBodyPointerDown}
         onClick={(e) => {
           // clicking empty body deselects
           if (e.target === e.currentTarget) {
@@ -439,6 +486,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
             {items.map((n) => (
               <div
                 key={n.name}
+                data-item-name={n.name}
                 className={`item ${itemClass(n)}`}
                 onClick={(e) => onItemClick(e, n.name)}
                 onDoubleClick={() => openItem(n)}
@@ -460,6 +508,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
             {items.map((n) => (
               <div
                 key={n.name}
+                data-item-name={n.name}
                 className={`item ${itemClass(n)}`}
                 onClick={(e) => onItemClick(e, n.name)}
                 onDoubleClick={() => openItem(n)}
@@ -491,6 +540,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 {items.map((n) => (
                   <tr
                     key={n.name}
+                    data-item-name={n.name}
                     className={`row ${itemClass(n)}`}
                     onClick={(e) => onItemClick(e, n.name)}
                     onDoubleClick={() => openItem(n)}
@@ -512,6 +562,12 @@ export default function Explorer({ api, fs, args }: AppProps) {
               </tbody>
             </table>
           </div>
+        )}
+        {lasso && (
+          <div
+            className="exp-lasso"
+            style={{ left: lasso.x, top: lasso.y, width: lasso.w, height: lasso.h }}
+          />
         )}
       </div>
     </div>

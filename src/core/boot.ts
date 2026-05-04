@@ -12,7 +12,7 @@ import type { FsNode } from '@/core/fs/tree';
 
 const DESKTOP_KEY = 'win95.desktop.icons';
 const DESKTOP_VERSION_KEY = 'win95.desktop.version';
-const DESKTOP_VERSION = '2';
+const DESKTOP_VERSION = '3';
 const DESKTOP_DIR = 'C:\\Windows\\Desktop';
 const DESKTOP_DIR_LOWER = DESKTOP_DIR.toLowerCase();
 const GRID_W = 84;
@@ -20,6 +20,8 @@ const GRID_H = 92;
 
 // Special "system" desktop icons that don't live in C:\Windows\Desktop. Anything
 // in C:\Windows\Desktop is auto-managed by syncDesktopFromFs() instead.
+// Note row 3 is intentionally skipped so the auto-synced README desktop file
+// lands there (nextFreeGridSlot fills the first empty cell).
 const DEFAULT_SHORTCUTS: DesktopIcon[] = [
   {
     id: 'icon-mycomputer',
@@ -50,7 +52,7 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
     label: 'GitHub',
     iconUrl: '/assets/misc/github.png',
     x: 0,
-    y: 3,
+    y: 4,
     target: { kind: 'url', url: 'https://github.com/JaredRaiola' },
   },
   {
@@ -58,7 +60,7 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
     label: 'LinkedIn',
     iconUrl: '/assets/misc/linkedin.png',
     x: 0,
-    y: 4,
+    y: 5,
     target: { kind: 'url', url: 'https://www.linkedin.com/in/jared-raiola/' },
   },
 ];
