@@ -183,3 +183,40 @@ describe('recycleBin.restore', () => {
     expect(result).toEqual({ restored: false });
   });
 });
+
+describe('recycleBin.permanentlyDelete and empty', () => {
+  beforeEach(() => {
+    indexedDB.deleteDatabase('win95-fs');
+  });
+
+  it('permanentlyDelete removes the FS node and the index row', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\a.txt', 'A');
+    const bin = await createRecycleBin(fs);
+    const [entry] = await bin.sendToBin(['C:\\a.txt']);
+    await bin.permanentlyDelete(entry.id);
+    expect(fs.exists(`C:\\Recycle Bin\\${entry.binName}`)).toBe(false);
+    expect(bin.list()).toEqual([]);
+  });
+
+  it('permanentlyDelete on an unknown id is a no-op', async () => {
+    const fs = await createFs(seedRoot());
+    const bin = await createRecycleBin(fs);
+    await expect(bin.permanentlyDelete('nope')).resolves.toBeUndefined();
+    expect(bin.list()).toEqual([]);
+  });
+
+  it('empty hard-deletes everything and clears the index', async () => {
+    const fs = await createFs(seedRoot());
+    await fs.writeText('C:\\a.txt', 'A');
+    await fs.writeText('C:\\b.txt', 'B');
+    const bin = await createRecycleBin(fs);
+    await bin.sendToBin(['C:\\a.txt', 'C:\\b.txt']);
+    await bin.empty();
+    expect(bin.list()).toEqual([]);
+    expect(fs.exists('C:\\Recycle Bin\\a.txt')).toBe(false);
+    expect(fs.exists('C:\\Recycle Bin\\b.txt')).toBe(false);
+    const reloaded = await createRecycleBin(fs);
+    expect(reloaded.list()).toEqual([]);
+  });
+});

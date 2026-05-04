@@ -149,11 +149,21 @@ export async function createRecycleBin(fs: FS): Promise<RecycleBin> {
       await saveIndex(fs, entries);
       return { restored: true, restoredPath: destPath };
     },
-    async permanentlyDelete(_id) {
-      throw new Error('Not implemented yet');
+    async permanentlyDelete(id) {
+      const entry = entries.find((e) => e.id === id);
+      if (!entry) return;
+      const binPath = `${RECYCLE_BIN_DIR}\\${entry.binName}`;
+      if (fs.exists(binPath)) await fs.unlinkPermanent(binPath);
+      entries = entries.filter((e) => e.id !== id);
+      await saveIndex(fs, entries);
     },
     async empty() {
-      throw new Error('Not implemented yet');
+      for (const entry of entries) {
+        const binPath = `${RECYCLE_BIN_DIR}\\${entry.binName}`;
+        if (fs.exists(binPath)) await fs.unlinkPermanent(binPath);
+      }
+      entries = [];
+      await saveIndex(fs, entries);
     },
     list: () => entries,
     hasOrigin: (origin) => entries.some((e) => e.originPath.toLowerCase() === origin.toLowerCase()),
