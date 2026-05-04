@@ -7,10 +7,10 @@ export const DND_MIME = 'application/x-win95-fs';
 export type DndPayload = {
   /** Where the drag originated. */
   source: 'fs' | 'desktop';
-  /** Filesystem path of the dragged item. */
-  path: string;
-  /** Desktop icon ID, only when source === 'desktop'. */
-  iconId?: string;
+  /** Filesystem paths of all dragged items (supports multi-select drag). */
+  paths: string[];
+  /** Desktop icon IDs corresponding to each path, only when source === 'desktop'. */
+  iconIds?: string[];
 };
 
 export function setDndPayload(e: React.DragEvent, payload: DndPayload): void {
@@ -62,4 +62,24 @@ export async function moveInto(fs: FS, source: string, destDir: string): Promise
   }
   await fs.move(source, newPath);
   return { ok: true, newPath };
+}
+
+/** Move every path in the payload into destDir, collecting errors but continuing. */
+export async function moveAllInto(
+  fs: FS,
+  paths: string[],
+  destDir: string,
+  opts: { silentSameFolder?: boolean } = {},
+): Promise<{ moved: number; errors: string[] }> {
+  const errors: string[] = [];
+  let moved = 0;
+  for (const path of paths) {
+    const result = await moveInto(fs, path, destDir);
+    if (result.ok) {
+      moved += 1;
+    } else if (!(opts.silentSameFolder && result.reason === 'Already in this folder.')) {
+      errors.push(result.reason);
+    }
+  }
+  return { moved, errors };
 }

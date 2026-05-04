@@ -4,11 +4,10 @@ import { useFsStore } from '@/stores/fsStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useWindowStore } from '@/stores/windowStore';
 import { useClipboardStore } from '@/stores/clipboardStore';
-import { useDesktopStore } from '@/stores/desktopStore';
 import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
 import { join, parent, basename } from '@/core/fs/paths';
-import { setDndPayload, getDndPayload, moveInto, isPathInside } from '@/core/fs/dnd';
+import { setDndPayload, getDndPayload, moveAllInto, isPathInside } from '@/core/fs/dnd';
 import './explorer.css';
 
 type Args = { path?: string };
@@ -315,10 +314,22 @@ export default function Explorer({ api, fs, args }: AppProps) {
 
   // ---- Drag and drop ------------------------------------------------------
   const onItemDragStart = (e: React.DragEvent, n: FsNode): void => {
-    // Drag whatever's selected (if it includes the item being dragged); otherwise just this one.
-    const path = join(cwd, n.name);
-    if (!selection.has(n.name)) selectOnly(n.name);
-    setDndPayload(e, { source: 'fs', path });
+    // Drag whatever's selected if this item is already selected; otherwise drag just this one.
+    let paths: string[];
+    if (selection.has(n.name)) {
+      paths = Array.from(selection).map((name) => join(cwd, name));
+    } else {
+      selectOnly(n.name);
+      paths = [join(cwd, n.name)];
+    }
+    setDndPayload(e, { source: 'fs', paths });
+  };
+
+  const onItemDragEnd = (): void => {
+    // Clear selection after a successful drag-out (Win95 behavior; if the move
+    // happened the items are gone, if not the user is unlikely to want them
+    // selected anymore).
+    setSelection(new Set());
   };
 
   const onFolderDragOver = (e: React.DragEvent): void => {
@@ -350,7 +361,6 @@ export default function Explorer({ api, fs, args }: AppProps) {
     void runMove(payload, cwd, true);
   };
 
-  // Drop handlers for the toolbar Up/Back buttons - lets the user move out of a folder.
   const onUpDragOver = (e: React.DragEvent): void => {
     if (!parent(cwd)) return;
     if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
@@ -366,19 +376,12 @@ export default function Explorer({ api, fs, args }: AppProps) {
   };
 
   const runMove = async (
-    payload: { source: 'fs' | 'desktop'; path: string; iconId?: string },
+    payload: { source: 'fs' | 'desktop'; paths: string[]; iconIds?: string[] },
     dest: string,
     silentSameFolder = false,
   ): Promise<void> => {
-    const result = await moveInto(fs, payload.path, dest);
-    if (!result.ok) {
-      if (silentSameFolder && result.reason === 'Already in this folder.') return;
-      alert(result.reason);
-      return;
-    }
-    if (payload.source === 'desktop' && payload.iconId) {
-      useDesktopStore.getState().remove(payload.iconId);
-    }
+    const { errors } = await moveAllInto(fs, payload.paths, dest, { silentSameFolder });
+    if (errors.length > 0) alert(errors.join('\n'));
     useFsStore.getState().bump();
   };
 
@@ -442,6 +445,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 onContextMenu={(e) => onItemContext(e, n)}
                 draggable
                 onDragStart={(e) => onItemDragStart(e, n)}
+                onDragEnd={onItemDragEnd}
                 onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
                 onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >
@@ -462,6 +466,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
                 onContextMenu={(e) => onItemContext(e, n)}
                 draggable
                 onDragStart={(e) => onItemDragStart(e, n)}
+                onDragEnd={onItemDragEnd}
                 onDragOver={n.kind === 'dir' ? onFolderDragOver : undefined}
                 onDrop={n.kind === 'dir' ? (e) => onFolderDrop(e, n.name) : undefined}
               >

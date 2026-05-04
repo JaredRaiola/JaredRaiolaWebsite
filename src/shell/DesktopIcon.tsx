@@ -5,7 +5,7 @@ import { useWindowStore } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
-import { setDndPayload, getDndPayload, moveInto } from '@/core/fs/dnd';
+import { setDndPayload, getDndPayload, moveAllInto } from '@/core/fs/dnd';
 
 const GRID_W = 84;
 const GRID_H = 92;
@@ -13,6 +13,7 @@ const GRID_H = 92;
 export function DesktopIcon({ icon }: { icon: Icon }) {
   const selected = useDesktopStore((s) => s.selection.has(icon.id));
   const toggleSelect = useDesktopStore((s) => s.toggleSelect);
+  const setSelection = useDesktopStore((s) => s.setSelection);
   const move = useDesktopStore((s) => s.move);
   const remove = useDesktopStore((s) => s.remove);
   const rename = useDesktopStore((s) => s.rename);
@@ -41,48 +42,91 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       if (node?.kind === 'dir') {
         const explorer = getApp('explorer');
         if (!explorer) return;
-        open('explorer', { path }, {
-          title: 'My Computer',
-          icon: explorer.icon,
-          width: explorer.defaultSize.width,
-          height: explorer.defaultSize.height,
-        });
+        open(
+          'explorer',
+          { path },
+          {
+            title: 'My Computer',
+            icon: explorer.icon,
+            width: explorer.defaultSize.width,
+            height: explorer.defaultSize.height,
+          },
+        );
       } else {
         const appId = resolveAssociation(path);
         if (!appId) return;
         const app = getApp(appId);
         if (!app) return;
-        open(appId, { path }, {
-          title: app.displayName,
-          icon: app.icon,
-          width: app.defaultSize.width,
-          height: app.defaultSize.height,
-        });
+        open(
+          appId,
+          { path },
+          {
+            title: app.displayName,
+            icon: app.icon,
+            width: app.defaultSize.width,
+            height: app.defaultSize.height,
+          },
+        );
       }
     } else if (icon.target.kind === 'url') {
       window.open(icon.target.url, '_blank', 'noopener,noreferrer');
     }
   };
 
+  // Pointer-based drag: reposition this icon (and any others in the selection)
+  // within the desktop. If the user kicks off an HTML5 drag (cross-window),
+  // dragstart fires and we cancel pointer tracking via dragStartedRef.
+  const dragStartedRef = useRef(false);
+
   const onPointerDown = (e: React.PointerEvent): void => {
     e.stopPropagation();
-    toggleSelect(icon.id, e.shiftKey || e.ctrlKey);
+    dragStartedRef.current = false;
+    // Click-to-select. Don't reset selection if this icon is already in it
+    // (so a multi-select drag works). Single-click without modifiers and not
+    // in selection = select only this.
+    const sel = useDesktopStore.getState().selection;
+    if (!sel.has(icon.id) && !e.shiftKey && !e.ctrlKey) {
+      setSelection([icon.id]);
+    } else if (e.shiftKey || e.ctrlKey) {
+      toggleSelect(icon.id, true);
+    } else {
+      // already selected: keep as-is
+    }
+
     const startX = e.clientX;
     const startY = e.clientY;
-    const origX = icon.x;
-    const origY = icon.y;
+    const startSelection = Array.from(useDesktopStore.getState().selection);
+    const startPositions: Record<string, { x: number; y: number }> = {};
+    for (const id of startSelection) {
+      const i = useDesktopStore.getState().icons[id];
+      if (i) startPositions[id] = { x: i.x, y: i.y };
+    }
+
     const onMove = (mv: PointerEvent) => {
-      setDrag({ x: origX + (mv.clientX - startX), y: origY + (mv.clientY - startY) });
+      if (dragStartedRef.current) return; // HTML5 drag took over
+      setDrag({ x: startPositions[icon.id].x + (mv.clientX - startX), y: startPositions[icon.id].y + (mv.clientY - startY) });
     };
     const onUp = (up: PointerEvent) => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
+      if (dragStartedRef.current) {
+        // HTML5 drag handled it
+        setDrag(null);
+        return;
+      }
       const dx = up.clientX - startX;
       const dy = up.clientY - startY;
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-        const nx = Math.round((origX + dx) / GRID_W) * GRID_W;
-        const ny = Math.round((origY + dy) / GRID_H) * GRID_H;
-        move(icon.id, Math.max(0, nx), Math.max(0, ny));
+        // Snap each selected icon to grid by its delta
+        for (const id of startSelection) {
+          const orig = startPositions[id];
+          if (!orig) continue;
+          const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
+          const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
+          move(id, Math.max(0, nx), Math.max(0, ny));
+        }
+        // Deselect after moving (Win95-ish behavior).
+        setSelection([]);
       }
       setDrag(null);
     };
@@ -93,7 +137,9 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   const onContextMenu = (e: React.MouseEvent): void => {
     e.preventDefault();
     e.stopPropagation();
-    toggleSelect(icon.id, false);
+    if (!useDesktopStore.getState().selection.has(icon.id)) {
+      setSelection([icon.id]);
+    }
     showCtx(e.clientX, e.clientY, [
       { kind: 'item', label: 'Open', onSelect: activate },
       { kind: 'item', label: 'Open With...', onSelect: () => {}, disabled: true },
@@ -110,7 +156,13 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
         kind: 'item',
         label: 'Delete',
         onSelect: () => {
-          if (window.confirm(`Delete ${icon.label}?`)) remove(icon.id);
+          if (!window.confirm(`Delete ${icon.label}?`)) return;
+          // If FS-backed and inside C:\Windows\Desktop, delete the actual file.
+          if (icon.target.kind === 'file' && icon.target.path.toLowerCase().startsWith('c:\\windows\\desktop\\')) {
+            void fs?.unlink(icon.target.path).then(() => useFsStore.getState().bump());
+          } else {
+            remove(icon.id);
+          }
         },
       },
       { kind: 'separator' },
@@ -122,11 +174,35 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   const y = drag?.y ?? icon.y;
 
   const isFileTarget = icon.target.kind === 'file';
-  const isFolderTarget = isFileTarget && fs?.stat(icon.target.kind === 'file' ? icon.target.path : '')?.kind === 'dir';
+  const fileTargetPath = icon.target.kind === 'file' ? icon.target.path : null;
+  const isFolderTarget = isFileTarget && fileTargetPath ? fs?.stat(fileTargetPath)?.kind === 'dir' : false;
 
   const onDragStart = (e: React.DragEvent): void => {
+    dragStartedRef.current = true;
     if (icon.target.kind !== 'file') return;
-    setDndPayload(e, { source: 'desktop', path: icon.target.path, iconId: icon.id });
+    // If this icon is part of the current selection (size > 1), drag the whole
+    // file-target subset of selection; otherwise drag just this icon.
+    const sel = useDesktopStore.getState().selection;
+    const allIcons = useDesktopStore.getState().icons;
+    let paths: string[] = [];
+    let iconIds: string[] = [];
+    if (sel.has(icon.id) && sel.size > 1) {
+      for (const id of sel) {
+        const i = allIcons[id];
+        if (i?.target.kind === 'file') {
+          paths.push(i.target.path);
+          iconIds.push(id);
+        }
+      }
+    } else {
+      paths = [icon.target.path];
+      iconIds = [icon.id];
+    }
+    setDndPayload(e, { source: 'desktop', paths, iconIds });
+  };
+
+  const onDragEnd = (): void => {
+    setSelection([]);
   };
 
   const onDragOver = (e: React.DragEvent): void => {
@@ -138,21 +214,15 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   };
 
   const onDrop = (e: React.DragEvent): void => {
-    if (!isFolderTarget || icon.target.kind !== 'file') return;
+    if (!isFolderTarget || !fileTargetPath) return;
     const payload = getDndPayload(e);
     if (!payload || !fs) return;
     e.preventDefault();
     e.stopPropagation();
-    const dest = icon.target.path;
+    const dest = fileTargetPath;
     void (async () => {
-      const result = await moveInto(fs, payload.path, dest);
-      if (!result.ok) {
-        if (result.reason !== 'Already in this folder.') alert(result.reason);
-        return;
-      }
-      if (payload.source === 'desktop' && payload.iconId && payload.iconId !== icon.id) {
-        useDesktopStore.getState().remove(payload.iconId);
-      }
+      const { errors } = await moveAllInto(fs, payload.paths, dest);
+      if (errors.length > 0) alert(errors.join('\n'));
       useFsStore.getState().bump();
     })();
   };
@@ -168,6 +238,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       data-icon-id={icon.id}
       draggable={isFileTarget}
       onDragStart={isFileTarget ? onDragStart : undefined}
+      onDragEnd={isFileTarget ? onDragEnd : undefined}
       onDragOver={isFolderTarget ? onDragOver : undefined}
       onDrop={isFolderTarget ? onDrop : undefined}
     >

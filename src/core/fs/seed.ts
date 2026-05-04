@@ -30,7 +30,7 @@ export function buildSeedTree(): DirNode {
   const readmeBlob = uuid();
   insertNode(
     root,
-    'C:\\Windows\\README.txt',
+    'C:\\Windows\\Desktop\\README.txt',
     makeFile('README.txt', 'text/plain', README.length, readmeBlob, now),
   );
 

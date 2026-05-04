@@ -5,15 +5,15 @@ import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useFsStore } from '@/stores/fsStore';
 import { useThemeStore, wallpaperUrl } from '@/stores/themeStore';
 import { DesktopIcon } from './DesktopIcon';
-import { uuid } from '@/lib/uuid';
-import { getDndPayload } from '@/core/fs/dnd';
-import { basename } from '@/core/fs/paths';
+import { getDndPayload, moveAllInto } from '@/core/fs/dnd';
+import { join } from '@/core/fs/paths';
 import './Desktop.css';
+
+const DESKTOP_DIR = 'C:\\Windows\\Desktop';
 
 export function Desktop() {
   const icons = useDesktopStore(useShallow((s) => Object.values(s.icons)));
   const setSelection = useDesktopStore((s) => s.setSelection);
-  const add = useDesktopStore((s) => s.add);
   const showCtx = useContextMenuStore((s) => s.show);
   const fs = useFsStore((s) => s.fs);
   const wallpaperKey = useThemeStore((s) => s.wallpaperKey);
@@ -30,43 +30,26 @@ export function Desktop() {
     setTimeout(() => setRefreshing(false), 120);
   };
 
-  // Drop handler: when a file is dragged from explorer onto the desktop
-  // background, create a desktop shortcut icon pointing at it (does not move
-  // the underlying file). Dragging an existing desktop icon onto the desktop
-  // is a no-op (icon dragging itself is handled by DesktopIcon).
+  // Drop handler: moving a file from explorer onto the desktop physically
+  // moves it into C:\Windows\Desktop. The desktop sync (boot.ts) will pick up
+  // the new file and render an icon for it.
   const onDesktopDragOver = (e: React.DragEvent): void => {
     if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
+    e.dataTransfer.dropEffect = 'move';
   };
   const onDesktopDrop = (e: React.DragEvent): void => {
     const payload = getDndPayload(e);
-    if (!payload) return;
-    if (payload.source === 'desktop') return; // desktop icon repositioning is handled elsewhere
+    if (!payload || !fs) return;
+    if (payload.source === 'desktop') return; // dragging within desktop is reposition (DesktopIcon)
     e.preventDefault();
-    if (!fs) return;
-    const node = fs.stat(payload.path);
-    if (!node) return;
-    // Skip if a shortcut already exists for this path
-    const existing = Object.values(useDesktopStore.getState().icons).find(
-      (i) => i.target.kind === 'file' && i.target.path.toLowerCase() === payload.path.toLowerCase(),
-    );
-    if (existing) return;
-    const dropX = Math.max(0, Math.round((e.clientX - 40) / 84) * 84);
-    const dropY = Math.max(0, Math.round((e.clientY - 40) / 92) * 92);
-    add({
-      id: uuid(),
-      label: basename(payload.path),
-      iconUrl:
-        node.kind === 'dir'
-          ? '/assets/win98/png/directory_closed-0.png'
-          : payload.path.toLowerCase().endsWith('.txt')
-            ? '/assets/win98/png/notepad-0.png'
-            : '/assets/win98/png/file_lines-0.png',
-      x: dropX,
-      y: dropY,
-      target: { kind: 'file', path: payload.path },
-    });
+    void (async () => {
+      const { errors } = await moveAllInto(fs, payload.paths, DESKTOP_DIR, {
+        silentSameFolder: true,
+      });
+      if (errors.length > 0) alert(errors.join('\n'));
+      useFsStore.getState().bump();
+    })();
   };
 
   const onPointerDown = (e: React.PointerEvent): void => {
@@ -117,37 +100,21 @@ export function Desktop() {
       {
         kind: 'item',
         label: 'New Folder',
-        onSelect: async () => {
+        onSelect: () => {
           if (!fs) return;
           const name = window.prompt('Folder name:', 'New Folder');
           if (!name) return;
-          add({
-            id: uuid(),
-            label: name,
-            iconUrl: '/assets/win98/png/directory_closed-0.png',
-            x: 0,
-            y: 0,
-            target: { kind: 'file', path: `C:\\Windows\\Desktop\\${name}` },
-          });
-          await fs.mkdir(`C:\\Windows\\Desktop\\${name}`);
+          void fs.mkdir(join(DESKTOP_DIR, name)).then(() => useFsStore.getState().bump());
         },
       },
       {
         kind: 'item',
         label: 'New Text Document',
-        onSelect: async () => {
+        onSelect: () => {
           if (!fs) return;
           const name = window.prompt('File name:', 'New Text Document.txt');
           if (!name) return;
-          await fs.writeText(`C:\\Windows\\Desktop\\${name}`, '');
-          add({
-            id: uuid(),
-            label: name,
-            iconUrl: '/assets/win98/png/notepad-0.png',
-            x: 0,
-            y: 0,
-            target: { kind: 'file', path: `C:\\Windows\\Desktop\\${name}` },
-          });
+          void fs.writeText(join(DESKTOP_DIR, name), '').then(() => useFsStore.getState().bump());
         },
       },
       { kind: 'separator' },
