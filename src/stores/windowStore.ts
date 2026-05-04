@@ -45,7 +45,7 @@ type Store = {
   setIcon(id: string, icon: string): void;
 };
 
-export const TASKBAR_HEIGHT = 28;
+export const TASKBAR_HEIGHT = 40;
 
 const cascadePosition = (i: number): { x: number; y: number } => {
   const step = 24;

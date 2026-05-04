@@ -1,6 +1,6 @@
 .start-menu {
   position: fixed;
-  bottom: 28px;
+  bottom: 40px;
   left: 0;
   display: flex;
   background: #c0c0c0;
@@ -8,37 +8,38 @@
   border-color: #ffffff #404040 #404040 #ffffff;
   box-shadow: 1px 1px 0 #000;
   z-index: 95000;
-  font-size: 12px;
-  font-family: 'MS Sans Serif', sans-serif;
+  font-size: 15px;
+  font-family: 'W95FA', 'MS Sans Serif', sans-serif;
 }
 .start-rail {
-  width: 24px;
+  width: 32px;
   background: #808080;
   color: white;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 22px;
   writing-mode: vertical-lr;
   transform: rotate(180deg);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 0;
-  letter-spacing: 1px;
+  padding: 12px 0;
+  letter-spacing: 1.5px;
 }
 .start-items {
   display: flex;
   flex-direction: column;
-  min-width: 200px;
-  padding: 2px 0;
+  min-width: 280px;
+  padding: 4px 0;
 }
 .start-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 16px 6px 8px;
+  gap: 12px;
+  padding: 8px 22px 8px 12px;
   cursor: default;
+  font-size: 15px;
 }
-.start-item img { width: 24px; height: 24px; image-rendering: pixelated; }
+.start-item img { width: 32px; height: 32px; image-rendering: pixelated; }
 .start-item:hover:not(.disabled) { background: #000080; color: white; }
 .start-item.disabled { color: #808080; }
-.start-sep { height: 1px; background: #808080; border-bottom: 1px solid #fff; margin: 2px 4px; }
+.start-sep { height: 1px; background: #808080; border-bottom: 1px solid #fff; margin: 4px 6px; }

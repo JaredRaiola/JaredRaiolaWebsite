@@ -4,14 +4,14 @@
   border: 2px solid;
   border-color: #ffffff #404040 #404040 #ffffff;
   box-shadow: 1px 1px 0 #000;
-  font-family: 'MS Sans Serif', sans-serif;
-  font-size: 11px;
-  padding: 2px;
+  font-family: 'W95FA', 'MS Sans Serif', sans-serif;
+  font-size: 14px;
+  padding: 3px;
   z-index: 100000;
-  min-width: 140px;
+  min-width: 200px;
 }
 .ctx-item {
-  padding: 4px 24px 4px 24px;
+  padding: 6px 32px 6px 32px;
   cursor: default;
 }
 .ctx-item:hover:not(.disabled) {
@@ -25,5 +25,5 @@
   height: 1px;
   background: #808080;
   border-bottom: 1px solid #fff;
-  margin: 3px 2px;
+  margin: 4px 3px;
 }

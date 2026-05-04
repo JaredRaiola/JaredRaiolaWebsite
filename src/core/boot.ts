@@ -95,7 +95,7 @@ function hydrateDesktop(): void {
     }
   }
   // Convert default grid coords (col, row) to pixel coords
-  useDesktopStore.getState().hydrate(DEFAULT_ICONS.map((i) => ({ ...i, x: i.x * 80, y: i.y * 96 })));
+  useDesktopStore.getState().hydrate(DEFAULT_ICONS.map((i) => ({ ...i, x: i.x * 112, y: i.y * 128 })));
 }
 
 export function persistDesktopOnChange(): void {

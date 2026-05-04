@@ -1,19 +1,22 @@
-.fd-root { display: flex; flex-direction: column; gap: 8px; min-width: 480px; padding: 8px; }
-.fd-toolbar { display: flex; gap: 6px; align-items: center; }
+.fd-root { display: flex; flex-direction: column; gap: 10px; min-width: 560px; padding: 10px; font-size: 14px; }
+.fd-toolbar { display: flex; gap: 8px; align-items: center; }
+.fd-toolbar input { font-size: 14px; padding: 4px 6px; }
+.fd-toolbar button { font-size: 14px; }
 .fd-list {
   background: white;
   border: 2px inset #c0c0c0;
-  height: 240px;
+  height: 320px;
   overflow-y: auto;
-  font-size: 11px;
-  padding: 4px;
+  font-size: 14px;
+  padding: 6px;
 }
 .fd-row {
-  display: flex; gap: 6px; align-items: center;
-  padding: 2px 4px;
+  display: flex; gap: 8px; align-items: center;
+  padding: 4px 6px;
   cursor: default;
 }
 .fd-row.selected { background: #000080; color: white; }
-.fd-row img { width: 16px; height: 16px; }
-.fd-bottom { display: flex; gap: 8px; align-items: center; }
-.fd-bottom input { flex: 1; }
+.fd-row img { width: 20px; height: 20px; image-rendering: pixelated; }
+.fd-bottom { display: flex; gap: 10px; align-items: center; }
+.fd-bottom input { flex: 1; font-size: 14px; padding: 4px 6px; }
+.fd-bottom button { font-size: 14px; padding: 4px 12px; }

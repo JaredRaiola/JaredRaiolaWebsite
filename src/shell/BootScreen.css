@@ -41,10 +41,10 @@
 /* ---------- Floppy stage ---------- */
 .boot-floppy-scene {
   position: relative;
-  width: 640px;
-  height: 400px;
-  max-width: 80vw;
-  max-height: 70vh;
+  width: 880px;
+  height: 560px;
+  max-width: 90vw;
+  max-height: 80vh;
 }
 .boot-floppy-scene svg {
   image-rendering: pixelated;
@@ -53,39 +53,32 @@
 }
 .boot-tower {
   position: absolute;
-  left: 80px;
-  top: 72px;
-  width: 176px;
-  height: 256px;
+  left: 110px;
+  top: 100px;
+  width: 240px;
+  height: 350px;
 }
 .boot-floppy {
   position: absolute;
-  left: 460px;
-  top: 152px;
-  width: 136px;
-  height: 128px;
+  left: 630px;
+  top: 210px;
+  width: 186px;
+  height: 176px;
   animation: boot-floppy-insert 2.6s steps(18, end) forwards;
   animation-delay: 0.2s;
   transform-origin: 50% 50%;
 }
 @keyframes boot-floppy-insert {
-  0%   { left: 460px; top: 152px; width: 136px; height: 128px; opacity: 1; }
-  60%  { left: 280px; top: 168px; width: 110px; height: 104px; opacity: 1; }
-  85%  { left: 230px; top: 178px; width: 80px;  height: 76px;  opacity: 1; }
-  100% { left: 196px; top: 184px; width: 52px;  height: 48px;  opacity: 0; }
+  0%   { left: 630px; top: 210px; width: 186px; height: 176px; opacity: 1; }
+  60%  { left: 380px; top: 232px; width: 150px; height: 142px; opacity: 1; }
+  85%  { left: 312px; top: 246px; width: 110px; height: 104px; opacity: 1; }
+  100% { left: 268px; top: 254px; width: 72px;  height: 66px;  opacity: 0; }
 }
 .boot-floppy-caption {
-  font-family: 'Courier New', monospace;
-  font-size: 16px;
+  font-family: 'W95FA', 'Courier New', monospace;
+  font-size: 22px;
   color: #c8c8c8;
-  letter-spacing: 1px;
-  animation: boot-blink 1s steps(2, end) infinite;
-}
-.boot-floppy-caption {
-  font-family: 'Courier New', monospace;
-  font-size: 16px;
-  color: #c8c8c8;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   animation: boot-blink 1s steps(2, end) infinite;
 }
 @keyframes boot-blink {

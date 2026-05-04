@@ -12,12 +12,12 @@
 .win-titlebar {
   display: flex;
   align-items: center;
-  height: 18px;
-  padding: 1px 2px;
+  height: 26px;
+  padding: 2px 3px;
   background: #000080;
   color: white;
   font-weight: bold;
-  font-size: 11px;
+  font-size: 14px;
   flex-shrink: 0;
   cursor: move;
 }
@@ -27,27 +27,29 @@
 .win-title {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.win-title img { width: 14px; height: 14px; }
-.win-buttons { display: flex; gap: 2px; }
+.win-title img { width: 18px; height: 18px; }
+.win-buttons { display: flex; gap: 3px; }
 .win-buttons button {
-  width: 16px; height: 14px;
-  font-size: 9px; line-height: 1;
+  width: 22px; height: 20px;
+  font-size: 13px; line-height: 1;
   padding: 0;
   display: flex; align-items: center; justify-content: center;
+  font-weight: bold;
 }
 .win-body {
   flex: 1;
   background: #c0c0c0;
   overflow: auto;
   position: relative;
+  font-size: 14px;
 }
 .win-error {
-  padding: 16px;
-  font-family: 'MS Sans Serif', sans-serif;
+  padding: 20px;
+  font-size: 14px;
 }

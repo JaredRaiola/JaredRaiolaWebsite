@@ -1,7 +1,7 @@
 .desktop {
   position: fixed;
   inset: 0;
-  bottom: 28px;
+  bottom: 40px;
   background: var(--wallpaper-color, #008080);
   background-size: cover;
   background-position: center;
@@ -9,23 +9,24 @@
 }
 .desktop-icon {
   position: absolute;
-  width: 76px;
+  width: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   cursor: default;
-  padding: 4px;
+  padding: 6px;
 }
-.desktop-icon img { width: 32px; height: 32px; image-rendering: pixelated; }
+.desktop-icon img { width: 48px; height: 48px; image-rendering: pixelated; }
 .desktop-icon .label {
   color: white;
-  font-size: 11px;
+  font-size: 15px;
   text-shadow: 1px 1px 0 black;
-  margin-top: 2px;
-  padding: 1px 3px;
+  margin-top: 4px;
+  padding: 2px 4px;
   word-wrap: break-word;
-  max-width: 76px;
+  max-width: 104px;
+  line-height: 1.2;
 }
 .desktop-icon.selected .label {
   background: #000080;
