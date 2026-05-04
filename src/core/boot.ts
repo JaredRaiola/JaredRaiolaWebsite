@@ -8,20 +8,23 @@ import explorerMeta from '@/apps/explorer/meta';
 import { registerApp } from '@/core/apps/registry';
 import { uuid } from '@/lib/uuid';
 import { extname } from '@/core/fs/paths';
-import type { FsNode } from '@/core/fs/tree';
+import type { FsNode, DirNode } from '@/core/fs/tree';
 
 const DESKTOP_KEY = 'win95.desktop.icons';
 const DESKTOP_VERSION_KEY = 'win95.desktop.version';
-const DESKTOP_VERSION = '3';
-const DESKTOP_DIR = 'C:\\Windows\\Desktop';
+const DESKTOP_VERSION = '4';
+const FS_LAYOUT_KEY = 'win95.fs.layout';
+const FS_LAYOUT_VERSION = '2';
+
+export const DESKTOP_DIR = 'C:\\Windows\\User\\Desktop';
 const DESKTOP_DIR_LOWER = DESKTOP_DIR.toLowerCase();
+
 const GRID_W = 84;
 const GRID_H = 92;
 
-// Special "system" desktop icons that don't live in C:\Windows\Desktop. Anything
-// in C:\Windows\Desktop is auto-managed by syncDesktopFromFs() instead.
-// Note row 3 is intentionally skipped so the auto-synced README desktop file
-// lands there (nextFreeGridSlot fills the first empty cell).
+// Special "system" desktop icons that don't live in C:\Windows\User\Desktop.
+// FS contents of the desktop folder are auto-managed by syncDesktopFromFs().
+// Row 3 is reserved so the auto-synced README slots there.
 const DEFAULT_SHORTCUTS: DesktopIcon[] = [
   {
     id: 'icon-mycomputer',
@@ -37,7 +40,7 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
     iconUrl: '/assets/win98/png/recycle_bin_empty-0.png',
     x: 0,
     y: 1,
-    target: { kind: 'file', path: 'C:\\Recycle Bin' },
+    target: { kind: 'file', path: 'C:\\Windows\\User\\Recycle Bin' },
   },
   {
     id: 'icon-mydocs',
@@ -45,7 +48,7 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
     iconUrl: '/assets/win98/png/directory_closed-0.png',
     x: 0,
     y: 2,
-    target: { kind: 'file', path: 'C:\\My Documents' },
+    target: { kind: 'file', path: 'C:\\Windows\\User\\My Documents' },
   },
   {
     id: 'icon-github',
@@ -65,41 +68,112 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
   },
 ];
 
-async function migrateOldReadme(): Promise<void> {
-  // One-time fixup: if the seed previously placed README at
-  // C:\Windows\README.txt and the new location is empty, walk the existing
-  // tree to migrate the file so existing users see the desktop README.
-  const tree = await getTree();
-  if (!tree) return;
-  const findChild = (dir: any, name: string): any =>
-    Object.values(dir.children).find((c: any) => c.name.toLowerCase() === name.toLowerCase());
-  const winDir = findChild(tree, 'Windows');
-  if (!winDir || winDir.kind !== 'dir') return;
-  const oldReadme = findChild(winDir, 'README.txt');
-  const desktopDir = findChild(winDir, 'Desktop');
-  if (!oldReadme || oldReadme.kind !== 'file') return;
-  if (!desktopDir || desktopDir.kind !== 'dir') return;
-  if (findChild(desktopDir, 'README.txt')) return;
-  // Move the node by mutating in place, then persist.
-  desktopDir.children['README.txt'] = oldReadme;
-  delete winDir.children['README.txt'];
+// ---- Tree node helpers used by migration --------------------------------
+
+function findChildKey(dir: DirNode, name: string): string | null {
+  const lower = name.toLowerCase();
+  for (const k of Object.keys(dir.children)) {
+    if (k.toLowerCase() === lower) return k;
+  }
+  return null;
+}
+
+function getOrCreateDir(parent: DirNode, name: string): DirNode {
+  const key = findChildKey(parent, name);
+  if (key && parent.children[key].kind === 'dir') return parent.children[key] as DirNode;
+  const now = Date.now();
+  const dir: DirNode = { kind: 'dir', name, children: {}, createdAt: now, modifiedAt: now };
+  parent.children[name] = dir;
+  parent.modifiedAt = now;
+  return dir;
+}
+
+function detachChild(parent: DirNode, name: string): FsNode | null {
+  const key = findChildKey(parent, name);
+  if (!key) return null;
+  const node = parent.children[key];
+  delete parent.children[key];
+  parent.modifiedAt = Date.now();
+  return node;
+}
+
+/**
+ * Migrate legacy filesystem layout to the new one:
+ *   C:\My Documents      → C:\Windows\User\My Documents
+ *   C:\Windows\Desktop   → C:\Windows\User\Desktop
+ *   C:\Recycle Bin       → C:\Windows\User\Desktop\Recycle Bin
+ *   C:\Windows\README.txt → C:\Windows\User\Desktop\README.txt   (very old)
+ */
+async function migrateFsLayout(): Promise<void> {
+  if (localStorage.getItem(FS_LAYOUT_KEY) === FS_LAYOUT_VERSION) return;
+  const tree = (await getTree()) as DirNode | null;
+  if (!tree) {
+    localStorage.setItem(FS_LAYOUT_KEY, FS_LAYOUT_VERSION);
+    return;
+  }
+
+  const winKey = findChildKey(tree, 'Windows');
+  const winDir = winKey ? (tree.children[winKey] as DirNode) : getOrCreateDir(tree, 'Windows');
+  const userDir = getOrCreateDir(winDir, 'User');
+  const newDesktop = getOrCreateDir(userDir, 'Desktop');
+
+  // Move C:\My Documents → C:\Windows\User\My Documents
+  const oldMyDocs = detachChild(tree, 'My Documents');
+  if (oldMyDocs && !findChildKey(userDir, 'My Documents')) {
+    userDir.children['My Documents'] = oldMyDocs;
+    userDir.modifiedAt = Date.now();
+  }
+
+  // Move C:\Windows\Desktop\* → C:\Windows\User\Desktop\*
+  const oldWinDesktopKey = findChildKey(winDir, 'Desktop');
+  if (oldWinDesktopKey) {
+    const oldWinDesktop = winDir.children[oldWinDesktopKey];
+    if (oldWinDesktop.kind === 'dir') {
+      for (const [name, child] of Object.entries(oldWinDesktop.children)) {
+        if (!findChildKey(newDesktop, name)) {
+          newDesktop.children[name] = child;
+        }
+      }
+      delete winDir.children[oldWinDesktopKey];
+      winDir.modifiedAt = Date.now();
+    }
+  }
+
+  // Move C:\Recycle Bin → C:\Windows\User\Recycle Bin (sibling of Desktop)
+  const oldRecycle = detachChild(tree, 'Recycle Bin');
+  if (oldRecycle && !findChildKey(userDir, 'Recycle Bin')) {
+    userDir.children['Recycle Bin'] = oldRecycle;
+    userDir.modifiedAt = Date.now();
+  } else if (!findChildKey(userDir, 'Recycle Bin')) {
+    getOrCreateDir(userDir, 'Recycle Bin');
+  }
+
+  // Old README at C:\Windows\README.txt → C:\Windows\User\Desktop\README.txt
+  const oldReadme = detachChild(winDir, 'README.txt');
+  if (oldReadme && !findChildKey(newDesktop, 'README.txt')) {
+    newDesktop.children['README.txt'] = oldReadme;
+    newDesktop.modifiedAt = Date.now();
+  }
+
   await putTree(tree);
+  localStorage.setItem(FS_LAYOUT_KEY, FS_LAYOUT_VERSION);
 }
 
 async function seedIfEmpty(): Promise<void> {
   const existing = await getTree();
   if (existing) {
-    await migrateOldReadme();
+    await migrateFsLayout();
     return;
   }
   const tree = buildSeedTree();
   await putTree(tree);
 
-  // Walk tree, write blob content for any seeded text files
   const walk = (n: FsNode, path: string): { blobId: string; content: string }[] => {
     if (n.kind === 'file') {
-      if (path === 'C:\\Windows\\Desktop\\README.txt') return [{ blobId: n.blobId, content: SEED_TEXT.README }];
-      if (path === 'C:\\My Documents\\About Me.txt') return [{ blobId: n.blobId, content: SEED_TEXT.ABOUT_ME }];
+      if (path === 'C:\\Windows\\User\\Desktop\\README.txt')
+        return [{ blobId: n.blobId, content: SEED_TEXT.README }];
+      if (path === 'C:\\Windows\\User\\My Documents\\About Me.txt')
+        return [{ blobId: n.blobId, content: SEED_TEXT.ABOUT_ME }];
       return [];
     }
     return Object.entries(n.children).flatMap(([name, child]) =>
@@ -109,12 +183,12 @@ async function seedIfEmpty(): Promise<void> {
   for (const { blobId, content } of walk(tree, 'C:\\')) {
     await putBlob(blobId, new Blob([content], { type: 'text/plain' }));
   }
+  localStorage.setItem(FS_LAYOUT_KEY, FS_LAYOUT_VERSION);
 }
 
 function hydrateDesktop(): void {
   const ver = localStorage.getItem(DESKTOP_VERSION_KEY);
   if (ver !== DESKTOP_VERSION) {
-    // Schema migration: clear stored positions so the new shortcut set takes effect.
     localStorage.removeItem(DESKTOP_KEY);
     localStorage.setItem(DESKTOP_VERSION_KEY, DESKTOP_VERSION);
   }
@@ -126,7 +200,7 @@ function hydrateDesktop(): void {
       useDesktopStore.getState().hydrate(parsed);
       return;
     } catch {
-      // fall through
+      /* fall through */
     }
   }
   useDesktopStore.getState().hydrate(
@@ -141,14 +215,18 @@ export function persistDesktopOnChange(): void {
 }
 
 function isUnderDesktopDir(path: string): boolean {
-  const lower = path.toLowerCase();
-  return lower.startsWith(DESKTOP_DIR_LOWER + '\\');
+  return path.toLowerCase().startsWith(DESKTOP_DIR_LOWER + '\\');
 }
 
 function iconUrlForNode(n: FsNode): string {
-  if (n.kind === 'dir') return '/assets/win98/png/directory_closed-0.png';
+  if (n.kind === 'dir') {
+    if (n.name.toLowerCase() === 'recycle bin') return '/assets/win98/png/recycle_bin_empty-0.png';
+    return '/assets/win98/png/directory_closed-0.png';
+  }
   const ext = extname(n.name);
   if (ext === '.txt') return '/assets/win98/png/notepad-0.png';
+  if (ext === '.url') return '/assets/win98/png/html-0.png';
+  if (ext === '.lnk') return '/assets/win98/png/document-0.png';
   return '/assets/win98/png/file_lines-0.png';
 }
 
@@ -159,7 +237,6 @@ function nextFreeGridSlot(icons: Record<string, DesktopIcon>): { x: number; y: n
     const row = Math.round(i.y / GRID_H);
     occupied.add(`${col},${row}`);
   }
-  // Search column-by-column starting at (0,0).
   for (let col = 0; col < 30; col++) {
     for (let row = 0; row < 30; row++) {
       if (!occupied.has(`${col},${row}`)) {
@@ -170,22 +247,20 @@ function nextFreeGridSlot(icons: Record<string, DesktopIcon>): { x: number; y: n
   return { x: 0, y: 0 };
 }
 
-/** Reconcile desktop icons with the FS contents of C:\Windows\Desktop. */
+/** Reconcile desktop icons with the FS contents of C:\Windows\User\Desktop. */
 export function syncDesktopFromFs(): void {
   const fs = useFsStore.getState().fs;
   if (!fs || !fs.exists(DESKTOP_DIR)) return;
 
   const store = useDesktopStore.getState();
 
-  // Map of currently-rendered icons backed by C:\Windows\Desktop entries.
-  const existing = new Map<string, string>(); // pathLower -> iconId
+  const existing = new Map<string, string>();
   for (const icon of Object.values(store.icons)) {
     if (icon.target.kind === 'file' && isUnderDesktopDir(icon.target.path)) {
       existing.set(icon.target.path.toLowerCase(), icon.id);
     }
   }
 
-  // Files/folders that should have icons.
   const wanted = new Set<string>();
   for (const node of fs.list(DESKTOP_DIR)) {
     const path = `${DESKTOP_DIR}\\${node.name}`;
@@ -203,7 +278,6 @@ export function syncDesktopFromFs(): void {
     }
   }
 
-  // Remove icons whose backing file is gone.
   for (const [pathLower, iconId] of existing.entries()) {
     if (!wanted.has(pathLower)) {
       useDesktopStore.getState().remove(iconId);
@@ -224,7 +298,6 @@ export async function boot(): Promise<void> {
   hydrateDesktop();
   persistDesktopOnChange();
   syncDesktopFromFs();
-  // Re-sync whenever the FS bumps (file added/removed/moved).
   useFsStore.subscribe((s, prev) => {
     if (s.bumpVersion !== prev.bumpVersion) syncDesktopFromFs();
   });

@@ -6,6 +6,7 @@ import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
 import { setDndPayload, getDndPayload, moveAllInto } from '@/core/fs/dnd';
+import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 
 const GRID_W = 84;
 const GRID_H = 92;
@@ -52,6 +53,8 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
             height: explorer.defaultSize.height,
           },
         );
+      } else if (path.toLowerCase().endsWith('.url')) {
+        void tryOpenShortcut(fs, path);
       } else {
         const appId = resolveAssociation(path);
         if (!appId) return;
@@ -158,7 +161,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
         onSelect: () => {
           if (!window.confirm(`Delete ${icon.label}?`)) return;
           // If FS-backed and inside C:\Windows\Desktop, delete the actual file.
-          if (icon.target.kind === 'file' && icon.target.path.toLowerCase().startsWith('c:\\windows\\desktop\\')) {
+          if (icon.target.kind === 'file' && icon.target.path.toLowerCase().startsWith('c:\\windows\\user\\desktop\\')) {
             void fs?.unlink(icon.target.path).then(() => useFsStore.getState().bump());
           } else {
             remove(icon.id);
@@ -179,9 +182,26 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
 
   const onDragStart = (e: React.DragEvent): void => {
     dragStartedRef.current = true;
-    if (icon.target.kind !== 'file') return;
-    // If this icon is part of the current selection (size > 1), drag the whole
-    // file-target subset of selection; otherwise drag just this icon.
+    // URL shortcut: payload tells receivers to create a `.url` file on drop.
+    if (icon.target.kind === 'url') {
+      setDndPayload(e, {
+        source: 'desktop',
+        paths: [],
+        urlShortcut: { url: icon.target.url, label: icon.label },
+      });
+      return;
+    }
+    // App shortcut: payload tells receivers to create a `.lnk` file on drop.
+    if (icon.target.kind === 'app') {
+      setDndPayload(e, {
+        source: 'desktop',
+        paths: [],
+        appShortcut: { appId: icon.target.appId, label: icon.label },
+      });
+      return;
+    }
+    // File target: drag the FS path(s). If selection has multiple file icons,
+    // drag the whole selection.
     const sel = useDesktopStore.getState().selection;
     const allIcons = useDesktopStore.getState().icons;
     let paths: string[] = [];
@@ -221,8 +241,15 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     e.stopPropagation();
     const dest = fileTargetPath;
     void (async () => {
-      const { errors } = await moveAllInto(fs, payload.paths, dest);
-      if (errors.length > 0) alert(errors.join('\n'));
+      if (payload.urlShortcut) {
+        await createUrlShortcut(fs, dest, payload.urlShortcut.label, payload.urlShortcut.url);
+      } else if (payload.appShortcut) {
+        await createAppShortcut(fs, dest, payload.appShortcut.label, payload.appShortcut.appId);
+      } else {
+        const filtered = payload.paths.filter((p) => p.toLowerCase() !== dest.toLowerCase());
+        const { errors } = await moveAllInto(fs, filtered, dest);
+        if (errors.length > 0) alert(errors.join('\n'));
+      }
       useFsStore.getState().bump();
     })();
   };
@@ -236,9 +263,9 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       onDoubleClick={activate}
       onContextMenu={onContextMenu}
       data-icon-id={icon.id}
-      draggable={isFileTarget}
-      onDragStart={isFileTarget ? onDragStart : undefined}
-      onDragEnd={isFileTarget ? onDragEnd : undefined}
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onDragOver={isFolderTarget ? onDragOver : undefined}
       onDrop={isFolderTarget ? onDrop : undefined}
     >

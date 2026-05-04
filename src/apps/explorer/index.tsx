@@ -8,6 +8,7 @@ import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
 import { join, parent, basename } from '@/core/fs/paths';
 import { setDndPayload, getDndPayload, moveAllInto, isPathInside } from '@/core/fs/dnd';
+import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 import './explorer.css';
 
 type Args = { path?: string };
@@ -65,8 +66,16 @@ export default function Explorer({ api, fs, args }: AppProps) {
 
   const openItem = (n: FsNode): void => {
     const path = join(cwd, n.name);
-    if (n.kind === 'dir') navigate(path);
-    else api.openFile(path);
+    if (n.kind === 'dir') {
+      navigate(path);
+      return;
+    }
+    const lower = path.toLowerCase();
+    if (lower.endsWith('.url') || lower.endsWith('.lnk')) {
+      void tryOpenShortcut(fs, path);
+      return;
+    }
+    api.openFile(path);
   };
 
   // ---- Selection helpers --------------------------------------------------
@@ -300,8 +309,14 @@ export default function Explorer({ api, fs, args }: AppProps) {
 
   // ---- Renderers ----------------------------------------------------------
   const renderIcon = (n: FsNode): string => {
-    if (n.kind === 'dir') return '/assets/win98/png/directory_closed-0.png';
-    if (n.name.toLowerCase().endsWith('.txt')) return '/assets/win98/png/notepad-0.png';
+    if (n.kind === 'dir') {
+      if (n.name.toLowerCase() === 'recycle bin') return '/assets/win98/png/recycle_bin_empty-0.png';
+      return '/assets/win98/png/directory_closed-0.png';
+    }
+    const lower = n.name.toLowerCase();
+    if (lower.endsWith('.txt')) return '/assets/win98/png/notepad-0.png';
+    if (lower.endsWith('.url')) return '/assets/win98/png/html-0.png';
+    if (lower.endsWith('.lnk')) return '/assets/win98/png/document-0.png';
     return '/assets/win98/png/file_lines-0.png';
   };
 
@@ -421,11 +436,24 @@ export default function Explorer({ api, fs, args }: AppProps) {
   };
 
   const runMove = async (
-    payload: { source: 'fs' | 'desktop'; paths: string[]; iconIds?: string[] },
+    payload: ReturnType<typeof getDndPayload>,
     dest: string,
     silentSameFolder = false,
   ): Promise<void> => {
-    const { errors } = await moveAllInto(fs, payload.paths, dest, { silentSameFolder });
+    if (!payload) return;
+    if (payload.urlShortcut) {
+      await createUrlShortcut(fs, dest, payload.urlShortcut.label, payload.urlShortcut.url);
+      useFsStore.getState().bump();
+      return;
+    }
+    if (payload.appShortcut) {
+      await createAppShortcut(fs, dest, payload.appShortcut.label, payload.appShortcut.appId);
+      useFsStore.getState().bump();
+      return;
+    }
+    // Don't try to move the destination folder into itself.
+    const filtered = payload.paths.filter((p) => p.toLowerCase() !== dest.toLowerCase());
+    const { errors } = await moveAllInto(fs, filtered, dest, { silentSameFolder });
     if (errors.length > 0) alert(errors.join('\n'));
     useFsStore.getState().bump();
   };

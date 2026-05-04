@@ -11,6 +11,12 @@ export type DndPayload = {
   paths: string[];
   /** Desktop icon IDs corresponding to each path, only when source === 'desktop'. */
   iconIds?: string[];
+  /** Set when dragging a desktop URL shortcut (LinkedIn/GitHub/etc.). On drop,
+   * the receiver creates a `.url` shortcut file at the destination. */
+  urlShortcut?: { url: string; label: string };
+  /** Set when dragging a desktop app shortcut (My Computer/etc.). On drop,
+   * the receiver creates a `.lnk` shortcut file at the destination. */
+  appShortcut?: { appId: string; label: string };
 };
 
 export function setDndPayload(e: React.DragEvent, payload: DndPayload): void {

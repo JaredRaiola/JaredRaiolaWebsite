@@ -6,10 +6,10 @@ import { useFsStore } from '@/stores/fsStore';
 import { useThemeStore, wallpaperUrl } from '@/stores/themeStore';
 import { DesktopIcon } from './DesktopIcon';
 import { getDndPayload, moveAllInto } from '@/core/fs/dnd';
+import { createUrlShortcut, createAppShortcut } from '@/core/fs/shortcut';
 import { join } from '@/core/fs/paths';
+import { DESKTOP_DIR } from '@/core/boot';
 import './Desktop.css';
-
-const DESKTOP_DIR = 'C:\\Windows\\Desktop';
 
 export function Desktop() {
   const icons = useDesktopStore(useShallow((s) => Object.values(s.icons)));
@@ -30,9 +30,6 @@ export function Desktop() {
     setTimeout(() => setRefreshing(false), 120);
   };
 
-  // Drop handler: moving a file from explorer onto the desktop physically
-  // moves it into C:\Windows\Desktop. The desktop sync (boot.ts) will pick up
-  // the new file and render an icon for it.
   const onDesktopDragOver = (e: React.DragEvent): void => {
     if (!e.dataTransfer.types.includes('application/x-win95-fs')) return;
     e.preventDefault();
@@ -41,9 +38,21 @@ export function Desktop() {
   const onDesktopDrop = (e: React.DragEvent): void => {
     const payload = getDndPayload(e);
     if (!payload || !fs) return;
-    if (payload.source === 'desktop') return; // dragging within desktop is reposition (DesktopIcon)
     e.preventDefault();
     void (async () => {
+      // URL or app shortcut → create shortcut file in C:\Windows\User\Desktop
+      if (payload.urlShortcut) {
+        await createUrlShortcut(fs, DESKTOP_DIR, payload.urlShortcut.label, payload.urlShortcut.url);
+        useFsStore.getState().bump();
+        return;
+      }
+      if (payload.appShortcut) {
+        await createAppShortcut(fs, DESKTOP_DIR, payload.appShortcut.label, payload.appShortcut.appId);
+        useFsStore.getState().bump();
+        return;
+      }
+      // File payloads → physically move into C:\Windows\User\Desktop
+      if (payload.source === 'desktop') return; // intra-desktop reposition handled in DesktopIcon
       const { errors } = await moveAllInto(fs, payload.paths, DESKTOP_DIR, {
         silentSameFolder: true,
       });

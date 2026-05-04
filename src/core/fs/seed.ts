@@ -23,34 +23,32 @@ export function buildSeedTree(): DirNode {
   const now = Date.now();
   const root = makeDir('C:', now);
 
+  // Top level: only Program Files and Windows.
+  insertNode(root, 'C:\\Program Files', makeDir('Program Files', now));
   insertNode(root, 'C:\\Windows', makeDir('Windows', now));
   insertNode(root, 'C:\\Windows\\System', makeDir('System', now));
-  insertNode(root, 'C:\\Windows\\Desktop', makeDir('Desktop', now));
+  insertNode(root, 'C:\\Windows\\User', makeDir('User', now));
+  insertNode(root, 'C:\\Windows\\User\\Desktop', makeDir('Desktop', now));
+  insertNode(root, 'C:\\Windows\\User\\My Documents', makeDir('My Documents', now));
+  insertNode(root, 'C:\\Windows\\User\\My Documents\\Projects', makeDir('Projects', now));
+  insertNode(root, 'C:\\Windows\\User\\Recycle Bin', makeDir('Recycle Bin', now));
 
   const readmeBlob = uuid();
   insertNode(
     root,
-    'C:\\Windows\\Desktop\\README.txt',
+    'C:\\Windows\\User\\Desktop\\README.txt',
     makeFile('README.txt', 'text/plain', README.length, readmeBlob, now),
   );
 
-  insertNode(root, 'C:\\My Documents', makeDir('My Documents', now));
   const aboutBlob = uuid();
   insertNode(
     root,
-    'C:\\My Documents\\About Me.txt',
+    'C:\\Windows\\User\\My Documents\\About Me.txt',
     makeFile('About Me.txt', 'text/plain', ABOUT_ME.length, aboutBlob, now),
   );
-  insertNode(root, 'C:\\My Documents\\Projects', makeDir('Projects', now));
-
-  insertNode(root, 'C:\\Program Files', makeDir('Program Files', now));
-  insertNode(root, 'C:\\Recycle Bin', makeDir('Recycle Bin', now));
 
   return root;
 }
 
-export const SEED_BLOBS: Record<string, { content: string; mime: string }> = {
-  // populated by callers using the same blobIds returned from buildSeedTree
-};
-
+export const SEED_BLOBS: Record<string, { content: string; mime: string }> = {};
 export const SEED_TEXT = { README, ABOUT_ME };
