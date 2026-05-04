@@ -8,6 +8,7 @@ import { useDesktopStore, type DesktopIcon } from '@/stores/desktopStore';
 import notepadMeta from '@/apps/notepad/meta';
 import explorerMeta from '@/apps/explorer/meta';
 import resumeMeta from '@/apps/resume/meta';
+import controlPanelMeta from '@/apps/controlpanel/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import { uuid } from '@/lib/uuid';
@@ -314,6 +315,7 @@ function registerAllApps(): void {
   registerApp(notepadMeta);
   registerApp(explorerMeta);
   registerApp(resumeMeta);
+  registerApp(controlPanelMeta);
 }
 
 export async function boot(): Promise<void> {

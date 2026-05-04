@@ -1,0 +1,87 @@
+.cp-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #c0c0c0;
+  font-size: 13px;
+  font-family: 'MS Sans Serif', 'Microsoft Sans Serif', Tahoma, sans-serif;
+}
+
+.cp-tabs {
+  display: flex;
+  padding: 6px 6px 0;
+  gap: 2px;
+  border-bottom: 1px solid #808080;
+}
+
+.cp-tab {
+  padding: 4px 10px;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: none;
+}
+.cp-tab-active {
+  background: #d4d4d4;
+  font-weight: bold;
+  position: relative;
+  bottom: -1px;
+}
+.cp-tab-disabled { color: #808080; cursor: default; }
+
+.cp-tab-content {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+
+.cp-display {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cp-preview-section {
+  display: flex;
+  justify-content: center;
+}
+.cp-preview {
+  width: 200px;
+  height: 130px;
+  border: 2px solid;
+  border-color: #404040 #ffffff #ffffff #404040;
+  background-color: #008080;
+}
+
+.cp-section {
+  border: 1px solid #808080;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cp-label { font-weight: bold; font-size: 12px; }
+.cp-list {
+  height: 90px;
+  border: 2px solid;
+  border-color: #404040 #ffffff #ffffff #404040;
+  font-size: 12px;
+}
+.cp-row { display: flex; align-items: center; gap: 8px; }
+.cp-row select { font-size: 12px; }
+
+.cp-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.cp-buttons button {
+  min-width: 78px;
+  height: 24px;
+  font-size: 12px;
+}
