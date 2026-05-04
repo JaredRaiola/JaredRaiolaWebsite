@@ -24,9 +24,8 @@ export function Taskbar() {
 
   return (
     <div className="taskbar">
-      <button className={`start-btn ${startOpen ? 'pressed' : ''}`} onClick={toggleStart}>
-        <img src="/assets/win98/png/start_icon.png" alt="" />
-        Start
+      <button className={`start-btn ${startOpen ? 'pressed' : ''}`} onClick={toggleStart} aria-label="Start">
+        <img src="/assets/win98/png/start_icon.png" alt="Start" />
       </button>
       <div className="taskbar-windows">
         {windows.map((w) => (

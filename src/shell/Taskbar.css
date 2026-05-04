@@ -15,12 +15,9 @@
   height: 32px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  font-weight: bold;
-  font-size: 15px;
+  padding: 2px 6px;
 }
-.start-btn img { width: 22px; height: 22px; }
+.start-btn img { height: 100%; width: auto; image-rendering: pixelated; display: block; }
 .start-btn.pressed {
   border-color: #404040 #ffffff #ffffff #404040 !important;
 }

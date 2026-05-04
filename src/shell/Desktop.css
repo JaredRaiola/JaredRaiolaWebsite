@@ -9,24 +9,24 @@
 }
 .desktop-icon {
   position: absolute;
-  width: 104px;
+  width: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   cursor: default;
-  padding: 6px;
+  padding: 3px;
 }
-.desktop-icon img { width: 48px; height: 48px; image-rendering: pixelated; }
+.desktop-icon img { width: 40px; height: 40px; image-rendering: pixelated; }
 .desktop-icon .label {
   color: white;
-  font-size: 15px;
+  font-size: 14px;
   text-shadow: 1px 1px 0 black;
-  margin-top: 4px;
-  padding: 2px 4px;
+  margin-top: 3px;
+  padding: 1px 3px;
   word-wrap: break-word;
-  max-width: 104px;
-  line-height: 1.2;
+  max-width: 80px;
+  line-height: 1.15;
 }
 .desktop-icon.selected .label {
   background: #000080;

@@ -6,8 +6,8 @@ import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
 
-const GRID_W = 112;
-const GRID_H = 128;
+const GRID_W = 84;
+const GRID_H = 92;
 
 export function DesktopIcon({ icon }: { icon: Icon }) {
   const selected = useDesktopStore((s) => s.selection.has(icon.id));
