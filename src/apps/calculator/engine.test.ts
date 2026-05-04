@@ -50,7 +50,7 @@ describe('calcReducer — entry', () => {
     expect(s.display).toBe('0');
   });
   it('clearEntry resets display only; clearAll resets everything', () => {
-    let s = { ...initialCalcState, display: '5', accumulator: 3, pendingOp: '+' as const };
+    let s: CalcState = { ...initialCalcState, display: '5', accumulator: 3, pendingOp: '+' as const };
     s = calcReducer(s, { kind: 'clearEntry' });
     expect(s.display).toBe('0');
     expect(s.accumulator).toBe(3);

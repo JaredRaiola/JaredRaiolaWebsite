@@ -9,6 +9,7 @@ import notepadMeta from '@/apps/notepad/meta';
 import explorerMeta from '@/apps/explorer/meta';
 import resumeMeta from '@/apps/resume/meta';
 import controlPanelMeta from '@/apps/controlpanel/meta';
+import calculatorMeta from '@/apps/calculator/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import { uuid } from '@/lib/uuid';
@@ -316,6 +317,7 @@ function registerAllApps(): void {
   registerApp(explorerMeta);
   registerApp(resumeMeta);
   registerApp(controlPanelMeta);
+  registerApp(calculatorMeta);
 }
 
 export async function boot(): Promise<void> {
