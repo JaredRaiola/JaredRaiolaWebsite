@@ -16,6 +16,18 @@ body,
 body {
   font-family: 'W95FA', 'MS Sans Serif', 'Pixelated MS Sans Serif', Arial, sans-serif;
   -webkit-font-smoothing: none;
+  /* OS chrome shouldn't be selectable. Inputs/textareas opt back in below. */
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+input,
+textarea,
+[contenteditable='true'],
+.allow-select {
+  user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
 }
 img {
   user-select: none;
