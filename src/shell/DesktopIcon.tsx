@@ -76,10 +76,14 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     }
   };
 
-  // Pointer-based drag: reposition this icon (and any others in the selection)
-  // within the desktop. If the user kicks off an HTML5 drag (cross-window),
-  // dragstart fires and we cancel pointer tracking via dragStartedRef.
+  // Pointer-based drag fallback (e.g., touch). For mouse, the browser begins
+  // an HTML5 drag once the user moves a few pixels; we then snap-to-grid in
+  // onDragEnd if no drop target consumed the drag.
   const dragStartedRef = useRef(false);
+  const dragStartRef = useRef<
+    | { x: number; y: number; selection: string[]; positions: Record<string, { x: number; y: number }> }
+    | null
+  >(null);
 
   const onPointerDown = (e: React.PointerEvent): void => {
     e.stopPropagation();
@@ -182,7 +186,25 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
 
   const onDragStart = (e: React.DragEvent): void => {
     dragStartedRef.current = true;
-    // URL shortcut: payload tells receivers to create a `.url` file on drop.
+    // Capture start state so onDragEnd can fall back to a desktop reposition
+    // if no drop target consumed the drag.
+    const sel = useDesktopStore.getState().selection;
+    const dragSet =
+      sel.has(icon.id) && sel.size > 1 ? Array.from(sel) : [icon.id];
+    const allIcons = useDesktopStore.getState().icons;
+    const positions: Record<string, { x: number; y: number }> = {};
+    for (const id of dragSet) {
+      const i = allIcons[id];
+      if (i) positions[id] = { x: i.x, y: i.y };
+    }
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      selection: dragSet,
+      positions,
+    };
+
+    // URL shortcut payload — receivers in folders/explorer create a `.url` file.
     if (icon.target.kind === 'url') {
       setDndPayload(e, {
         source: 'desktop',
@@ -191,7 +213,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       });
       return;
     }
-    // App shortcut: payload tells receivers to create a `.lnk` file on drop.
+    // App shortcut payload.
     if (icon.target.kind === 'app') {
       setDndPayload(e, {
         source: 'desktop',
@@ -200,10 +222,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       });
       return;
     }
-    // File target: drag the FS path(s). If selection has multiple file icons,
-    // drag the whole selection.
-    const sel = useDesktopStore.getState().selection;
-    const allIcons = useDesktopStore.getState().icons;
+    // File target: drag the FS path(s). Multi-select drags the whole selection.
     let paths: string[] = [];
     let iconIds: string[] = [];
     if (sel.has(icon.id) && sel.size > 1) {
@@ -221,7 +240,24 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     setDndPayload(e, { source: 'desktop', paths, iconIds });
   };
 
-  const onDragEnd = (): void => {
+  const onDragEnd = (e: React.DragEvent): void => {
+    const start = dragStartRef.current;
+    dragStartRef.current = null;
+    // dropEffect is 'none' when the drag wasn't consumed by a drop target.
+    // In that case treat the gesture as a desktop reposition.
+    if (start && e.dataTransfer.dropEffect === 'none') {
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        for (const id of start.selection) {
+          const orig = start.positions[id];
+          if (!orig) continue;
+          const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
+          const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
+          move(id, Math.max(0, nx), Math.max(0, ny));
+        }
+      }
+    }
     setSelection([]);
   };
 

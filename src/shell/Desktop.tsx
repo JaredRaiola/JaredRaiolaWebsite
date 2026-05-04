@@ -38,9 +38,12 @@ export function Desktop() {
   const onDesktopDrop = (e: React.DragEvent): void => {
     const payload = getDndPayload(e);
     if (!payload || !fs) return;
+    // Anything originating from the desktop dropped back on the desktop is a
+    // reposition — DesktopIcon's onDragEnd handles the snap. Don't create
+    // shortcut files or no-op move.
+    if (payload.source === 'desktop') return;
     e.preventDefault();
     void (async () => {
-      // URL or app shortcut → create shortcut file in C:\Windows\User\Desktop
       if (payload.urlShortcut) {
         await createUrlShortcut(fs, DESKTOP_DIR, payload.urlShortcut.label, payload.urlShortcut.url);
         useFsStore.getState().bump();
@@ -51,8 +54,6 @@ export function Desktop() {
         useFsStore.getState().bump();
         return;
       }
-      // File payloads → physically move into C:\Windows\User\Desktop
-      if (payload.source === 'desktop') return; // intra-desktop reposition handled in DesktopIcon
       const { errors } = await moveAllInto(fs, payload.paths, DESKTOP_DIR, {
         silentSameFolder: true,
       });
