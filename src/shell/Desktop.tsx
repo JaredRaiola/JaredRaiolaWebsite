@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useDesktopStore } from '@/stores/desktopStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useFsStore } from '@/stores/fsStore';
@@ -8,7 +9,7 @@ import { uuid } from '@/lib/uuid';
 import './Desktop.css';
 
 export function Desktop() {
-  const icons = useDesktopStore((s) => Object.values(s.icons));
+  const icons = useDesktopStore(useShallow((s) => Object.values(s.icons)));
   const setSelection = useDesktopStore((s) => s.setSelection);
   const add = useDesktopStore((s) => s.add);
   const showCtx = useContextMenuStore((s) => s.show);

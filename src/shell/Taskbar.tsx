@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useWindowStore } from '@/stores/windowStore';
 import { useTaskbarStore } from '@/stores/taskbarStore';
 import './Taskbar.css';
@@ -13,7 +14,7 @@ function useClock(): string {
 }
 
 export function Taskbar() {
-  const windows = useWindowStore((s) => Object.values(s.windows));
+  const windows = useWindowStore(useShallow((s) => Object.values(s.windows)));
   const focusedId = useWindowStore((s) => s.focusedId);
   const focus = useWindowStore((s) => s.focus);
   const minimize = useWindowStore((s) => s.minimize);
