@@ -2,19 +2,22 @@ import { createFs } from '@/core/fs';
 import { getTree, putTree, putBlob } from '@/core/fs/indexeddb';
 import { buildSeedTree, SEED_TEXT } from '@/core/fs/seed';
 import { useFsStore } from '@/stores/fsStore';
+import { createRecycleBin } from '@/core/fs/recycleBin';
+import { useRecycleBinStore } from '@/stores/recycleBinStore';
 import { useDesktopStore, type DesktopIcon } from '@/stores/desktopStore';
 import notepadMeta from '@/apps/notepad/meta';
 import explorerMeta from '@/apps/explorer/meta';
 import { registerApp } from '@/core/apps/registry';
+import { preload } from './preload';
 import { uuid } from '@/lib/uuid';
 import { extname } from '@/core/fs/paths';
 import type { FsNode, DirNode } from '@/core/fs/tree';
 
 const DESKTOP_KEY = 'win95.desktop.icons';
 const DESKTOP_VERSION_KEY = 'win95.desktop.version';
-const DESKTOP_VERSION = '7';
+const DESKTOP_VERSION = '10';
 const FS_LAYOUT_KEY = 'win95.fs.layout';
-const FS_LAYOUT_VERSION = '3';
+const FS_LAYOUT_VERSION = '4';
 
 export const DESKTOP_DIR = 'C:\\Windows\\User\\Desktop';
 const DESKTOP_DIR_LOWER = DESKTOP_DIR.toLowerCase();
@@ -24,47 +27,52 @@ const GRID_H = 92;
 
 // Special "system" desktop icons that don't live in C:\Windows\User\Desktop.
 // FS contents of the desktop folder are auto-managed by syncDesktopFromFs().
-// Row 3 is reserved so the auto-synced README slots there.
+// Default-layout order: Recycle Bin, My Computer, LinkedIn, GitHub, then
+// everything else. (Resume will be inserted after GitHub when the app ships.)
 const DEFAULT_SHORTCUTS: DesktopIcon[] = [
-  {
-    id: 'icon-mycomputer',
-    label: 'My Computer',
-    iconUrl: '/assets/win98/png/computer-0.png',
-    x: 0,
-    y: 0,
-    target: { kind: 'app', appId: 'explorer' },
-  },
   {
     id: 'icon-recycle',
     label: 'Recycle Bin',
     iconUrl: '/assets/win98/png/recycle_bin_empty-0.png',
     x: 0,
+    y: 0,
+    target: { kind: 'file', path: 'C:\\Recycle Bin' },
+    protected: true,
+  },
+  {
+    id: 'icon-mycomputer',
+    label: 'My Computer',
+    iconUrl: '/assets/win98/png/computer-0.png',
+    x: 0,
     y: 1,
-    target: { kind: 'file', path: 'C:\\Windows\\User\\Desktop\\Recycle Bin' },
-  },
-  {
-    id: 'icon-mydocs',
-    label: 'My Documents',
-    iconUrl: '/assets/win98/png/directory_closed-0.png',
-    x: 0,
-    y: 2,
-    target: { kind: 'file', path: 'C:\\Windows\\User\\My Documents' },
-  },
-  {
-    id: 'icon-github',
-    label: 'GitHub',
-    iconUrl: '/assets/misc/github.png',
-    x: 0,
-    y: 4,
-    target: { kind: 'url', url: 'https://github.com/JaredRaiola' },
+    target: { kind: 'app', appId: 'explorer' },
+    protected: true,
   },
   {
     id: 'icon-linkedin',
     label: 'LinkedIn',
     iconUrl: '/assets/misc/linkedin.png',
     x: 0,
-    y: 5,
+    y: 2,
     target: { kind: 'url', url: 'https://www.linkedin.com/in/jared-raiola/' },
+    protected: true,
+  },
+  {
+    id: 'icon-github',
+    label: 'GitHub',
+    iconUrl: '/assets/misc/github.png',
+    x: 0,
+    y: 3,
+    target: { kind: 'url', url: 'https://github.com/JaredRaiola' },
+    protected: true,
+  },
+  {
+    id: 'icon-mydocs',
+    label: 'My Documents',
+    iconUrl: '/assets/win98/png/directory_closed-0.png',
+    x: 0,
+    y: 4,
+    target: { kind: 'file', path: 'C:\\Windows\\User\\My Documents' },
   },
 ];
 
@@ -101,7 +109,7 @@ function detachChild(parent: DirNode, name: string): FsNode | null {
  * Migrate legacy filesystem layout to the new one:
  *   C:\My Documents      → C:\Windows\User\My Documents
  *   C:\Windows\Desktop   → C:\Windows\User\Desktop
- *   C:\Recycle Bin       → C:\Windows\User\Desktop\Recycle Bin
+ *   Any nested Recycle Bin → C:\Recycle Bin
  *   C:\Windows\README.txt → C:\Windows\User\Desktop\README.txt   (very old)
  */
 async function migrateFsLayout(): Promise<void> {
@@ -139,21 +147,20 @@ async function migrateFsLayout(): Promise<void> {
     }
   }
 
-  // Move C:\Recycle Bin → C:\Windows\User\Desktop\Recycle Bin (so it shows on
-  // the desktop). Also relocate any leftover at C:\Windows\User\Recycle Bin
-  // from a prior intermediate layout.
-  const oldRecycleAtRoot = detachChild(tree, 'Recycle Bin');
-  if (oldRecycleAtRoot && !findChildKey(newDesktop, 'Recycle Bin')) {
-    newDesktop.children['Recycle Bin'] = oldRecycleAtRoot;
-    newDesktop.modifiedAt = Date.now();
+  // Recycle Bin lives at C:\Recycle Bin. Earlier layouts placed it under the
+  // desktop or user dirs — pull any of those copies back to the root.
+  const recycleAtDesktop = detachChild(newDesktop, 'Recycle Bin');
+  if (recycleAtDesktop && !findChildKey(tree, 'Recycle Bin')) {
+    tree.children['Recycle Bin'] = recycleAtDesktop;
+    tree.modifiedAt = Date.now();
   }
-  const oldRecycleAtUser = detachChild(userDir, 'Recycle Bin');
-  if (oldRecycleAtUser && !findChildKey(newDesktop, 'Recycle Bin')) {
-    newDesktop.children['Recycle Bin'] = oldRecycleAtUser;
-    newDesktop.modifiedAt = Date.now();
+  const recycleAtUser = detachChild(userDir, 'Recycle Bin');
+  if (recycleAtUser && !findChildKey(tree, 'Recycle Bin')) {
+    tree.children['Recycle Bin'] = recycleAtUser;
+    tree.modifiedAt = Date.now();
   }
-  if (!findChildKey(newDesktop, 'Recycle Bin')) {
-    getOrCreateDir(newDesktop, 'Recycle Bin');
+  if (!findChildKey(tree, 'Recycle Bin')) {
+    getOrCreateDir(tree, 'Recycle Bin');
   }
 
   // Old README at C:\Windows\README.txt → C:\Windows\User\Desktop\README.txt
@@ -303,10 +310,21 @@ export async function boot(): Promise<void> {
   await seedIfEmpty();
   const fs = await createFs();
   useFsStore.getState().setFs(fs);
+  const recycleBin = await createRecycleBin(fs);
+  useRecycleBinStore.getState().setBin(recycleBin);
+  // FS bumps drive a refresh in case anything else edits the bin folder.
+  useFsStore.subscribe((s, prev) => {
+    if (s.bumpVersion !== prev.bumpVersion) {
+      useRecycleBinStore.getState().refresh();
+    }
+  });
   hydrateDesktop();
   persistDesktopOnChange();
   syncDesktopFromFs();
   useFsStore.subscribe((s, prev) => {
     if (s.bumpVersion !== prev.bumpVersion) syncDesktopFromFs();
   });
+  // Fire-and-forget: warm app code chunks + icon caches so first opens are
+  // instant. Done after the desktop is hydrated so the icon URLs are known.
+  preload();
 }
