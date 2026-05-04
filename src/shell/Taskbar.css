@@ -1,0 +1,61 @@
+.taskbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 28px;
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  gap: 2px;
+  z-index: 90000;
+  box-shadow: inset 0 1px 0 #dfdfdf;
+}
+.start-btn {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  font-weight: bold;
+  font-size: 11px;
+}
+.start-btn img { width: 16px; height: 16px; }
+.start-btn.pressed {
+  border-color: #404040 #ffffff #ffffff #404040 !important;
+}
+.taskbar-windows {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+  padding: 0 4px;
+  overflow: hidden;
+}
+.tb-win {
+  height: 22px;
+  min-width: 120px;
+  max-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  font-size: 11px;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tb-win img { width: 14px; height: 14px; }
+.tb-win.active {
+  border-color: #404040 #ffffff #ffffff #404040 !important;
+  background: linear-gradient(#a0a0a0, #c0c0c0);
+}
+.tb-tray {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  font-size: 11px;
+}
