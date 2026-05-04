@@ -31,15 +31,35 @@ class RootErrorBoundary extends Component<{ children: ReactNode }, { error: Erro
   }
 }
 
+const BOOTED_KEY = 'win95.booted';
+
+// Cold start = first time this tab session sees the page; reloads keep sessionStorage,
+// so they skip the boot animation. The shutdown action clears this flag.
+const shouldShowBoot = (): boolean => {
+  try {
+    return sessionStorage.getItem(BOOTED_KEY) !== '1';
+  } catch {
+    return true;
+  }
+};
+
 function AppInner() {
   const [ready, setReady] = useState(false);
   const [bootError, setBootError] = useState<Error | null>(null);
-  const [bootDone, setBootDone] = useState(false);
+  const [showBoot] = useState<boolean>(() => shouldShowBoot());
+  const [bootDone, setBootDone] = useState<boolean>(() => !shouldShowBoot());
   const { isMobile } = useResponsive();
 
   useEffect(() => {
     void boot()
-      .then(() => setReady(true))
+      .then(() => {
+        setReady(true);
+        try {
+          sessionStorage.setItem(BOOTED_KEY, '1');
+        } catch {
+          // ignore storage errors
+        }
+      })
       .catch((e: Error) => setBootError(e));
   }, []);
 
@@ -55,7 +75,7 @@ function AppInner() {
       </div>
     );
   }
-  if (!bootDone) return <BootScreen onDone={() => setBootDone(true)} />;
+  if (showBoot && !bootDone) return <BootScreen onDone={() => setBootDone(true)} />;
   if (!ready) return <div style={{ padding: 20 }}>Loading…</div>;
   return <Shell />;
 }

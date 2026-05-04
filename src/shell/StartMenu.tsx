@@ -86,6 +86,7 @@ export function StartMenu() {
           className="start-item"
           onClick={() => {
             close();
+            try { sessionStorage.removeItem('win95.booted'); } catch { /* ignore */ }
             document.body.innerHTML =
               '<div style="background:#000;color:#fff;font-family:serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;">It is now safe to turn off your computer.<br/><small style="opacity:.5;display:block;margin-top:12px;">(Click anywhere to come back.)</small></div>';
             document.body.onclick = () => location.reload();
