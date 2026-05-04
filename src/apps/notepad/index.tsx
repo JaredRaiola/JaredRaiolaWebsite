@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
 import { FileDialog } from '@/shell/FileDialog';
 import { basename } from '@/core/fs/paths';
+import { useWindowStore } from '@/stores/windowStore';
+import { useHotkeys } from '@/lib/useHotkeys';
 import './notepad.css';
 
 const WRAP_KEY = 'notepad.wordWrap';
@@ -17,6 +19,7 @@ export default function Notepad({ api, fs, args }: AppProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [dialogMode, setDialogMode] = useState<'open' | 'save' | null>(null);
   const pendingResolve = useRef<((b: boolean) => void) | null>(null);
+  const focused = useWindowStore((s) => s.focusedId === api.windowId);
 
   useEffect(() => {
     if (initial.path) {
@@ -39,6 +42,16 @@ export default function Notepad({ api, fs, args }: AppProps) {
   useEffect(() => {
     localStorage.setItem(WRAP_KEY, String(wrap));
   }, [wrap]);
+
+  useHotkeys(
+    {
+      'ctrl+n': () => void newFile(),
+      'ctrl+o': () => setDialogMode('open'),
+      'ctrl+s': () => void save(),
+      'ctrl+shift+s': () => void saveAs(),
+    },
+    { enabled: focused },
+  );
 
   const newFile = async (): Promise<void> => {
     if (dirty && !(await confirmDiscard())) return;

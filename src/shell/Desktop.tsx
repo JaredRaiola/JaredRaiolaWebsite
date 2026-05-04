@@ -20,6 +20,13 @@ export function Desktop() {
   const wallpaper = wallpaperUrl(wallpaperKey);
   const ref = useRef<HTMLDivElement>(null);
   const [lasso, setLasso] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const refresh = (): void => {
+    setRefreshing(true);
+    useFsStore.getState().bump();
+    setTimeout(() => setRefreshing(false), 120);
+  };
 
   const onPointerDown = (e: React.PointerEvent): void => {
     if (e.target !== ref.current) return;
@@ -103,7 +110,7 @@ export function Desktop() {
         },
       },
       { kind: 'separator' },
-      { kind: 'item', label: 'Refresh', onSelect: () => location.reload() },
+      { kind: 'item', label: 'Refresh', onSelect: refresh },
       { kind: 'separator' },
       {
         kind: 'item',
@@ -118,7 +125,7 @@ export function Desktop() {
   return (
     <div
       ref={ref}
-      className="desktop"
+      className={`desktop ${refreshing ? 'refreshing' : ''}`}
       style={{
         backgroundColor: bgColor,
         backgroundImage: wallpaper ? `url(${wallpaper})` : undefined,

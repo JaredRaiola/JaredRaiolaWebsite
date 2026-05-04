@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
 import { useFsStore } from '@/stores/fsStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
+import { useWindowStore } from '@/stores/windowStore';
+import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
 import { join, parent, basename } from '@/core/fs/paths';
 import './explorer.css';
@@ -18,6 +20,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const bumpVersion = useFsStore((s) => s.bumpVersion);
   const showCtx = useContextMenuStore((s) => s.show);
+  const focused = useWindowStore((s) => s.focusedId === api.windowId);
 
   const cwd = history[hi];
 
@@ -47,6 +50,34 @@ export default function Explorer({ api, fs, args }: AppProps) {
     const p = parent(cwd);
     if (p) navigate(p);
   };
+
+  useHotkeys(
+    {
+      'alt+left': goBack,
+      'alt+right': goForward,
+      backspace: goUp,
+      f5: () => useFsStore.getState().bump(),
+      delete: () => {
+        if (!selected) return;
+        const path = join(cwd, selected);
+        if (window.confirm(`Delete ${selected}?`)) {
+          void fs.unlink(path).then(() => useFsStore.getState().bump());
+        }
+      },
+      f2: () => {
+        if (!selected) return;
+        const path = join(cwd, selected);
+        const nu = window.prompt('New name:', selected);
+        if (nu) void fs.rename(path, join(cwd, nu)).then(() => useFsStore.getState().bump());
+      },
+      enter: () => {
+        if (!selected) return;
+        const node = fs.stat(join(cwd, selected));
+        if (node) openItem(node);
+      },
+    },
+    { enabled: focused, ignoreInInputs: true },
+  );
 
   const openItem = (n: FsNode): void => {
     const path = join(cwd, n.name);
