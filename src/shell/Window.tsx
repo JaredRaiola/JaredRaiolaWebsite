@@ -1,4 +1,4 @@
-import { Component, Suspense, lazy, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react';
+import { Component, Suspense, lazy, useMemo, useState, type ComponentType, type ReactNode } from 'react';
 import { Rnd } from 'react-rnd';
 import { useWindowStore, TASKBAR_HEIGHT, type WindowState } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
@@ -7,6 +7,19 @@ import { resolveAssociation } from '@/core/apps/associations';
 import './Window.css';
 
 type Props = { window: WindowState };
+
+// Module-scope cache so each app is lazy() wrapped exactly once across the
+// app lifetime. Without this, every Window mount re-creates the wrapper and
+// Suspense forces a fresh import, which made apps feel slow to open.
+const lazyAppCache = new Map<string, ComponentType<AppProps>>();
+function getLazyApp(appId: string, importer: () => Promise<{ default: ComponentType<AppProps> }>): ComponentType<AppProps> {
+  let cached = lazyAppCache.get(appId);
+  if (!cached) {
+    cached = lazy(importer);
+    lazyAppCache.set(appId, cached);
+  }
+  return cached;
+}
 
 class AppErrorBoundary extends Component<
   { name: string; onClose: () => void; children: ReactNode },
@@ -46,16 +59,10 @@ export function Window({ window: w }: Props) {
   const [dialog, setDialog] = useState<{ opts: DialogOpts; resolve: (r: DialogResult) => void } | null>(null);
 
   const def = getApp(w.appId);
-
-  const [Comp, setComp] = useState<ComponentType<AppProps> | null>(() =>
-    def ? lazy(def.component) : null,
+  const Comp = useMemo<ComponentType<AppProps> | null>(
+    () => (def ? getLazyApp(def.id, def.component) : null),
+    [def],
   );
-  // Update lazy component only when the appId changes (should never happen for a given window)
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setComp(def ? lazy(def.component) : null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [w.appId]);
 
   const api: WindowApi = useMemo(
     () => ({
