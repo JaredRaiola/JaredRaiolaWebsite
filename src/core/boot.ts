@@ -10,6 +10,7 @@ import explorerMeta from '@/apps/explorer/meta';
 import resumeMeta from '@/apps/resume/meta';
 import controlPanelMeta from '@/apps/controlpanel/meta';
 import calculatorMeta from '@/apps/calculator/meta';
+import cmdMeta from '@/apps/cmd/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import { uuid } from '@/lib/uuid';
@@ -318,6 +319,7 @@ function registerAllApps(): void {
   registerApp(resumeMeta);
   registerApp(controlPanelMeta);
   registerApp(calculatorMeta);
+  registerApp(cmdMeta);
 }
 
 export async function boot(): Promise<void> {

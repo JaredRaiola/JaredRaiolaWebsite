@@ -1,0 +1,24 @@
+.cmd-root {
+  height: 100%;
+  background: #000;
+  color: #c0c0c0;
+  font-family: 'Lucida Console', 'Consolas', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.25;
+  padding: 6px 8px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: text;
+}
+.cmd-line { white-space: pre-wrap; }
+.cmd-input-line { display: inline; }
+.cmd-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: #c0c0c0;
+  vertical-align: middle;
+  animation: cmd-blink 1s steps(2, start) infinite;
+}
+@keyframes cmd-blink { to { visibility: hidden; } }
