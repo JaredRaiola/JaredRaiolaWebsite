@@ -16,7 +16,7 @@ export default function CmdApp({ api, fs }: AppProps) {
   const [lines, setLines] = useState<string[]>(BANNER);
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<string[]>([]);
-  const [hi, setHi] = useState<number>(-1);
+  const [_hi, setHi] = useState<number>(-1);
   const rootRef = useRef<HTMLDivElement>(null);
   const printedBuffer = useRef<string[]>([]);
 
