@@ -228,7 +228,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
 
   const onDragStart = (e: React.DragEvent): void => {
     dragStartedRef.current = true;
-    dragFinishedRef.current = false;
+    placementDoneRef.current = false;
     setLastDragPos(e.clientX, e.clientY);
     const sel = useDesktopStore.getState().selection;
     const dragSet =
