@@ -1,0 +1,23 @@
+/* Phase 1 overrides on top of 98.css. Keep small. */
+
+button:focus { outline: 1px dotted black; outline-offset: -4px; }
+
+input[type='text'], input:not([type]) {
+  background: white;
+  border: 2px inset #c0c0c0;
+  font-family: var(--font-system);
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+::-webkit-scrollbar { width: 16px; height: 16px; }
+::-webkit-scrollbar-track { background: #dfdfdf; }
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border: 1px outset #c0c0c0;
+}
+::-webkit-scrollbar-button {
+  background: #c0c0c0;
+  border: 1px outset #c0c0c0;
+  width: 16px; height: 16px;
+}

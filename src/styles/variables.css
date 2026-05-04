@@ -1,0 +1,14 @@
+:root {
+  --c-bg: #c0c0c0;
+  --c-bg-dark: #808080;
+  --c-bg-darker: #404040;
+  --c-bg-light: #ffffff;
+  --c-bg-lighter: #dfdfdf;
+  --c-title-active: #000080;
+  --c-title-inactive: #808080;
+  --c-title-text: #ffffff;
+  --c-text: #000000;
+  --c-link: #0000ff;
+  --font-system: 'MS Sans Serif', 'Pixelated MS Sans Serif', Tahoma, sans-serif;
+  --font-mono: 'Lucida Console', 'Courier New', monospace;
+}
