@@ -90,11 +90,43 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   // an HTML5 drag once the user moves a few pixels; we then snap-to-grid in
   // onDragEnd if no drop target consumed the drag.
   const dragStartedRef = useRef(false);
-  const dragFinishedRef = useRef(false);
+  const placementDoneRef = useRef(false);
   const dragStartRef = useRef<
     | { x: number; y: number; selection: string[]; positions: Record<string, { x: number; y: number }> }
     | null
   >(null);
+
+  const commitPlacement = (endX: number, endY: number): void => {
+    if (placementDoneRef.current) return;
+    placementDoneRef.current = true;
+    const start = dragStartRef.current;
+    if (!start) return;
+    if (wasDropConsumed()) {
+      setSelection([]);
+      return;
+    }
+    const dx = endX - start.x;
+    const dy = endY - start.y;
+    if (Math.abs(dx) <= 4 && Math.abs(dy) <= 4) {
+      setSelection([]);
+      return;
+    }
+    const taskbar = 40;
+    const maxX = Math.max(0, window.innerWidth - GRID_W);
+    const maxY = Math.max(0, window.innerHeight - taskbar - GRID_H);
+    flushSync(() => {
+      for (const id of start.selection) {
+        const orig = start.positions[id];
+        if (!orig) continue;
+        const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
+        const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
+        const cx = Math.max(0, Math.min(maxX, nx));
+        const cy = Math.max(0, Math.min(maxY, ny));
+        move(id, cx, cy);
+      }
+    });
+    setSelection([]);
+  };
 
   const onPointerDown = (e: React.PointerEvent): void => {
     e.stopPropagation();
@@ -129,37 +161,23 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     const onUp = (up: PointerEvent) => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
-      // pointerup also fires after HTML5 drag → we use the global last-drag
-      // position if pointerup doesn't have valid coords (it should, but
-      // sticking to one source).
-      const lastPos = getLastDragPos();
-      const ex = dragStartedRef.current && lastPos ? lastPos.x : up.clientX;
-      const ey = dragStartedRef.current && lastPos ? lastPos.y : up.clientY;
-      const dx = ex - startX;
-      const dy = ey - startY;
-      const consumed = wasDropConsumed();
-      if (!consumed && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
-        const taskbar = 40;
-        const maxX = Math.max(0, window.innerWidth - GRID_W);
-        const maxY = Math.max(0, window.innerHeight - taskbar - GRID_H);
-        flushSync(() => {
-          for (const id of startSelection) {
-            const orig = startPositions[id];
-            if (!orig) continue;
-            const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
-            const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
-            const cx = Math.max(0, Math.min(maxX, nx));
-            const cy = Math.max(0, Math.min(maxY, ny));
-            move(id, cx, cy);
-          }
-        });
-        setSelection([]);
-      } else if (consumed) {
-        setSelection([]);
+      if (dragStartedRef.current) {
+        // HTML5 drag is in flight. Try to commit using the most reliable
+        // coords we have. If neither pointerup nor lastDragPos are valid,
+        // dragend will commit when it fires.
+        const last = getLastDragPos();
+        if (last && last.x > 0 && last.y > 0) commitPlacement(last.x, last.y);
+        else if (up.clientX > 0 && up.clientY > 0) commitPlacement(up.clientX, up.clientY);
+        setDrag(null);
+        return;
       }
+      // Pointer-only path (no HTML5 drag) — synthesize a dragStartRef so
+      // commitPlacement has the data it needs.
+      dragStartRef.current = { x: startX, y: startY, selection: startSelection, positions: startPositions };
+      placementDoneRef.current = false;
+      commitPlacement(up.clientX, up.clientY);
+      dragStartRef.current = null;
       setDrag(null);
-      // Mark drag-finished so the (possibly delayed) dragend handler is a no-op.
-      dragFinishedRef.current = true;
     };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
@@ -264,12 +282,19 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     setDndPayload(e, { source: 'desktop', paths, iconIds });
   };
 
-  const onDragEnd = (): void => {
-    // pointerup already committed the placement. dragend can be delayed in
-    // Chrome (sometimes by an entire user gesture), so we just clean up here.
+  const onDragEnd = (e: React.DragEvent): void => {
+    // Try to commit if pointerup hasn't already (Firefox may fire dragend
+    // before pointerup, or pointerup may have had invalid coords).
+    if (!placementDoneRef.current) {
+      const last = getLastDragPos();
+      if (last && last.x > 0 && last.y > 0) commitPlacement(last.x, last.y);
+      else if (e.clientX > 0 && e.clientY > 0) commitPlacement(e.clientX, e.clientY);
+      else commitPlacement(dragStartRef.current?.x ?? 0, dragStartRef.current?.y ?? 0);
+    }
     dragStartRef.current = null;
     clearLastDragPos();
-    if (!dragFinishedRef.current) setSelection([]);
+    placementDoneRef.current = false;
+    setSelection([]);
   };
 
   const onDragOver = (e: React.DragEvent): void => {
