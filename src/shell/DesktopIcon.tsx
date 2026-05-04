@@ -90,6 +90,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   // an HTML5 drag once the user moves a few pixels; we then snap-to-grid in
   // onDragEnd if no drop target consumed the drag.
   const dragStartedRef = useRef(false);
+  const dragFinishedRef = useRef(false);
   const dragStartRef = useRef<
     | { x: number; y: number; selection: string[]; positions: Record<string, { x: number; y: number }> }
     | null
@@ -123,29 +124,42 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       if (dragStartedRef.current) return; // HTML5 drag took over
       setDrag({ x: startPositions[icon.id].x + (mv.clientX - startX), y: startPositions[icon.id].y + (mv.clientY - startY) });
     };
+    // pointerup fires before dragend in Chrome (dragend can be delayed until
+    // the next user gesture). Commit the placement here for instant snap.
     const onUp = (up: PointerEvent) => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
-      if (dragStartedRef.current) {
-        // HTML5 drag handled it
-        setDrag(null);
-        return;
-      }
-      const dx = up.clientX - startX;
-      const dy = up.clientY - startY;
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-        // Snap each selected icon to grid by its delta
-        for (const id of startSelection) {
-          const orig = startPositions[id];
-          if (!orig) continue;
-          const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
-          const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
-          move(id, Math.max(0, nx), Math.max(0, ny));
-        }
-        // Deselect after moving (Win95-ish behavior).
+      // pointerup also fires after HTML5 drag → we use the global last-drag
+      // position if pointerup doesn't have valid coords (it should, but
+      // sticking to one source).
+      const lastPos = getLastDragPos();
+      const ex = dragStartedRef.current && lastPos ? lastPos.x : up.clientX;
+      const ey = dragStartedRef.current && lastPos ? lastPos.y : up.clientY;
+      const dx = ex - startX;
+      const dy = ey - startY;
+      const consumed = wasDropConsumed();
+      if (!consumed && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+        const taskbar = 40;
+        const maxX = Math.max(0, window.innerWidth - GRID_W);
+        const maxY = Math.max(0, window.innerHeight - taskbar - GRID_H);
+        flushSync(() => {
+          for (const id of startSelection) {
+            const orig = startPositions[id];
+            if (!orig) continue;
+            const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
+            const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
+            const cx = Math.max(0, Math.min(maxX, nx));
+            const cy = Math.max(0, Math.min(maxY, ny));
+            move(id, cx, cy);
+          }
+        });
+        setSelection([]);
+      } else if (consumed) {
         setSelection([]);
       }
       setDrag(null);
+      // Mark drag-finished so the (possibly delayed) dragend handler is a no-op.
+      dragFinishedRef.current = true;
     };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
@@ -196,6 +210,7 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
 
   const onDragStart = (e: React.DragEvent): void => {
     dragStartedRef.current = true;
+    dragFinishedRef.current = false;
     setLastDragPos(e.clientX, e.clientY);
     const sel = useDesktopStore.getState().selection;
     const dragSet =
@@ -250,34 +265,11 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   };
 
   const onDragEnd = (): void => {
-    const start = dragStartRef.current;
-    const lastPos = getLastDragPos();
+    // pointerup already committed the placement. dragend can be delayed in
+    // Chrome (sometimes by an entire user gesture), so we just clean up here.
     dragStartRef.current = null;
     clearLastDragPos();
-    if (start && !wasDropConsumed() && lastPos) {
-      const dx = lastPos.x - start.x;
-      const dy = lastPos.y - start.y;
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-        const taskbar = 40;
-        const maxX = Math.max(0, window.innerWidth - GRID_W);
-        const maxY = Math.max(0, window.innerHeight - taskbar - GRID_H);
-        // flushSync forces React to commit the position update before
-        // returning, otherwise the visual move can be deferred to the next
-        // user event.
-        flushSync(() => {
-          for (const id of start.selection) {
-            const orig = start.positions[id];
-            if (!orig) continue;
-            const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
-            const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
-            const cx = Math.max(0, Math.min(maxX, nx));
-            const cy = Math.max(0, Math.min(maxY, ny));
-            move(id, cx, cy);
-          }
-        });
-      }
-    }
-    setSelection([]);
+    if (!dragFinishedRef.current) setSelection([]);
   };
 
   const onDragOver = (e: React.DragEvent): void => {
