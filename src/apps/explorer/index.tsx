@@ -8,11 +8,12 @@ import { useRecycleBinStore } from '@/stores/recycleBinStore';
 import { showRestoreConflict, type RestoreConflictResolution } from '@/lib/restoreConflict';
 import { useHotkeys } from '@/lib/useHotkeys';
 import type { FsNode } from '@/core/fs/tree';
-import { join, parent, basename } from '@/core/fs/paths';
+import { join, parent, basename, findUniqueSibling } from '@/core/fs/paths';
 import { RECYCLE_BIN_DIR } from '@/core/fs/recycleBin';
 import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, wasDropConsumed, isPathInside } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 import { sysAlert, sysConfirm, sysPrompt } from '@/lib/dialog';
+import { showProperties } from '@/lib/properties';
 import './explorer.css';
 
 type Args = { path?: string };
@@ -157,45 +158,42 @@ export default function Explorer({ api, fs, args }: AppProps) {
     useClipboardStore.getState().set(selectedPaths, 'copy');
   };
   const paste = (): void => {
-    if (clipPaths.length === 0 || !clipOp) return;
+    const { paths, op } = useClipboardStore.getState();
+    if (!op || paths.length === 0) return;
     void (async () => {
-      const errors: string[] = [];
       const newSelection = new Set<string>();
-      for (const src of clipPaths) {
-        const name = basename(src);
+      const errors: string[] = [];
+      for (const src of paths) {
+        const desiredName = basename(src);
+        const isCutSameFolder = op === 'cut' && parent(src)?.toLowerCase() === cwd.toLowerCase();
+        if (isCutSameFolder) continue; // silent no-op
         // Don't allow pasting into self/descendant for cut+folder
-        if (clipOp === 'cut' && isPathInside(cwd, src)) {
-          errors.push(`Cannot move "${name}" into itself.`);
+        if (op === 'cut' && isPathInside(cwd, src)) {
+          errors.push(`Cannot move "${desiredName}" into itself.`);
           continue;
         }
-        let dest = join(cwd, name);
-        // If pasting into the same folder during a copy, append "Copy of"
-        if (clipOp === 'copy' && fs.exists(dest)) {
-          let i = 1;
-          let candidate = `Copy of ${name}`;
-          while (fs.exists(join(cwd, candidate))) {
-            i += 1;
-            candidate = `Copy (${i}) of ${name}`;
-          }
-          dest = join(cwd, candidate);
-        } else if (fs.exists(dest)) {
-          errors.push(`"${name}" already exists in this folder.`);
-          continue;
-        }
+        const dest = op === 'copy' ? findUniqueSibling(fs, cwd, desiredName) : join(cwd, desiredName);
         try {
-          if (clipOp === 'cut') await fs.move(src, dest);
-          else await fs.copy(src, dest);
+          if (op === 'cut') {
+            if (fs.exists(dest)) {
+              errors.push(`An item named "${desiredName}" already exists here.`);
+              continue;
+            }
+            await fs.move(src, dest);
+          } else {
+            await fs.copy(src, dest);
+          }
           newSelection.add(basename(dest));
         } catch (e) {
-          errors.push((e as Error).message);
+          errors.push(String(e));
         }
       }
-      if (clipOp === 'cut') useClipboardStore.getState().clear();
-      useFsStore.getState().bump();
+      if (op === 'cut') useClipboardStore.getState().clear();
       if (newSelection.size > 0) {
         setSelection(newSelection);
         setAnchor(Array.from(newSelection)[0]);
       }
+      useFsStore.getState().bump();
       if (errors.length > 0) void sysAlert(errors.join('\n'), { title: 'Paste', icon: 'error' });
     })();
   };
@@ -381,7 +379,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
         { kind: 'separator' },
         { kind: 'item', label: 'Properties', onSelect: () => {}, disabled: true },
       ]);
-      return;
+      return;  // bin mode ends here
     }
 
     showCtx(e.clientX, e.clientY, [
@@ -415,7 +413,15 @@ export default function Explorer({ api, fs, args }: AppProps) {
         },
       },
       { kind: 'separator' },
-      { kind: 'item', label: 'Properties', onSelect: () => {}, disabled: true },
+      {
+        kind: 'item',
+        label: 'Properties',
+        onSelect: () => {
+          const target = fs.stat(path);
+          if (!target) return;
+          void showProperties({ node: target, path, fs });
+        },
+      },
     ]);
   };
 
@@ -490,6 +496,16 @@ export default function Explorer({ api, fs, args }: AppProps) {
       },
       { kind: 'separator' },
       { kind: 'item', label: 'Refresh', onSelect: () => useFsStore.getState().bump() },
+      { kind: 'separator' },
+      {
+        kind: 'item',
+        label: 'Properties',
+        onSelect: () => {
+          const target = fs.stat(cwd);
+          if (!target) return;
+          void showProperties({ node: target, path: cwd, fs });
+        },
+      },
     ]);
   };
 
@@ -511,7 +527,7 @@ export default function Explorer({ api, fs, args }: AppProps) {
     const cls = [];
     if (selection.has(n.name)) cls.push('selected');
     if (n.kind === 'dir') cls.push('is-dir');
-    if (clipOp === 'cut' && useClipboardStore.getState().has(path)) cls.push('cut');
+    if (clipOp === 'cut' && clipPaths.some((p) => p.toLowerCase() === path.toLowerCase())) cls.push('cut');
     return cls.join(' ');
   };
 
