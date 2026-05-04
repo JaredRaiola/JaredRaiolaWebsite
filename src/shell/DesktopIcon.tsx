@@ -264,12 +264,19 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       const dx = endX - start.x;
       const dy = endY - start.y;
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        // Clamp final positions to the visible desktop area so icons can
+        // never get stranded off-screen.
+        const taskbar = 40;
+        const maxX = Math.max(0, window.innerWidth - GRID_W);
+        const maxY = Math.max(0, window.innerHeight - taskbar - GRID_H);
         for (const id of start.selection) {
           const orig = start.positions[id];
           if (!orig) continue;
           const nx = Math.round((orig.x + dx) / GRID_W) * GRID_W;
           const ny = Math.round((orig.y + dy) / GRID_H) * GRID_H;
-          move(id, Math.max(0, nx), Math.max(0, ny));
+          const cx = Math.max(0, Math.min(maxX, nx));
+          const cy = Math.max(0, Math.min(maxY, ny));
+          move(id, cx, cy);
         }
       }
     }

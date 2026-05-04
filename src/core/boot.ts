@@ -12,7 +12,7 @@ import type { FsNode, DirNode } from '@/core/fs/tree';
 
 const DESKTOP_KEY = 'win95.desktop.icons';
 const DESKTOP_VERSION_KEY = 'win95.desktop.version';
-const DESKTOP_VERSION = '5';
+const DESKTOP_VERSION = '6';
 const FS_LAYOUT_KEY = 'win95.fs.layout';
 const FS_LAYOUT_VERSION = '3';
 
