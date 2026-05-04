@@ -1,0 +1,32 @@
+.exp-root { display: flex; flex-direction: column; height: 100%; background: #c0c0c0; }
+.exp-menubar { display: flex; background: #c0c0c0; border-bottom: 1px solid #808080; }
+.exp-menubar > div { padding: 2px 8px; font-size: 11px; cursor: default; }
+.exp-menubar > div:hover { background: #000080; color: white; }
+.exp-toolbar { display: flex; gap: 4px; padding: 2px; border-bottom: 1px solid #808080; align-items: center; }
+.exp-toolbar button { min-width: 28px; height: 24px; }
+.exp-addr { display: flex; gap: 4px; align-items: center; padding: 2px 4px; border-bottom: 1px solid #808080; }
+.exp-addr input { flex: 1; }
+.exp-body {
+  flex: 1;
+  background: white;
+  border: 2px inset #c0c0c0;
+  margin: 2px;
+  overflow: auto;
+  padding: 4px;
+}
+.exp-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px; }
+.exp-grid .item {
+  width: 80px; text-align: center; cursor: default; padding: 4px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.exp-grid .item img { width: 32px; height: 32px; image-rendering: pixelated; }
+.exp-grid .item .label { font-size: 11px; margin-top: 4px; word-wrap: break-word; max-width: 76px; }
+.exp-grid .item.selected .label { background: #000080; color: white; }
+.exp-list .item, .exp-details .row {
+  display: flex; align-items: center; gap: 6px; padding: 2px 6px; cursor: default; font-size: 11px;
+}
+.exp-list .item img, .exp-details .row img { width: 16px; height: 16px; }
+.exp-list .item.selected, .exp-details .row.selected { background: #000080; color: white; }
+.exp-details table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.exp-details th { text-align: left; padding: 2px 6px; background: #c0c0c0; border-right: 1px solid #808080; font-weight: normal; }
+.exp-details td { padding: 2px 6px; }
