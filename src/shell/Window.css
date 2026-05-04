@@ -1,0 +1,53 @@
+.win-frame {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+  overflow: hidden;
+  user-select: none;
+}
+.win-titlebar {
+  display: flex;
+  align-items: center;
+  height: 18px;
+  padding: 1px 2px;
+  background: #000080;
+  color: white;
+  font-weight: bold;
+  font-size: 11px;
+  flex-shrink: 0;
+  cursor: move;
+}
+.win-titlebar.inactive {
+  background: #808080;
+}
+.win-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.win-title img { width: 14px; height: 14px; }
+.win-buttons { display: flex; gap: 2px; }
+.win-buttons button {
+  width: 16px; height: 14px;
+  font-size: 9px; line-height: 1;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.win-body {
+  flex: 1;
+  background: #c0c0c0;
+  overflow: auto;
+  position: relative;
+}
+.win-error {
+  padding: 16px;
+  font-family: 'MS Sans Serif', sans-serif;
+}
