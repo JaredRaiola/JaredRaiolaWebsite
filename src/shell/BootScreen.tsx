@@ -31,6 +31,8 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <div className={`boot-root ${hide ? 'fading' : ''}`}>
+      {/* preload the splash logo so it renders instantly when the splash stage appears */}
+      <img src="/assets/win95-logo.svg" alt="" className="boot-preload" aria-hidden="true" />
       {stage === 'floppy' && <FloppyStage />}
       {stage === 'bios' && <BiosStage />}
       {stage === 'config' && <ConfigStage />}
