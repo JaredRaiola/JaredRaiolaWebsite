@@ -7,6 +7,7 @@ import { useRecycleBinStore } from '@/stores/recycleBinStore';
 import { useDesktopStore, type DesktopIcon } from '@/stores/desktopStore';
 import notepadMeta from '@/apps/notepad/meta';
 import explorerMeta from '@/apps/explorer/meta';
+import resumeMeta from '@/apps/resume/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import { uuid } from '@/lib/uuid';
@@ -15,7 +16,7 @@ import type { FsNode, DirNode } from '@/core/fs/tree';
 
 const DESKTOP_KEY = 'win95.desktop.icons';
 const DESKTOP_VERSION_KEY = 'win95.desktop.version';
-const DESKTOP_VERSION = '10';
+const DESKTOP_VERSION = '11';
 const FS_LAYOUT_KEY = 'win95.fs.layout';
 const FS_LAYOUT_VERSION = '4';
 
@@ -67,11 +68,20 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
     protected: true,
   },
   {
+    id: 'icon-resume',
+    label: 'Resume',
+    iconUrl: '/assets/win98/png/notepad-0.png',
+    x: 0,
+    y: 4,
+    target: { kind: 'app', appId: 'resume' },
+    protected: true,
+  },
+  {
     id: 'icon-mydocs',
     label: 'My Documents',
     iconUrl: '/assets/win98/png/directory_closed-0.png',
     x: 0,
-    y: 4,
+    y: 5,
     target: { kind: 'file', path: 'C:\\Windows\\User\\My Documents' },
   },
 ];
@@ -303,6 +313,7 @@ export function syncDesktopFromFs(): void {
 function registerAllApps(): void {
   registerApp(notepadMeta);
   registerApp(explorerMeta);
+  registerApp(resumeMeta);
 }
 
 export async function boot(): Promise<void> {
