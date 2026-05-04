@@ -38,11 +38,11 @@ export function Desktop() {
   const onDesktopDrop = (e: React.DragEvent): void => {
     const payload = getDndPayload(e);
     if (!payload || !fs) return;
-    // Anything originating from the desktop dropped back on the desktop is a
-    // reposition — DesktopIcon's onDragEnd handles the snap. Don't create
-    // shortcut files or no-op move.
-    if (payload.source === 'desktop') return;
+    // Always preventDefault on drop — even when we're not actually moving
+    // anything — so the browser doesn't run its slow ghost-snap-back
+    // animation. DesktopIcon's onDragEnd handles intra-desktop reposition.
     e.preventDefault();
+    if (payload.source === 'desktop') return;
     markDropConsumed();
     void (async () => {
       if (payload.urlShortcut) {
