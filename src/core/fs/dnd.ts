@@ -16,6 +16,28 @@ export function wasDropConsumed(thresholdMs = 200): boolean {
   return performance.now() - _lastDropConsumed < thresholdMs;
 }
 
+// dragend's clientX/Y is unreliable in Chrome (often reports 0). We track the
+// cursor via a document-level dragover listener instead — that fires
+// continuously throughout the drag with valid coordinates.
+let _lastDragPos: { x: number; y: number } | null = null;
+export function getLastDragPos(): { x: number; y: number } | null {
+  return _lastDragPos;
+}
+export function clearLastDragPos(): void {
+  _lastDragPos = null;
+}
+export function setLastDragPos(x: number, y: number): void {
+  _lastDragPos = { x, y };
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('dragover', (e: DragEvent) => {
+    if (e.clientX > 0 && e.clientY > 0) {
+      _lastDragPos = { x: e.clientX, y: e.clientY };
+    }
+  });
+}
+
 export type DndPayload = {
   /** Where the drag originated. */
   source: 'fs' | 'desktop';

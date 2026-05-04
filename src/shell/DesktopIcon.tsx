@@ -5,7 +5,16 @@ import { useWindowStore } from '@/stores/windowStore';
 import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
-import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, wasDropConsumed } from '@/core/fs/dnd';
+import {
+  setDndPayload,
+  getDndPayload,
+  moveAllInto,
+  markDropConsumed,
+  wasDropConsumed,
+  getLastDragPos,
+  setLastDragPos,
+  clearLastDragPos,
+} from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 
 const GRID_W = 84;
@@ -84,7 +93,6 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     | { x: number; y: number; selection: string[]; positions: Record<string, { x: number; y: number }> }
     | null
   >(null);
-  const lastDragPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const onPointerDown = (e: React.PointerEvent): void => {
     e.stopPropagation();
@@ -185,17 +193,9 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
   const fileTargetPath = icon.target.kind === 'file' ? icon.target.path : null;
   const isFolderTarget = isFileTarget && fileTargetPath ? fs?.stat(fileTargetPath)?.kind === 'dir' : false;
 
-  const onDrag = (e: React.DragEvent): void => {
-    // The dragend event sometimes reports (0,0) for clientX/Y; capture the
-    // last valid position from the continuous drag events instead.
-    if (e.clientX !== 0 || e.clientY !== 0) {
-      lastDragPosRef.current = { x: e.clientX, y: e.clientY };
-    }
-  };
-
   const onDragStart = (e: React.DragEvent): void => {
     dragStartedRef.current = true;
-    lastDragPosRef.current = { x: e.clientX, y: e.clientY };
+    setLastDragPos(e.clientX, e.clientY);
     // Capture start state so onDragEnd can fall back to a desktop reposition
     // if no drop target consumed the drag.
     const sel = useDesktopStore.getState().selection;
@@ -250,22 +250,15 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
     setDndPayload(e, { source: 'desktop', paths, iconIds });
   };
 
-  const onDragEnd = (e: React.DragEvent): void => {
+  const onDragEnd = (): void => {
     const start = dragStartRef.current;
-    const last = lastDragPosRef.current;
+    const lastPos = getLastDragPos();
     dragStartRef.current = null;
-    lastDragPosRef.current = null;
-    // No drop target consumed this drag → snap to grid (desktop reposition).
-    if (start && !wasDropConsumed()) {
-      // Prefer dragend's coords; fall back to last valid drag-event coords
-      // since some browsers report (0,0) on dragend.
-      const endX = e.clientX !== 0 || e.clientY !== 0 ? e.clientX : last?.x ?? start.x;
-      const endY = e.clientX !== 0 || e.clientY !== 0 ? e.clientY : last?.y ?? start.y;
-      const dx = endX - start.x;
-      const dy = endY - start.y;
+    clearLastDragPos();
+    if (start && !wasDropConsumed() && lastPos) {
+      const dx = lastPos.x - start.x;
+      const dy = lastPos.y - start.y;
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-        // Clamp final positions to the visible desktop area so icons can
-        // never get stranded off-screen.
         const taskbar = 40;
         const maxX = Math.max(0, window.innerWidth - GRID_W);
         const maxY = Math.max(0, window.innerHeight - taskbar - GRID_H);
@@ -324,7 +317,6 @@ export function DesktopIcon({ icon }: { icon: Icon }) {
       data-icon-id={icon.id}
       draggable
       onDragStart={onDragStart}
-      onDrag={onDrag}
       onDragEnd={onDragEnd}
       onDragOver={isFolderTarget ? onDragOver : undefined}
       onDrop={isFolderTarget ? onDrop : undefined}
