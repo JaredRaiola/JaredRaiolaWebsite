@@ -1,0 +1,39 @@
+.notepad-root { display: flex; flex-direction: column; height: 100%; background: #c0c0c0; }
+.notepad-menubar { display: flex; gap: 0; background: #c0c0c0; border-bottom: 1px solid #808080; }
+.notepad-menu {
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: default;
+  position: relative;
+}
+.notepad-menu:hover { background: #000080; color: white; }
+.notepad-menu-popup {
+  position: absolute;
+  top: 100%; left: 0;
+  background: #c0c0c0;
+  border: 2px solid; border-color: #ffffff #404040 #404040 #ffffff;
+  box-shadow: 1px 1px 0 #000;
+  min-width: 180px;
+  z-index: 1000;
+}
+.notepad-menu-popup .item {
+  padding: 4px 24px;
+  font-size: 11px;
+  cursor: default;
+  display: flex;
+  justify-content: space-between;
+}
+.notepad-menu-popup .item:hover:not(.disabled) { background: #000080; color: white; }
+.notepad-menu-popup .item.disabled { color: #808080; }
+.notepad-menu-popup .sep { height: 1px; background: #808080; border-bottom: 1px solid #fff; margin: 3px 2px; }
+.notepad-area {
+  flex: 1;
+  border: 2px inset #c0c0c0;
+  margin: 2px;
+  background: white;
+  font-family: 'Lucida Console', 'Courier New', monospace;
+  font-size: 12px;
+  resize: none;
+  outline: none;
+  padding: 2px 4px;
+}
