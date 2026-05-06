@@ -266,7 +266,52 @@ function cascadeSkip(s: GameState): GameState {
 function postMove(s: GameState): GameState {
   if (totalOnFoundations(s) === 52) return { ...s, phase: 'won' };
   if (isAutoCascadable(s)) return { ...s, phase: 'cascading' };
+  if (!hasLegalMoves(s)) return { ...s, phase: 'lost' };
   return s;
+}
+
+export function hasLegalMoves(s: GameState): boolean {
+  // For each pile and each card in that pile that could be picked up
+  // (top of cell, top of tableau, valid run from anywhere in tableau), check
+  // every destination.
+  const sources: { from: PileId; idx: number; card: Card; runLen: number }[] = [];
+  for (const cl of CELLS) {
+    if (s.piles[cl].length === 0) continue;
+    sources.push({ from: cl, idx: 0, card: s.piles[cl][0], runLen: 1 });
+  }
+  for (const t of TABLEAUS) {
+    const col = s.piles[t];
+    if (col.length === 0) continue;
+    // Top card alone.
+    sources.push({ from: t, idx: col.length - 1, card: col[col.length - 1], runLen: 1 });
+    // Run from arbitrary index downward (only if it's a valid run).
+    for (let i = col.length - 2; i >= 0; i--) {
+      const run = col.slice(i);
+      if (!isValidRun(run)) break;
+      sources.push({ from: t, idx: i, card: col[i], runLen: run.length });
+    }
+  }
+  for (const src of sources) {
+    // Try each destination.
+    if (src.runLen === 1) {
+      for (const cl of CELLS) {
+        if (cl === src.from) continue;
+        if (s.piles[cl].length === 0) return true;
+      }
+      for (const f of FOUNDATIONS) {
+        if (canStackOnFoundation(s.piles[f][s.piles[f].length - 1], src.card)) return true;
+      }
+    }
+    for (const t of TABLEAUS) {
+      if (t === src.from) continue;
+      const top = s.piles[t][s.piles[t].length - 1];
+      if (canStackOnTableau(top, src.card)) {
+        if (src.runLen === 1) return true;
+        if (src.runLen <= supermoveCapacity(s, s.piles[t].length === 0)) return true;
+      }
+    }
+  }
+  return false;
 }
 
 export function reducer(s: GameState, a: Action): GameState {

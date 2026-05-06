@@ -5,6 +5,7 @@ import {
   canStackOnTableau, canStackOnFoundation, isValidRun, supermoveCapacity,
   CELLS, FOUNDATIONS, TABLEAUS, emptyPiles,
   isAutoCascadable,
+  hasLegalMoves,
   type Card, type GameState,
 } from './engine';
 
@@ -299,5 +300,31 @@ describe('reducer/cascadeSkip', () => {
     const r = reducer(cascading, { type: 'cascadeSkip' });
     expect(r.piles['tableau-0']).toHaveLength(0);
     expect(r.piles['foundation-spades'].map((x) => x.id).slice(-1)[0]).toBe('KS');
+  });
+});
+
+describe('hasLegalMoves', () => {
+  it('true when at least one move exists', () => {
+    const s = blank();
+    s.piles['tableau-0'] = [c('AS', 'spades', 1)];
+    expect(hasLegalMoves(s)).toBe(true);
+  });
+  it('false when no moves possible', () => {
+    const s = blank();
+    // Construct a deadlock: 4 cells full, all tableau columns have 1 K, no
+    // foundation progress possible.
+    s.piles['cell-0'] = [c('KS1', 'spades', 13)];
+    s.piles['cell-1'] = [c('KS2', 'spades', 13)];
+    s.piles['cell-2'] = [c('KS3', 'spades', 13)];
+    s.piles['cell-3'] = [c('KS4', 'spades', 13)];
+    s.piles['tableau-0'] = [c('K1', 'spades', 13)];
+    s.piles['tableau-1'] = [c('K2', 'hearts', 13)];
+    s.piles['tableau-2'] = [c('K3', 'clubs', 13)];
+    s.piles['tableau-3'] = [c('K4', 'diamonds', 13)];
+    s.piles['tableau-4'] = [c('K5', 'spades', 13)];
+    s.piles['tableau-5'] = [c('K6', 'hearts', 13)];
+    s.piles['tableau-6'] = [c('K7', 'clubs', 13)];
+    s.piles['tableau-7'] = [c('K8', 'diamonds', 13)];
+    expect(hasLegalMoves(s)).toBe(false);
   });
 });
