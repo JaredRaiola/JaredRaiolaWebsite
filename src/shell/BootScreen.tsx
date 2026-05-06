@@ -176,35 +176,31 @@ function ConfigStage() {
     ['Sec. Master Disk', ': None', 'Bank1 EDO DRAM', ': No'],
     ['Sec. Slave  Disk', ': None', 'L2 Cache SRAM', ': Pipeline'],
   ];
-  const fmt = (r: [string, string, string, string]): string =>
-    ' │ ' + r[0].padEnd(17) + r[1].padEnd(22) + r[2].padEnd(18) + r[3].padEnd(13) + '│';
   return (
     <div className="boot-bios">
-      <pre className="boot-bios-text">
-        <span className="boot-cfg-line" style={{ animationDelay: '0s' }}>{'                       Award Software, Inc.'}</span>
-        <span className="boot-cfg-line" style={{ animationDelay: '0.1s' }}>{'                       System Configurations'}</span>
-        <span className="boot-cfg-line" style={{ animationDelay: '0.2s' }}>{' ┌──────────────────────────────────────────────────────────────────┐'}</span>
-        {top.map((r, i) => (
-          <span key={`t${i}`} className="boot-cfg-line" style={{ animationDelay: `${0.3 + i * 0.08}s` }}>
-            {fmt(r)}
-          </span>
-        ))}
-        <span className="boot-cfg-line" style={{ animationDelay: `${0.3 + top.length * 0.08}s` }}>
-          {' ├──────────────────────────────────────────────────────────────────┤'}
-        </span>
-        {bot.map((r, i) => (
-          <span key={`b${i}`} className="boot-cfg-line" style={{ animationDelay: `${0.4 + (top.length + i) * 0.08}s` }}>
-            {fmt(r)}
-          </span>
-        ))}
-        <span className="boot-cfg-line" style={{ animationDelay: `${0.4 + (top.length + bot.length) * 0.08}s` }}>
-          {' └──────────────────────────────────────────────────────────────────┘'}
-        </span>
-        {'\n'}
-        <span className="boot-bios-starting" style={{ animationDelay: `${0.6 + (top.length + bot.length) * 0.08}s` }}>
+      <div className="boot-bios-text boot-cfg-screen">
+        <div className="boot-cfg-line" style={{ animationDelay: '0s' }}>{'                       Award Software, Inc.'}</div>
+        <div className="boot-cfg-line" style={{ animationDelay: '0.1s' }}>{'                       System Configurations'}</div>
+        <div className="boot-cfg-table">
+          <div className="boot-cfg-section">
+            {top.map((r, i) => (
+              <div key={`t${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.2 + i * 0.08}s` }}>
+                <span>{r[0]}</span><span>{r[1]}</span><span>{r[2]}</span><span>{r[3]}</span>
+              </div>
+            ))}
+          </div>
+          <div className="boot-cfg-section">
+            {bot.map((r, i) => (
+              <div key={`b${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.5 + i * 0.08}s` }}>
+                <span>{r[0]}</span><span>{r[1]}</span><span>{r[2]}</span><span>{r[3]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="boot-bios-starting" style={{ animationDelay: `${0.7 + bot.length * 0.08}s` }}>
           Starting Windows 95...<span className="boot-bios-cursor">_</span>
-        </span>
-      </pre>
+        </div>
+      </div>
     </div>
   );
 }

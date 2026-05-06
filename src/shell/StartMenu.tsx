@@ -121,7 +121,10 @@ export function StartMenu() {
         close();
         try { sessionStorage.removeItem('win95.booted'); } catch { /* ignore */ }
         document.body.innerHTML =
-          '<div style="background:#000;color:#fff;font-family:serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;">It is now safe to turn off your computer.<br/><small style="opacity:.5;display:block;margin-top:12px;">(Click anywhere to come back.)</small></div>';
+          '<div style="background:#000;color:#ffb000;font-family:\'W95FA\',\'Lucida Console\',\'Courier New\',monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;">' +
+            '<div style="font-size:32px;line-height:1.5;">It is now safe to turn off your<br/>computer.</div>' +
+            '<div style="margin-top:64px;color:#444;font-size:13px;">(Click anywhere to come back.)</div>' +
+          '</div>';
         document.body.onclick = () => location.reload();
       },
     },
