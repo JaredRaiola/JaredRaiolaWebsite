@@ -36,6 +36,8 @@ export type AppDef = {
   minSize?: { width: number; height: number };
   singleInstance?: boolean;
   fileAssociations?: string[];
+  /** Where the app appears in the Start menu. Default: ['Programs']. */
+  menuPath?: string[];
   component: () => Promise<{ default: AppComponent }>;
 };
 
