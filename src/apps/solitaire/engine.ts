@@ -141,3 +141,63 @@ export function isValidRun(cards: Card[]): boolean {
   }
   return true;
 }
+
+export type Action =
+  | { type: 'drawFromStock' }
+  | { type: 'tryMove'; from: PileId; fromIdx: number; to: PileId }
+  | { type: 'autoMoveToFoundation'; from: PileId }
+  | { type: 'autoFinish' }
+  | { type: 'undo' }
+  | { type: 'deal'; rng: RNG }
+  | { type: 'pickUpDrag'; from: PileId; cards: Card[]; pointerOffset: { x: number; y: number } }
+  | { type: 'cancelDrag' }
+  | { type: 'setOptions'; options: Partial<Options> }
+  | { type: 'tick'; now: number };
+
+function snapshotPrev(s: GameState): GameState['prev'] {
+  return { piles: clonePiles(s.piles), score: s.score, recyclesUsed: s.recyclesUsed };
+}
+
+function clonePiles(p: Record<PileId, Card[]>): Record<PileId, Card[]> {
+  const out = emptyPiles();
+  for (const k of ALL_PILES) out[k] = p[k].map((c) => ({ ...c }));
+  return out;
+}
+
+function maxRecyclesForVegas(draw: 1 | 3): number {
+  return draw === 1 ? 1 : 3;
+}
+
+function drawFromStock(s: GameState): GameState {
+  if (s.phase !== 'playing') return s;
+  if (s.piles.stock.length > 0) {
+    const piles = clonePiles(s.piles);
+    const n = Math.min(s.options.draw, piles.stock.length);
+    for (let i = 0; i < n; i++) {
+      const card = piles.stock.pop()!;
+      card.faceUp = true;
+      piles.waste.push(card);
+    }
+    return { ...s, piles, prev: snapshotPrev(s) };
+  }
+  if (s.piles.waste.length === 0) return s;
+  if (s.options.scoring === 'vegas' && s.recyclesUsed >= maxRecyclesForVegas(s.options.draw)) return s;
+  const piles = clonePiles(s.piles);
+  while (piles.waste.length > 0) {
+    const card = piles.waste.pop()!;
+    card.faceUp = false;
+    piles.stock.push(card);
+  }
+  let score = s.score;
+  if (s.options.scoring === 'standard') {
+    score = Math.max(0, score - (s.options.draw === 1 ? 100 : 20));
+  }
+  return { ...s, piles, score, recyclesUsed: s.recyclesUsed + 1, prev: snapshotPrev(s) };
+}
+
+export function reducer(s: GameState, a: Action): GameState {
+  switch (a.type) {
+    case 'drawFromStock': return drawFromStock(s);
+    default: return s;
+  }
+}

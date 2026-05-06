@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { makeDeck, deal } from './engine';
+import { makeDeck, deal, DEFAULT_OPTIONS } from './engine';
 import { makeRng } from './rng';
 
 describe('makeDeck', () => {
@@ -147,5 +147,47 @@ describe('isValidRun', () => {
         { id: '5H', suit: 'hearts', rank: 5, faceUp: false },
       ]),
     ).toBe(false);
+  });
+});
+
+import { reducer } from './engine';
+
+describe('reducer/drawFromStock', () => {
+  it('draw 1 moves one card from stock to waste face-up', () => {
+    const s0 = deal(makeRng(1));
+    const stockBefore = s0.piles.stock.length;
+    const s1 = reducer(s0, { type: 'drawFromStock' });
+    expect(s1.piles.stock).toHaveLength(stockBefore - 1);
+    expect(s1.piles.waste).toHaveLength(1);
+    expect(s1.piles.waste[0].faceUp).toBe(true);
+  });
+  it('draw 3 moves three cards from stock to waste face-up', () => {
+    const s0 = deal(makeRng(1), { ...DEFAULT_OPTIONS, draw: 3 });
+    const s1 = reducer(s0, { type: 'drawFromStock' });
+    expect(s1.piles.waste).toHaveLength(3);
+    expect(s1.piles.waste.every((c) => c.faceUp)).toBe(true);
+  });
+  it('draw 3 moves remaining cards if fewer than 3', () => {
+    const s0 = deal(makeRng(1), { ...DEFAULT_OPTIONS, draw: 3 });
+    const s = { ...s0, piles: { ...s0.piles, stock: s0.piles.stock.slice(0, 2) } };
+    const s2 = reducer(s, { type: 'drawFromStock' });
+    expect(s2.piles.stock).toHaveLength(0);
+    expect(s2.piles.waste.length - s.piles.waste.length).toBe(2);
+  });
+  it('drawFromStock on empty stock with non-empty waste recycles', () => {
+    const s0 = deal(makeRng(1));
+    const s = { ...s0, piles: { ...s0.piles, stock: [], waste: s0.piles.stock.slice() } };
+    const wasteBefore = s.piles.waste.length;
+    const s2 = reducer(s, { type: 'drawFromStock' });
+    expect(s2.piles.stock).toHaveLength(wasteBefore);
+    expect(s2.piles.waste).toHaveLength(0);
+    expect(s2.piles.stock.every((c) => c.faceUp === false)).toBe(true);
+    expect(s2.recyclesUsed).toBe(1);
+  });
+  it('vegas mode blocks recycle after one pass for draw 1', () => {
+    const s0 = deal(makeRng(1), { ...DEFAULT_OPTIONS, scoring: 'vegas', draw: 1 });
+    const s = { ...s0, piles: { ...s0.piles, stock: [], waste: s0.piles.stock.slice() }, recyclesUsed: 1 };
+    const s2 = reducer(s, { type: 'drawFromStock' });
+    expect(s2).toBe(s);
   });
 });
