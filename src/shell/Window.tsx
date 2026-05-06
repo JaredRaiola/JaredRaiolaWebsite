@@ -94,6 +94,8 @@ export function Window({ window: w }: Props) {
         new Promise<DialogResult>((resolve) => {
           setDialog({ opts, resolve: (r) => { setDialog(null); resolve(r); } });
         }),
+      registerSnapshot: () => () => { /* stub — real impl in Task 8 */ },
+      registerBlob: () => () => { /* stub — real impl in Task 8 */ },
     }),
     [w.id, setTitle, setIcon, resize, close, open],
   );
