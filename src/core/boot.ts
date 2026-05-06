@@ -14,6 +14,7 @@ import cmdMeta from '@/apps/cmd/meta';
 import paintMeta from '@/apps/paint/meta';
 import minesweeperMeta from '@/apps/minesweeper/meta';
 import solitaireMeta from '@/apps/solitaire/meta';
+import heartsMeta from '@/apps/hearts/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import {
@@ -353,6 +354,7 @@ function registerAllApps(): void {
   registerApp(paintMeta);
   registerApp(minesweeperMeta);
   registerApp(solitaireMeta);
+  registerApp(heartsMeta);
 }
 
 export async function boot(): Promise<void> {
