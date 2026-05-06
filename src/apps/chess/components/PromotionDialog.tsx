@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import type { Color, PromotionType } from '../engine';
 
 const GLYPHS: Record<PromotionType, { white: string; black: string }> = {
@@ -15,10 +15,11 @@ type Props = {
 };
 
 export default function PromotionDialog({ color, onChoose, onCancel }: Props): React.ReactElement {
-  return createPortal(
+  const drag = useDialogDrag();
+  return (
     <div className="ch-dialog-overlay" onClick={onCancel}>
-      <div className="ch-dialog window" onClick={(e) => e.stopPropagation()}>
-        <div className="title-bar"><div className="title-bar-text">Promote pawn</div></div>
+      <div className="ch-dialog window" onClick={(e) => e.stopPropagation()} style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">Promote pawn</div></div>
         <div className="window-body ch-dialog-body">
           <div className="ch-promo-grid">
             {(['queen','rook','bishop','knight'] as const).map((t) => (
@@ -29,7 +30,6 @@ export default function PromotionDialog({ color, onChoose, onCancel }: Props): R
           </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

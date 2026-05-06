@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import type { GameState } from '../engine';
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
 };
 
 export default function OutcomeDialog({ state, onNewGame, onClose }: Props): React.ReactElement {
+  const drag = useDialogDrag();
   let title = '';
   let body = '';
   if (state.phase === 'checkmate') {
@@ -26,17 +27,16 @@ export default function OutcomeDialog({ state, onNewGame, onClose }: Props): Rea
   } else if (state.phase === 'resigned') {
     title = 'Resigned'; body = 'You resigned.';
   }
-  return createPortal(
+  return (
     <div className="ch-dialog-overlay">
-      <div className="ch-dialog window">
-        <div className="title-bar"><div className="title-bar-text">{title}</div></div>
+      <div className="ch-dialog window" style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">{title}</div></div>
         <div className="window-body ch-dialog-body"><p>{body}</p></div>
         <div className="ch-dialog-buttons">
           <button onClick={onNewGame}>New Game</button>
           <button onClick={onClose}>Close</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

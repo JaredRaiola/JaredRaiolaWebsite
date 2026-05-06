@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import type { Color, Difficulty } from '../engine';
 
 type Props = {
@@ -10,16 +10,17 @@ type Props = {
 type ColorChoice = Color | 'random';
 
 export default function NewGameDialog({ onCancel, onOk }: Props): React.ReactElement {
+  const drag = useDialogDrag();
   const [color, setColor] = useState<ColorChoice>('random');
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
   const submit = (): void => {
     const c: Color = color === 'random' ? (Math.random() < 0.5 ? 'white' : 'black') : color;
     onOk(c, difficulty);
   };
-  return createPortal(
+  return (
     <div className="ch-dialog-overlay" onClick={onCancel}>
-      <div className="ch-dialog window" onClick={(e) => e.stopPropagation()}>
-        <div className="title-bar"><div className="title-bar-text">New Game</div></div>
+      <div className="ch-dialog window" onClick={(e) => e.stopPropagation()} style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">New Game</div></div>
         <div className="window-body ch-dialog-body">
           <fieldset>
             <legend>Play as</legend>
@@ -39,7 +40,6 @@ export default function NewGameDialog({ onCancel, onOk }: Props): React.ReactEle
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }
