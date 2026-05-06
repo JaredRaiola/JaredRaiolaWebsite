@@ -119,9 +119,9 @@
 .sol-dialog-body {
   display: flex; flex-direction: column; gap: 6px; padding: 12px;
 }
-.sol-dialog-body fieldset { border: 1px solid #808080; box-shadow: 1px 1px 0 #fff inset; padding: 6px 10px; }
+.sol-dialog-body fieldset { padding: 8px 10px; margin: 0; }
 .sol-dialog-body legend { padding: 0 4px; }
-.sol-dialog-body label { display: flex; align-items: center; gap: 6px; }
+.sol-dialog-body .field-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
 .sol-dialog-buttons {
   display: flex; justify-content: flex-end; gap: 6px; padding: 8px 12px; border-top: 1px solid #808080;
 }
