@@ -86,3 +86,70 @@ export function supermoveCapacity(state: GameState, destIsEmptyCol: boolean): nu
   if (destIsEmptyCol) emptyCols = Math.max(0, emptyCols - 1);
   return (freeCells + 1) * Math.pow(2, emptyCols);
 }
+
+export type Action =
+  | { type: 'tryMove'; from: PileId; fromIdx: number; to: PileId }
+  | { type: 'autoMoveToFoundation'; from: PileId }
+  | { type: 'cascadeStep' }
+  | { type: 'cascadeSkip' }
+  | { type: 'undo' }
+  | { type: 'newGame'; gameNumber: number }
+  | { type: 'tick'; now: number };
+
+function clonePiles(p: Record<PileId, Card[]>): Record<PileId, Card[]> {
+  const out = emptyPiles();
+  for (const k of ALL_PILES) out[k] = p[k].map((c) => ({ ...c }));
+  return out;
+}
+
+function snapshotPrev(s: GameState): GameState['prev'] {
+  return { piles: clonePiles(s.piles), moveCount: s.moveCount };
+}
+
+function isCell(p: PileId): boolean { return p.startsWith('cell-'); }
+function isFoundation(p: PileId): boolean { return p.startsWith('foundation-'); }
+function isTableau(p: PileId): boolean { return p.startsWith('tableau-'); }
+
+function tryMove(s: GameState, from: PileId, fromIdx: number, to: PileId): GameState {
+  if (s.phase !== 'playing') return s;
+  if (from === to) return s;
+  const src = s.piles[from];
+  if (fromIdx < 0 || fromIdx >= src.length) return s;
+  const moving = src.slice(fromIdx);
+
+  // Free cell can only accept a single card and only when empty.
+  if (isCell(to)) {
+    if (moving.length !== 1) return s;
+    if (s.piles[to].length !== 0) return s;
+  }
+
+  // Foundation only accepts a single card.
+  if (isFoundation(to)) {
+    if (moving.length !== 1) return s;
+    if (!canStackOnFoundation(s.piles[to][s.piles[to].length - 1], moving[0])) return s;
+  }
+
+  // Tableau accepts single card or a valid run.
+  if (isTableau(to)) {
+    if (!isValidRun(moving)) return s;
+    const top = s.piles[to][s.piles[to].length - 1];
+    if (!canStackOnTableau(top, moving[0])) return s;
+    if (moving.length > 1) {
+      const destEmpty = s.piles[to].length === 0;
+      if (moving.length > supermoveCapacity(s, destEmpty)) return s;
+    }
+  }
+
+  // Apply.
+  const piles = clonePiles(s.piles);
+  piles[from] = piles[from].slice(0, fromIdx);
+  piles[to] = piles[to].concat(moving.map((c) => ({ ...c })));
+  return { ...s, piles, moveCount: s.moveCount + 1, prev: snapshotPrev(s) };
+}
+
+export function reducer(s: GameState, a: Action): GameState {
+  switch (a.type) {
+    case 'tryMove': return tryMove(s, a.from, a.fromIdx, a.to);
+    default: return s;
+  }
+}
