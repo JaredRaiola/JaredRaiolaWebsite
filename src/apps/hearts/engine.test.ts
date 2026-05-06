@@ -355,7 +355,7 @@ describe('reducer/playCard', () => {
   });
 });
 
-import { applyHandScores } from './engine';
+import { applyHandScores, emptyHands } from './engine';
 
 describe('applyHandScores', () => {
   it('adds raw points from each player taken pile', () => {
@@ -377,5 +377,48 @@ describe('applyHandScores', () => {
     const scoresBefore: Record<PlayerId, number> = { 0: 10, 1: 5, 2: 5, 3: 5 };
     const after = applyHandScores(scoresBefore, taken);
     expect(after).toEqual({ 0: 10, 1: 31, 2: 31, 3: 31 });
+  });
+});
+
+describe('reducer/nextHand', () => {
+  function handOverState(scoresBefore: Record<PlayerId, number>, taken: Record<PlayerId, Card[]>): GameState {
+    return {
+      phase: 'hand-over',
+      hands: emptyHands(),
+      taken,
+      scores: scoresBefore,
+      handNumber: 0,
+      passDirection: 'left',
+      passSelections: null,
+      passReceived: null,
+      heartsBroken: true,
+      trick: null,
+      turn: null,
+      history: [],
+      options: DEFAULT_OPTIONS,
+      prev: null,
+    };
+  }
+  it('applies hand scores then deals next hand with new pass direction', () => {
+    const taken: Record<PlayerId, Card[]> = { 0: [c('QS', 'spades', 12)], 1: [], 2: [], 3: [] };
+    const s = handOverState({ 0: 0, 1: 0, 2: 0, 3: 0 }, taken);
+    const s1 = reducer(s, { type: 'nextHand', rng: makeRng(2) });
+    expect(s1.scores[0]).toBe(13);
+    expect(s1.handNumber).toBe(1);
+    expect(s1.passDirection).toBe('right');
+    expect(s1.phase).toBe('passing');
+    expect(s1.hands[0]).toHaveLength(13);
+  });
+  it('transitions to game-over when someone reaches 100 with unique low scorer', () => {
+    const taken: Record<PlayerId, Card[]> = { 0: [c('QS', 'spades', 12)], 1: [], 2: [], 3: [] };
+    const s = handOverState({ 0: 87, 1: 30, 2: 50, 3: 60 }, taken);
+    const s1 = reducer(s, { type: 'nextHand', rng: makeRng(2) });
+    expect(s1.phase).toBe('game-over');
+  });
+  it('continues if 100+ but tied for low', () => {
+    const taken: Record<PlayerId, Card[]> = { 0: [c('QS', 'spades', 12)], 1: [], 2: [], 3: [] };
+    const s = handOverState({ 0: 87, 1: 30, 2: 30, 3: 60 }, taken);
+    const s1 = reducer(s, { type: 'nextHand', rng: makeRng(2) });
+    expect(s1.phase).toBe('passing');
   });
 });

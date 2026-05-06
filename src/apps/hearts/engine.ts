@@ -317,8 +317,48 @@ export function reducer(s: GameState, a: Action): GameState {
     case 'playCard': return playCard(s, a.player, a.card);
     case 'aiPlay': return playCard(s, a.player, a.card);
     case 'resolveTrick': return resolveTrick(s);
+    case 'nextHand': return nextHand(s, a.rng);
+    case 'newGame': return newGame(s, a.rng);
+    case 'setOptions': return setOptions(s, a.options);
     default: return s;
   }
+}
+
+function uniqueLowestScorer(scores: Record<PlayerId, number>): PlayerId | null {
+  let lowest = Infinity;
+  let count = 0;
+  let winner: PlayerId | null = null;
+  for (const p of PLAYERS) {
+    if (scores[p] < lowest) { lowest = scores[p]; winner = p; count = 1; }
+    else if (scores[p] === lowest) { count++; }
+  }
+  return count === 1 ? winner : null;
+}
+
+function nextHand(s: GameState, rng: RNG): GameState {
+  if (s.phase !== 'hand-over') return s;
+  const newScores = applyHandScores(s.scores, s.taken);
+  const someoneHit100 = PLAYERS.some((p) => newScores[p] >= 100);
+  const winner = uniqueLowestScorer(newScores);
+  if (someoneHit100 && winner !== null) {
+    return { ...s, scores: newScores, phase: 'game-over' };
+  }
+  const fresh = deal(rng, s.options);
+  return {
+    ...fresh,
+    scores: newScores,
+    handNumber: s.handNumber + 1,
+    passDirection: passDirectionForHand(s.handNumber + 1),
+    options: s.options,
+  };
+}
+
+function newGame(s: GameState, rng: RNG): GameState {
+  return deal(rng, s.options);
+}
+
+function setOptions(s: GameState, partial: Partial<Options>): GameState {
+  return { ...s, options: { ...s.options, ...partial } };
 }
 
 export function applyHandScores(
