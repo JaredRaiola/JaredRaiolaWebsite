@@ -6,18 +6,15 @@ type Props = {
   card: CardModel;
   onPointerDown?: (e: React.PointerEvent) => void;
   onDoubleClick?: (e: React.MouseEvent) => void;
-  onContextMenu?: (e: React.MouseEvent) => void;
-  dimmed?: boolean;
   style?: React.CSSProperties;
 };
 
-export default function Card({ card, onPointerDown, onDoubleClick, onContextMenu, dimmed, style }: Props): React.ReactElement {
+export default function Card({ card, onPointerDown, onDoubleClick, style }: Props): React.ReactElement {
   return (
     <div
-      className={`sol-card${dimmed ? ' sol-card-dimmed' : ''}`}
+      className="sol-card"
       onPointerDown={onPointerDown}
       onDoubleClick={onDoubleClick}
-      onContextMenu={onContextMenu}
       style={style}
       data-card-id={card.id}
     >

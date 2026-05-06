@@ -24,7 +24,6 @@
   cursor: default;
 }
 .sol-card svg { width: 100%; height: 100%; display: block; }
-.sol-card-dimmed { opacity: 0.55; }
 .sol-pile {
   width: 71px;
   height: 96px;

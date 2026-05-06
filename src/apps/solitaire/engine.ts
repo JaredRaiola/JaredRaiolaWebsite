@@ -170,8 +170,13 @@ function clonePiles(p: Record<PileId, Card[]>): Record<PileId, Card[]> {
   return out;
 }
 
-function maxRecyclesForVegas(draw: 1 | 3): number {
+export function maxRecyclesForVegas(draw: 1 | 3): number {
   return draw === 1 ? 1 : 3;
+}
+
+export function isRecycleExhausted(options: Options, recyclesUsed: number): boolean {
+  if (options.scoring !== 'vegas') return false;
+  return recyclesUsed >= maxRecyclesForVegas(options.draw);
 }
 
 function drawFromStock(s: GameState): GameState {
@@ -306,7 +311,8 @@ function autoFinish(s: GameState): GameState {
   if (s.phase !== 'playing') return s;
   if (!canAutoFinish(s)) return s;
   let cur = s;
-  let safety = 200;
+  // Worst case is 52 moves; double for slack.
+  let safety = 104;
   while (safety-- > 0) {
     let moved = false;
     for (let i = 0; i < 7; i++) {
@@ -371,7 +377,6 @@ export type SolitaireSnapshot = {
   piles: GameState['piles'];
   options: Options;
   score: number;
-  vegasBalance: number;
   startedAt: null;
   elapsedMs: number;
   recyclesUsed: number;

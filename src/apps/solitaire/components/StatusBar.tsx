@@ -1,5 +1,3 @@
-import React from 'react';
-
 type Props = { score: number; elapsedSec: number; showScore: boolean };
 
 function fmt(s: number): string {

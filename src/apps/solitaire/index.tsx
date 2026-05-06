@@ -32,7 +32,7 @@ function initFrom(restored: unknown, currentOptions: Options): GameState {
       piles: restored.piles,
       options: currentOptions,
       score: restored.score,
-      vegasBalance: restored.vegasBalance,
+      vegasBalance: 0,
       startedAt,
       elapsedMs: restored.elapsedMs,
       recyclesUsed: restored.recyclesUsed,
@@ -62,7 +62,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
       'f2': () => dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }),
       'ctrl+z': () => dispatch({ type: 'undo' }),
     },
-    { enabled: focused },
+    { enabled: focused && !optionsOpen && !statsOpen && !state.drag },
   );
 
   useEffect(() => {
@@ -76,7 +76,6 @@ export default function Solitaire({ api, restoreState }: AppProps) {
       piles: state.piles,
       options: state.options,
       score: state.score,
-      vegasBalance: state.vegasBalance,
       startedAt: null,
       elapsedMs: state.elapsedMs,
       recyclesUsed: state.recyclesUsed,
@@ -233,7 +232,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
                   outlineDragging={state.options.outlineDragging}
                   isDragSource={isDragSource}
                   onPointerDownTop={(e) => startDrag(`foundation-${s}` as PileId, state.piles[`foundation-${s}` as PileId].length - 1, e)}
-                  onDoubleClickTop={() => dispatch({ type: 'autoMoveToFoundation', from: `foundation-${s}` as PileId })}
+                  onDoubleClickTop={() => { /* no-op: foundation top can't auto-move */ }}
                 />
               </div>
             ))}
