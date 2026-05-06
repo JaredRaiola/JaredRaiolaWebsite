@@ -17,8 +17,13 @@ function recycleExhausted(options: Options, recyclesUsed: number): boolean {
 export default function Stock({ cards, recyclesUsed, options, onClick }: Props): React.ReactElement {
   const empty = cards.length === 0;
   const exhausted = empty && recycleExhausted(options, recyclesUsed);
+  const handle = (): void => {
+    // eslint-disable-next-line no-console
+    console.log('[solitaire/stock-click]', { stockLength: cards.length, exhausted });
+    onClick();
+  };
   return (
-    <Pile className="sol-stock" onClick={onClick}>
+    <Pile className="sol-stock" onClick={handle}>
       {!empty && <CardBackSvg />}
       {empty && !exhausted && <div className="sol-stock-recycle">↻</div>}
       {exhausted && <div className="sol-stock-no-recycle">⊘</div>}
