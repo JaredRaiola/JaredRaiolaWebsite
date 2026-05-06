@@ -90,6 +90,8 @@
 .paint-tool {
   width: 26px;
   height: 26px;
+  min-width: 26px;
+  min-height: 26px;
   font-size: 13px;
   padding: 0;
   display: flex;
@@ -100,6 +102,7 @@
   border-color: #ffffff #808080 #808080 #ffffff;
   cursor: default;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .paint-tool:active,
@@ -185,10 +188,13 @@
 .paint-swatch {
   width: 16px;
   height: 16px;
+  min-width: 16px;
+  min-height: 16px;
   padding: 0;
   border: 1px solid #000;
   cursor: default;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .paint-swatch:hover {
@@ -210,6 +216,8 @@
   border: 2px solid;
   border-color: #ffffff #808080 #808080 #ffffff;
   font-size: 11px;
+  min-width: 32px;
+  min-height: 18px;
 }
 
 .paint-size-btn.active {
