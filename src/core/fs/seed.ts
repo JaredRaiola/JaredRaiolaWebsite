@@ -29,8 +29,8 @@ export function buildSeedTree(): DirNode {
   insertNode(root, 'C:\\Windows\\System', makeDir('System', now));
   insertNode(root, 'C:\\Windows\\User', makeDir('User', now));
   insertNode(root, 'C:\\Windows\\User\\Desktop', makeDir('Desktop', now));
-  insertNode(root, 'C:\\Windows\\User\\My Documents', makeDir('My Documents', now));
-  insertNode(root, 'C:\\Windows\\User\\My Documents\\Projects', makeDir('Projects', now));
+  insertNode(root, 'C:\\Windows\\User\\Desktop\\My Documents', makeDir('My Documents', now));
+  insertNode(root, 'C:\\Windows\\User\\Desktop\\My Documents\\Projects', makeDir('Projects', now));
   // Recycle Bin lives at the C:\ root (matches Win9x reality); the desktop
   // shows a shortcut-style icon that points back here.
   insertNode(root, 'C:\\Recycle Bin', makeDir('Recycle Bin', now));
@@ -45,7 +45,7 @@ export function buildSeedTree(): DirNode {
   const aboutBlob = uuid();
   insertNode(
     root,
-    'C:\\Windows\\User\\My Documents\\About Me.txt',
+    'C:\\Windows\\User\\Desktop\\My Documents\\About Me.txt',
     makeFile('About Me.txt', 'text/plain', ABOUT_ME.length, aboutBlob, now),
   );
 

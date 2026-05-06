@@ -12,7 +12,7 @@ type Props = {
   onCancel(): void;
 };
 
-export function FileDialog({ mode, initialPath = 'C:\\My Documents', defaultFileName = '', filterExt, onSubmit, onCancel }: Props) {
+export function FileDialog({ mode, initialPath = 'C:\\Windows\\User\\Desktop\\My Documents', defaultFileName = '', filterExt, onSubmit, onCancel }: Props) {
   const fs = useFsStore((s) => s.fs);
   const [cwd, setCwd] = useState(initialPath);
   const [name, setName] = useState(defaultFileName);
