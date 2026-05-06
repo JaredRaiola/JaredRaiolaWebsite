@@ -4,7 +4,9 @@ import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
 import { reducer, deal, isValidRun, type GameState, type Suit, type PileId, type Card } from './engine';
 import { makeRng } from './rng';
-import { loadOptions, saveOptions } from './options';
+import { loadOptions, saveOptions, loadVegasBalance, saveVegasBalance } from './options';
+import { sysPrompt } from '@/lib/dialog';
+import { saveIfBest, loadBestTime } from './bestTimes';
 import Stock from './components/Stock';
 import Waste from './components/Waste';
 import Foundation from './components/Foundation';
@@ -30,6 +32,7 @@ export default function Solitaire({ api }: AppProps) {
   const [statsOpen, setStatsOpen] = useState(false);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragMetaRef = useRef<{ from: PileId; fromIdx: number } | null>(null);
+  const wonHandledRef = useRef(false);
 
   useEffect(() => { saveOptions(state.options); }, [state.options]);
 
@@ -54,6 +57,30 @@ export default function Solitaire({ api }: AppProps) {
     const id = window.setTimeout(() => dispatch({ type: 'setPhase', phase: 'cascading' }), 500);
     return () => window.clearTimeout(id);
   }, [state.phase]);
+
+  useEffect(() => {
+    if (state.phase !== 'won') {
+      wonHandledRef.current = false;
+      return;
+    }
+    if (wonHandledRef.current) return;
+    wonHandledRef.current = true;
+
+    if (state.options.scoring === 'vegas' && state.options.vegasKeepScore) {
+      saveVegasBalance(loadVegasBalance() + state.score);
+    }
+
+    if (state.options.scoring !== 'standard' || !state.options.timed) return;
+    const seconds = Math.floor(state.elapsedMs / 1000);
+    if (seconds < 30) return;
+    const best = loadBestTime();
+    if (best && seconds >= best.seconds) return;
+    void sysPrompt('You have a new best time. Please enter your name.', 'Anonymous', { title: 'Solitaire Best Time' })
+      .then((name) => {
+        if (name === null) return;
+        saveIfBest(seconds, name || 'Anonymous');
+      });
+  }, [state.phase, state.elapsedMs, state.options, state.score]);
 
   const isDragSource = (cardId: string): boolean => {
     if (!state.drag) return false;
