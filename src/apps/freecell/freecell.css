@@ -38,3 +38,8 @@
   transform: translate(-50%, -50%);
   display: block;
 }
+.fc-tableau {
+  position: relative;
+  width: 71px;
+  min-height: 96px;
+}
