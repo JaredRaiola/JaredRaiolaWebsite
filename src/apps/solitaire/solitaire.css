@@ -1,0 +1,16 @@
+.sol-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #008000;
+}
+.sol-felt {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  color: #fff;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: 12px;
+  padding: 12px;
+}
