@@ -1,0 +1,34 @@
+.flyout {
+  background: #c0c0c0;
+  border: 1px solid;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  padding: 2px;
+  min-width: 160px;
+}
+.flyout-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px 3px 4px;
+  font-size: 11px;
+  color: #000;
+  cursor: default;
+  position: relative;
+  user-select: none;
+}
+.flyout-item img { width: 16px; height: 16px; image-rendering: pixelated; }
+.flyout-item.active,
+.flyout-item:hover:not(.disabled) {
+  background: #000080;
+  color: #fff;
+}
+.flyout-item.disabled { color: #808080; }
+.flyout-label { flex: 1; }
+.flyout-arrow { font-size: 9px; padding-left: 8px; }
+.flyout-sep { height: 1px; background: #808080; margin: 3px 2px; box-shadow: 0 1px 0 #ffffff; }
+.flyout-submenu {
+  position: absolute;
+  top: -3px;
+  left: 100%;
+  z-index: 10;
+}
