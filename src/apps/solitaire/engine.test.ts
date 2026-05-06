@@ -70,7 +70,7 @@ describe('color', () => {
 describe('canStackOnTableau', () => {
   const ks = { id: 'KS', suit: 'spades', rank: 13, faceUp: true } as const;
   const qh = { id: 'QH', suit: 'hearts', rank: 12, faceUp: true } as const;
-  const qd = { id: 'QD', suit: 'diamonds', rank: 12, faceUp: true } as const;
+  const qc = { id: 'QC', suit: 'clubs', rank: 12, faceUp: true } as const;
   const jc = { id: 'JC', suit: 'clubs', rank: 11, faceUp: true } as const;
   it('king on empty', () => {
     expect(canStackOnTableau(undefined, ks)).toBe(true);
@@ -83,7 +83,7 @@ describe('canStackOnTableau', () => {
     expect(canStackOnTableau(qh, jc)).toBe(true);
   });
   it('same color rejects', () => {
-    expect(canStackOnTableau(ks, qd)).toBe(false);
+    expect(canStackOnTableau(ks, qc)).toBe(false);
   });
   it('wrong rank rejects', () => {
     expect(canStackOnTableau(ks, jc)).toBe(false);
