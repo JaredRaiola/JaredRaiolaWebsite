@@ -112,3 +112,32 @@ export function deal(rng: RNG, options: Options = DEFAULT_OPTIONS): GameState {
     drag: null,
   };
 }
+
+export function color(suit: Suit): 'red' | 'black' {
+  return suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+}
+
+export function canStackOnTableau(top: Card | undefined, candidate: Card): boolean {
+  if (!candidate.faceUp) return false;
+  if (top === undefined) return candidate.rank === 13;
+  if (!top.faceUp) return false;
+  return color(top.suit) !== color(candidate.suit) && top.rank === candidate.rank + 1;
+}
+
+export function canStackOnFoundation(top: Card | undefined, candidate: Card): boolean {
+  if (!candidate.faceUp) return false;
+  if (top === undefined) return candidate.rank === 1;
+  return top.suit === candidate.suit && candidate.rank === top.rank + 1;
+}
+
+export function isValidRun(cards: Card[]): boolean {
+  if (cards.length === 0) return false;
+  if (!cards.every((c) => c.faceUp)) return false;
+  for (let i = 0; i < cards.length - 1; i++) {
+    const a = cards[i];
+    const b = cards[i + 1];
+    if (a.rank !== b.rank + 1) return false;
+    if (color(a.suit) === color(b.suit)) return false;
+  }
+  return true;
+}
