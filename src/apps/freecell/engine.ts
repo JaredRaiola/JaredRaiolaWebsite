@@ -176,10 +176,111 @@ function tick(s: GameState, now: number): GameState {
   return { ...s, elapsedMs: Math.max(0, now - s.startedAt) };
 }
 
+function totalOnFoundations(s: GameState): number {
+  let total = 0;
+  for (const f of FOUNDATIONS) total += s.piles[f].length;
+  return total;
+}
+
+function nextFoundationStep(s: GameState): { from: PileId; card: Card } | null {
+  // For each tableau-top and cell, check if it can go onto its suit foundation.
+  for (const t of TABLEAUS) {
+    const arr = s.piles[t];
+    if (arr.length === 0) continue;
+    const top = arr[arr.length - 1];
+    const dest = `foundation-${top.suit}` as PileId;
+    if (canStackOnFoundation(s.piles[dest][s.piles[dest].length - 1], top)) {
+      return { from: t, card: top };
+    }
+  }
+  for (const cl of CELLS) {
+    const arr = s.piles[cl];
+    if (arr.length === 0) continue;
+    const top = arr[0];
+    const dest = `foundation-${top.suit}` as PileId;
+    if (canStackOnFoundation(s.piles[dest][s.piles[dest].length - 1], top)) {
+      return { from: cl, card: top };
+    }
+  }
+  return null;
+}
+
+function totalCardsOutsideFoundations(s: GameState): number {
+  let total = 0;
+  for (const t of TABLEAUS) total += s.piles[t].length;
+  for (const cl of CELLS) total += s.piles[cl].length;
+  return total;
+}
+
+export function isAutoCascadable(s: GameState): boolean {
+  // Simulation: greedy foundation-step until all cards outside foundations
+  // have been moved (cascadable) or no progress can be made (not cascadable).
+  let cur = s;
+  let safety = 60;
+  while (safety-- > 0) {
+    if (totalCardsOutsideFoundations(cur) === 0) return true;
+    const step = nextFoundationStep(cur);
+    if (!step) return false;
+    cur = applyFoundationStep(cur, step.from);
+  }
+  return false;
+}
+
+function applyFoundationStep(s: GameState, from: PileId): GameState {
+  const src = s.piles[from];
+  const top = src[src.length - 1];
+  const dest = `foundation-${top.suit}` as PileId;
+  const piles = clonePiles(s.piles);
+  piles[from] = piles[from].slice(0, -1);
+  piles[dest] = piles[dest].concat([{ ...top }]);
+  return { ...s, piles };
+}
+
+function cascadeStep(s: GameState): GameState {
+  if (s.phase !== 'cascading') return s;
+  const step = nextFoundationStep(s);
+  if (!step) {
+    // No move possible — fall back to playing.
+    return { ...s, phase: 'playing' };
+  }
+  const next = applyFoundationStep(s, step.from);
+  if (totalOnFoundations(next) === 52) {
+    return { ...next, phase: 'won' };
+  }
+  return next;
+}
+
+function cascadeSkip(s: GameState): GameState {
+  if (s.phase !== 'cascading') return s;
+  let cur = s;
+  let safety = 60;
+  while (safety-- > 0) {
+    if (totalOnFoundations(cur) === 52) return { ...cur, phase: 'won' };
+    const step = nextFoundationStep(cur);
+    if (!step) return { ...cur, phase: 'playing' };
+    cur = applyFoundationStep(cur, step.from);
+  }
+  return cur;
+}
+
+function postMove(s: GameState): GameState {
+  if (totalOnFoundations(s) === 52) return { ...s, phase: 'won' };
+  if (isAutoCascadable(s)) return { ...s, phase: 'cascading' };
+  return s;
+}
+
 export function reducer(s: GameState, a: Action): GameState {
   switch (a.type) {
-    case 'tryMove': return tryMove(s, a.from, a.fromIdx, a.to);
-    case 'autoMoveToFoundation': return autoMoveToFoundation(s, a.from);
+    case 'tryMove': {
+      const next = tryMove(s, a.from, a.fromIdx, a.to);
+      return next === s ? s : postMove(next);
+    }
+    case 'autoMoveToFoundation': {
+      const next = autoMoveToFoundation(s, a.from);
+      return next === s ? s : postMove(next);
+    }
+    case 'cascadeStep': return cascadeStep(s);
+    case 'cascadeSkip': return cascadeSkip(s);
     case 'undo': return undo(s);
     case 'newGame': return newGame(s, a.gameNumber);
     case 'tick': return tick(s, a.now);
