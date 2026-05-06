@@ -156,7 +156,7 @@ import type { Suit, Rank, Card } from './engine';
 
 describe('reducer/drawFromStock', () => {
   it('draw 1 moves one card from stock to waste face-up', () => {
-    const s0 = deal(makeRng(1));
+    const s0 = deal(makeRng(1), { ...DEFAULT_OPTIONS, draw: 1 });
     const stockBefore = s0.piles.stock.length;
     const s1 = reducer(s0, { type: 'drawFromStock' });
     expect(s1.piles.stock).toHaveLength(stockBefore - 1);

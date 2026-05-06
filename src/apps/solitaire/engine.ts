@@ -25,7 +25,7 @@ export type Options = {
 };
 
 export const DEFAULT_OPTIONS: Options = {
-  draw: 1,
+  draw: 3,
   scoring: 'standard',
   timed: true,
   statusBar: true,
