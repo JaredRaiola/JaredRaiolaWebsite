@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
@@ -231,7 +232,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
         )}
       </div>
 
-      {state.drag && dragPos && (
+      {state.drag && dragPos && createPortal(
         <div
           className="sol-drag-layer"
           style={{ left: dragPos.x - state.drag.pointerOffset.x, top: dragPos.y - state.drag.pointerOffset.y }}
@@ -241,7 +242,8 @@ export default function Solitaire({ api, restoreState }: AppProps) {
               <CardFaceSvg suit={c.suit} rank={c.rank} />
             </div>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
 
       {state.options.statusBar && (
