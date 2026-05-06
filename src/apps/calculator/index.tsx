@@ -1,8 +1,14 @@
 import { useEffect, useReducer, useRef } from 'react';
 import type { AppProps } from '@/core/apps/registry';
-import { calcReducer, initialCalcState, type Action } from './engine';
+import { calcReducer, initialCalcState, type Action, type CalcState } from './engine';
 import { Keypad } from './keypad';
 import './calculator.css';
+
+function isValidCalcState(v: unknown): v is CalcState {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  return typeof s.display === 'string' && typeof s.memory === 'number';
+}
 
 const KEY_MAP: Record<string, Action | null> = {
   '0': { kind: 'digit', value: '0' },
@@ -27,8 +33,9 @@ const KEY_MAP: Record<string, Action | null> = {
   '%': { kind: 'unary', value: 'percent' },
 };
 
-export default function Calculator(_props: AppProps) {
-  const [state, dispatch] = useReducer(calcReducer, initialCalcState);
+export default function Calculator({ api, restoreState }: AppProps) {
+  const initial = isValidCalcState(restoreState) ? restoreState : initialCalcState;
+  const [state, dispatch] = useReducer(calcReducer, initial);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,6 +50,11 @@ export default function Calculator(_props: AppProps) {
     node?.focus();
     return () => node?.removeEventListener('keydown', onKey);
   }, []);
+
+  // Register session snapshot.
+  useEffect(() => {
+    return api.registerSnapshot(() => state);
+  }, [state, api]);
 
   return (
     <div ref={ref} tabIndex={-1} className="calc-root">
