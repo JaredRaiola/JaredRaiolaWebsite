@@ -33,6 +33,14 @@ describe('dealGame', () => {
 
 const c = (id: string, suit: Card['suit'], rank: Card['rank']): Card => ({ id, suit, rank });
 
+function blank(): GameState {
+  return {
+    phase: 'playing',
+    piles: emptyPiles(),
+    gameNumber: 0, startedAt: null, elapsedMs: 0, moveCount: 0, prev: null,
+  };
+}
+
 describe('canStackOnTableau', () => {
   it('any card on empty', () => {
     expect(canStackOnTableau(undefined, c('5H', 'hearts', 5))).toBe(true);
@@ -119,13 +127,6 @@ describe('supermoveCapacity', () => {
 });
 
 describe('reducer/tryMove single card', () => {
-  function blank(): GameState {
-    return {
-      phase: 'playing',
-      piles: emptyPiles(),
-      gameNumber: 0, startedAt: null, elapsedMs: 0, moveCount: 0, prev: null,
-    };
-  }
   it('legal tableau→tableau move advances state', () => {
     const s = blank();
     s.piles['tableau-0'] = [c('6S', 'spades', 6)];
@@ -163,13 +164,6 @@ describe('reducer/tryMove single card', () => {
 });
 
 describe('reducer/tryMove supermove', () => {
-  function blank(): GameState {
-    return {
-      phase: 'playing',
-      piles: emptyPiles(),
-      gameNumber: 0, startedAt: null, elapsedMs: 0, moveCount: 0, prev: null,
-    };
-  }
   it('legal 2-card run with cells available', () => {
     const s = blank();
     s.piles['tableau-0'] = [
@@ -202,5 +196,52 @@ describe('reducer/tryMove supermove', () => {
     s.piles['tableau-6'] = [c('AS', 'spades', 1)];
     s.piles['tableau-7'] = [c('AS', 'spades', 1)];
     expect(reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 1, to: 'tableau-1' })).toBe(s);
+  });
+});
+
+describe('reducer/autoMoveToFoundation', () => {
+  it('moves top card to its suit foundation when legal', () => {
+    const s = blank();
+    s.piles['tableau-0'] = [c('AS', 'spades', 1)];
+    const r = reducer(s, { type: 'autoMoveToFoundation', from: 'tableau-0' });
+    expect(r.piles['foundation-spades']).toHaveLength(1);
+    expect(r.piles['tableau-0']).toHaveLength(0);
+  });
+  it('no-ops when illegal', () => {
+    const s = blank();
+    s.piles['tableau-0'] = [c('5H', 'hearts', 5)];
+    expect(reducer(s, { type: 'autoMoveToFoundation', from: 'tableau-0' })).toBe(s);
+  });
+});
+
+describe('reducer/undo', () => {
+  it('undo reverts last move', () => {
+    const s = blank();
+    s.piles['tableau-0'] = [c('AS', 'spades', 1)];
+    const moved = reducer(s, { type: 'autoMoveToFoundation', from: 'tableau-0' });
+    const undone = reducer(moved, { type: 'undo' });
+    expect(undone.piles['tableau-0']).toHaveLength(1);
+    expect(undone.piles['foundation-spades']).toHaveLength(0);
+  });
+  it('undo with no prev no-ops', () => {
+    const s = blank();
+    expect(reducer(s, { type: 'undo' })).toBe(s);
+  });
+});
+
+describe('reducer/newGame', () => {
+  it('newGame deals the requested gameNumber', () => {
+    const s = blank();
+    const r = reducer(s, { type: 'newGame', gameNumber: 7 });
+    expect(r.gameNumber).toBe(7);
+    expect(r.phase).toBe('playing');
+  });
+});
+
+describe('reducer/tick', () => {
+  it('updates elapsedMs based on startedAt', () => {
+    const s: GameState = { ...blank(), startedAt: 1000 };
+    const r = reducer(s, { type: 'tick', now: 5000 });
+    expect(r.elapsedMs).toBe(4000);
   });
 });

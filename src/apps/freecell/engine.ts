@@ -147,9 +147,42 @@ function tryMove(s: GameState, from: PileId, fromIdx: number, to: PileId): GameS
   return { ...s, piles, moveCount: s.moveCount + 1, prev: snapshotPrev(s) };
 }
 
+function autoMoveToFoundation(s: GameState, from: PileId): GameState {
+  if (s.phase !== 'playing') return s;
+  const src = s.piles[from];
+  if (src.length === 0) return s;
+  const top = src[src.length - 1];
+  const dest = `foundation-${top.suit}` as PileId;
+  return tryMove(s, from, src.length - 1, dest);
+}
+
+function undo(s: GameState): GameState {
+  if (!s.prev) return s;
+  return {
+    ...s,
+    piles: clonePiles(s.prev.piles),
+    moveCount: s.prev.moveCount,
+    prev: null,
+    phase: 'playing',
+  };
+}
+
+function newGame(_s: GameState, gameNumber: number): GameState {
+  return dealGame(gameNumber);
+}
+
+function tick(s: GameState, now: number): GameState {
+  if (s.startedAt === null) return s;
+  return { ...s, elapsedMs: Math.max(0, now - s.startedAt) };
+}
+
 export function reducer(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'tryMove': return tryMove(s, a.from, a.fromIdx, a.to);
+    case 'autoMoveToFoundation': return autoMoveToFoundation(s, a.from);
+    case 'undo': return undo(s);
+    case 'newGame': return newGame(s, a.gameNumber);
+    case 'tick': return tick(s, a.now);
     default: return s;
   }
 }
