@@ -367,3 +367,131 @@ describe('reducer/tick', () => {
     expect(s1.elapsedMs).toBe(0);
   });
 });
+
+describe('scoring/standard', () => {
+  it('+5 waste→tableau', () => {
+    const piles = emptyPiles();
+    piles['waste'] = [{ id: '5H', suit: 'hearts', rank: 5, faceUp: true }];
+    piles['tableau-0'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'tableau-0' });
+    expect(r.score).toBe(5);
+  });
+  it('+10 waste→foundation', () => {
+    const piles = emptyPiles();
+    piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'foundation-spades' });
+    expect(r.score).toBe(10);
+  });
+  it('+10 tableau→foundation', () => {
+    const piles = emptyPiles();
+    piles['tableau-0'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'foundation-spades' });
+    expect(r.score).toBe(10);
+  });
+  it('+5 turning over face-down tableau card', () => {
+    const piles = emptyPiles();
+    piles['tableau-0'] = [
+      { id: 'XX', suit: 'clubs', rank: 7, faceUp: false },
+      { id: '5H', suit: 'hearts', rank: 5, faceUp: true },
+    ];
+    piles['tableau-1'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 1, to: 'tableau-1' });
+    expect(r.score).toBe(5);
+  });
+  it('-15 foundation→tableau', () => {
+    const piles = emptyPiles();
+    piles['foundation-spades'] = [
+      { id: 'AS', suit: 'spades', rank: 1, faceUp: true },
+      { id: '2S', suit: 'spades', rank: 2, faceUp: true },
+    ];
+    piles['tableau-0'] = [{ id: '3H', suit: 'hearts', rank: 3, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
+      score: 100, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'foundation-spades', fromIdx: 1, to: 'tableau-0' });
+    expect(r.score).toBe(85);
+  });
+  it('score never goes below 0 in standard', () => {
+    const piles = emptyPiles();
+    piles['foundation-spades'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
+    piles['tableau-0'] = [{ id: '2H', suit: 'hearts', rank: 2, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
+      score: 5, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'foundation-spades', fromIdx: 0, to: 'tableau-0' });
+    expect(r.score).toBe(0);
+  });
+});
+
+describe('scoring/vegas', () => {
+  it('starts at -52', () => {
+    const s = deal(makeRng(1), { ...DEFAULT_OPTIONS, scoring: 'vegas' });
+    expect(s.score).toBe(-52);
+  });
+  it('+5 to foundation, no other events', () => {
+    const piles = emptyPiles();
+    piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'vegas' },
+      score: -52, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r1 = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'foundation-spades' });
+    expect(r1.score).toBe(-47);
+  });
+  it('vegas: tableau move yields no points', () => {
+    const piles = emptyPiles();
+    piles['tableau-0'] = [{ id: '5H', suit: 'hearts', rank: 5, faceUp: true }];
+    piles['tableau-1'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'vegas' },
+      score: -52, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'tableau-1' });
+    expect(r.score).toBe(-52);
+  });
+});
+
+describe('scoring/none', () => {
+  it('score never changes in none mode', () => {
+    const piles = emptyPiles();
+    piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'none' },
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'foundation-spades' });
+    expect(r.score).toBe(0);
+  });
+});
+
+describe('scoring/timeBonus', () => {
+  it('returns 0 when not timed', () => {
+    expect(timeBonus({ ...DEFAULT_OPTIONS, timed: false }, 60_000)).toBe(0);
+  });
+  it('returns 0 when elapsed < 30s', () => {
+    expect(timeBonus({ ...DEFAULT_OPTIONS, timed: true }, 20_000)).toBe(0);
+  });
+  it('floor(700000 / elapsedSec) for elapsed >= 30s', () => {
+    expect(timeBonus({ ...DEFAULT_OPTIONS, timed: true }, 60_000)).toBe(Math.floor(700_000 / 60));
+  });
+});
+
+import { timeBonus } from './engine';

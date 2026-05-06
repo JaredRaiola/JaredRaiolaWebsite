@@ -203,6 +203,29 @@ function isTableauPile(p: PileId): boolean {
   return p.startsWith('tableau-');
 }
 
+type MoveContext = {
+  from: PileId;
+  to: PileId;
+  movedCount: number;
+  revealed: boolean;
+};
+
+function scoreDelta(opts: Options, ctx: MoveContext): number {
+  if (opts.scoring === 'none') return 0;
+  if (opts.scoring === 'vegas') {
+    return isFoundationPile(ctx.to) ? 5 * ctx.movedCount : 0;
+  }
+  let d = 0;
+  if (isFoundationPile(ctx.to)) {
+    d += 10 * ctx.movedCount;
+  } else if (isTableauPile(ctx.to)) {
+    if (ctx.from === 'waste') d += 5;
+    if (isFoundationPile(ctx.from)) d -= 15 * ctx.movedCount;
+  }
+  if (ctx.revealed) d += 5;
+  return d;
+}
+
 function tryMove(s: GameState, from: PileId, fromIdx: number, to: PileId): GameState {
   if (s.phase !== 'playing') return s;
   if (from === to) return s;
@@ -224,12 +247,23 @@ function tryMove(s: GameState, from: PileId, fromIdx: number, to: PileId): GameS
   const piles = clonePiles(s.piles);
   piles[from] = piles[from].slice(0, fromIdx);
   piles[to] = piles[to].concat(moving.map((c) => ({ ...c })));
+  let revealed = false;
   if (isTableauPile(from)) {
     const newTop = piles[from][piles[from].length - 1];
-    if (newTop && !newTop.faceUp) newTop.faceUp = true;
+    if (newTop && !newTop.faceUp) { newTop.faceUp = true; revealed = true; }
   }
 
-  return { ...s, piles, prev: snapshotPrev(s) };
+  const delta = scoreDelta(s.options, { from, to, movedCount: moving.length, revealed });
+  let score = s.score + delta;
+  if (s.options.scoring === 'standard' && score < 0) score = 0;
+  return { ...s, piles, score, prev: snapshotPrev(s) };
+}
+
+export function timeBonus(options: Options, elapsedMs: number): number {
+  if (!options.timed) return 0;
+  const secs = Math.floor(elapsedMs / 1000);
+  if (secs < 30) return 0;
+  return Math.floor(700_000 / secs);
 }
 
 function autoMoveToFoundation(s: GameState, from: PileId): GameState {
