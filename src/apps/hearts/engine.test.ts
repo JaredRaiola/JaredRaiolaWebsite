@@ -7,9 +7,13 @@ import {
   trickWinner,
   pointsInCards,
   shotTheMoon,
+  emptyTaken,
+  emptyScores,
+  DEFAULT_OPTIONS,
   type PlayerId,
   type Card,
   type Trick,
+  type GameState,
 } from './engine';
 import { makeRng } from './rng';
 
@@ -220,5 +224,67 @@ describe('reducer/passing', () => {
     const s1 = reducer(s0, { type: 'submitPass', humanSelection: [], aiPasses: { 0: [], 1: [], 2: [], 3: [] } });
     expect(s1.phase).toBe('playing');
     expect(s1.hands).toEqual(s0.hands);
+  });
+});
+
+describe('reducer/playCard', () => {
+  function startedState() {
+    const s = deal(makeRng(1));
+    const human3 = s.hands[0].slice(0, 3);
+    const ai1_3 = s.hands[1].slice(0, 3);
+    const ai2_3 = s.hands[2].slice(0, 3);
+    const ai3_3 = s.hands[3].slice(0, 3);
+    return reducer(s, { type: 'submitPass', humanSelection: human3, aiPasses: { 0: human3, 1: ai1_3, 2: ai2_3, 3: ai3_3 } });
+  }
+  it('legal play moves card from hand to trick and advances turn', () => {
+    let s = startedState();
+    const player = s.turn!;
+    const card = s.hands[player].find((c) => c.id === '2C')!;
+    s = reducer(s, { type: 'playCard', player, card });
+    expect(s.hands[player]).not.toContainEqual(card);
+    expect(s.trick!.plays.map((p) => p.card.id)).toContain('2C');
+    expect(s.history.map((c) => c.id)).toContain('2C');
+    expect(s.turn).toBe(((player + 1) % 4) as PlayerId);
+  });
+  it('illegal play (wrong player) is no-op', () => {
+    const s = startedState();
+    const wrongPlayer = ((s.turn! + 1) % 4) as PlayerId;
+    const card = s.hands[wrongPlayer][0];
+    expect(reducer(s, { type: 'playCard', player: wrongPlayer, card })).toBe(s);
+  });
+  it('first card sets leadSuit', () => {
+    let s = startedState();
+    const player = s.turn!;
+    const card = s.hands[player].find((c) => c.id === '2C')!;
+    s = reducer(s, { type: 'playCard', player, card });
+    expect(s.trick!.leadSuit).toBe('clubs');
+  });
+  it('heartsBroken flips when a heart is played off-suit', () => {
+    const hands: Record<PlayerId, Card[]> = {
+      0: [c('5C', 'clubs', 5), c('5H', 'hearts', 5)],
+      1: [c('XH', 'hearts', 5)],  // no clubs (id different from 5H to keep ids distinct)
+      2: [c('6C', 'clubs', 6)],
+      3: [c('7C', 'clubs', 7)],
+    };
+    const s: GameState = {
+      phase: 'playing',
+      hands,
+      taken: emptyTaken(),
+      scores: emptyScores(),
+      handNumber: 0,
+      passDirection: 'left',
+      passSelections: null,
+      passReceived: null,
+      heartsBroken: false,
+      trick: { leader: 0, leadSuit: null, plays: [] },
+      turn: 0,
+      history: [],
+      options: DEFAULT_OPTIONS,
+      prev: null,
+    };
+    const s1 = reducer(s, { type: 'playCard', player: 0, card: c('5C', 'clubs', 5) });
+    expect(s1.heartsBroken).toBe(false);
+    const s2 = reducer(s1, { type: 'playCard', player: 1, card: c('XH', 'hearts', 5) });
+    expect(s2.heartsBroken).toBe(true);
   });
 });

@@ -248,11 +248,55 @@ function submitPass(
   };
 }
 
+function snapshotPrev(s: GameState): GameState['prev'] {
+  return {
+    hands: { 0: s.hands[0].slice(), 1: s.hands[1].slice(), 2: s.hands[2].slice(), 3: s.hands[3].slice() },
+    taken: { 0: s.taken[0].slice(), 1: s.taken[1].slice(), 2: s.taken[2].slice(), 3: s.taken[3].slice() },
+    trick: s.trick ? { ...s.trick, plays: s.trick.plays.slice() } : null,
+    turn: s.turn,
+    history: s.history.slice(),
+    heartsBroken: s.heartsBroken,
+  };
+}
+
+function playCard(s: GameState, player: PlayerId, card: Card): GameState {
+  if (s.phase !== 'playing') return s;
+  if (s.turn !== player) return s;
+  if (!s.trick) return s;
+  const hand = s.hands[player];
+  if (!hand.some((c) => c.id === card.id)) return s;
+  const isFirstTrick = s.history.length === 0;
+  const legal = s.trick.plays.length === 0
+    ? legalCardsForLead(hand, s.heartsBroken, isFirstTrick)
+    : legalCardsForFollow(hand, s.trick, s.heartsBroken, isFirstTrick);
+  if (!legal.some((c) => c.id === card.id)) return s;
+
+  const newHand = hand.filter((c) => c.id !== card.id);
+  const leadSuit: Suit | null = s.trick.leadSuit ?? card.suit;
+  const newPlays = [...s.trick.plays, { player, card }];
+  const heartsBroken =
+    s.heartsBroken ||
+    (card.suit === 'hearts' && s.trick.plays.length > 0);
+  const turnNext = newPlays.length === 4 ? null : (((player + 1) % 4) as PlayerId);
+  return {
+    ...s,
+    hands: { ...s.hands, [player]: newHand },
+    trick: { ...s.trick, leadSuit, plays: newPlays },
+    turn: turnNext,
+    history: [...s.history, card],
+    heartsBroken,
+    phase: newPlays.length === 4 ? 'trick-resolved' : 'playing',
+    prev: snapshotPrev(s),
+  };
+}
+
 export function reducer(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'selectPassCard': return selectPassCard(s, a.card);
     case 'deselectPassCard': return deselectPassCard(s, a.card);
     case 'submitPass': return submitPass(s, a.humanSelection, a.aiPasses);
+    case 'playCard': return playCard(s, a.player, a.card);
+    case 'aiPlay': return playCard(s, a.player, a.card);
     default: return s;
   }
 }
