@@ -71,7 +71,7 @@
   left: 12.5px;
   top: -12.5px;
   transform: rotate(90deg);
-  transform-origin: 35.5px 35.5px;
+  transform-origin: 35.5px 48px;
 }
 .hearts-ai.highlighted .hearts-ai-fan {
   outline: 3px solid #ffd700;
