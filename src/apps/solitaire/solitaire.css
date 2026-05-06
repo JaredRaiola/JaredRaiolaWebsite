@@ -98,3 +98,21 @@
   font-size: 11px;
   color: #000;
 }
+
+.sol-dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.05);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.sol-dialog { min-width: 280px; }
+.sol-dialog-body {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px;
+}
+.sol-dialog-body fieldset { border: 1px solid #808080; box-shadow: 1px 1px 0 #fff inset; padding: 6px 10px; }
+.sol-dialog-body legend { padding: 0 4px; }
+.sol-dialog-body label { display: flex; align-items: center; gap: 6px; }
+.sol-dialog-buttons {
+  display: flex; justify-content: flex-end; gap: 6px; padding: 8px 12px; border-top: 1px solid #808080;
+}
+.sol-dialog-buttons button { min-width: 75px; }

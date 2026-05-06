@@ -10,6 +10,8 @@ import Waste from './components/Waste';
 import Foundation from './components/Foundation';
 import Tableau from './components/Tableau';
 import StatusBar from './components/StatusBar';
+import OptionsDialog from './components/OptionsDialog';
+import StatisticsDialog from './components/StatisticsDialog';
 import CardFaceSvg from './cards/CardFaceSvg';
 import './solitaire.css';
 
@@ -23,6 +25,8 @@ function init(): GameState {
 export default function Solitaire({ api }: AppProps) {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const [openMenu, setOpenMenu] = useState<'game' | 'help' | null>(null);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragMetaRef = useRef<{ from: PileId; fromIdx: number } | null>(null);
 
@@ -98,8 +102,10 @@ export default function Solitaire({ api }: AppProps) {
           {openMenu === 'game' && (
             <div className="sol-menu-popup" onClick={(e) => e.stopPropagation()}>
               <div className="item" onClick={() => { dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); setOpenMenu(null); }}>Deal&nbsp;&nbsp;&nbsp;F2</div>
-              <div className="sep" />
               <div className="item" onClick={() => { dispatch({ type: 'undo' }); setOpenMenu(null); }}>Undo&nbsp;&nbsp;&nbsp;Ctrl+Z</div>
+              <div className="sep" />
+              <div className="item" onClick={() => { setOptionsOpen(true); setOpenMenu(null); }}>Options...</div>
+              <div className="item" onClick={() => { setStatsOpen(true); setOpenMenu(null); }}>Statistics...</div>
               <div className="sep" />
               <div className="item" onClick={() => api.requestClose()}>Exit</div>
             </div>
@@ -176,6 +182,14 @@ export default function Solitaire({ api }: AppProps) {
       {state.options.statusBar && (
         <StatusBar score={state.score} elapsedSec={elapsedSec} showScore={state.options.scoring !== 'none'} />
       )}
+      {optionsOpen && (
+        <OptionsDialog
+          initial={state.options}
+          onCancel={() => setOptionsOpen(false)}
+          onOk={(next) => { dispatch({ type: 'setOptions', options: next }); setOptionsOpen(false); }}
+        />
+      )}
+      {statsOpen && <StatisticsDialog onClose={() => setStatsOpen(false)} />}
     </div>
   );
 }
