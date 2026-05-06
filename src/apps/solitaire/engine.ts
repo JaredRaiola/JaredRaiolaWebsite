@@ -179,6 +179,8 @@ function drawFromStock(s: GameState): GameState {
   if (s.piles.stock.length > 0) {
     const piles = clonePiles(s.piles);
     const n = Math.min(s.options.draw, piles.stock.length);
+    // eslint-disable-next-line no-console
+    console.log('[solitaire/draw]', { drawSetting: s.options.draw, stockBefore: s.piles.stock.length, willDraw: n });
     for (let i = 0; i < n; i++) {
       const card = piles.stock.pop()!;
       card.faceUp = true;
