@@ -118,3 +118,59 @@ export function deal(rng: RNG, options: Options = DEFAULT_OPTIONS): GameState {
     prev: null,
   };
 }
+
+const POINTS_CARDS_FILTER = (c: Card): boolean => c.suit === 'hearts' || (c.suit === 'spades' && c.rank === 12);
+
+export function legalCardsForLead(hand: Card[], heartsBroken: boolean, isFirstTrick: boolean): Card[] {
+  if (isFirstTrick) {
+    const twoClubs = hand.find((c) => c.suit === 'clubs' && c.rank === 2);
+    return twoClubs ? [twoClubs] : hand.slice();
+  }
+  if (heartsBroken) return hand.slice();
+  const nonHearts = hand.filter((c) => c.suit !== 'hearts');
+  return nonHearts.length > 0 ? nonHearts : hand.slice();
+}
+
+export function legalCardsForFollow(
+  hand: Card[],
+  trick: Trick,
+  _heartsBroken: boolean,
+  isFirstTrick: boolean,
+): Card[] {
+  const lead = trick.leadSuit;
+  if (lead) {
+    const inSuit = hand.filter((c) => c.suit === lead);
+    if (inSuit.length > 0) return inSuit;
+  }
+  if (isFirstTrick) {
+    const nonPoints = hand.filter((c) => !POINTS_CARDS_FILTER(c));
+    if (nonPoints.length > 0) return nonPoints;
+  }
+  return hand.slice();
+}
+
+export function trickWinner(trick: Trick): PlayerId {
+  if (trick.plays.length === 0 || trick.leadSuit === null) {
+    throw new Error('trickWinner called on empty trick');
+  }
+  const lead = trick.leadSuit;
+  let best = trick.plays[0];
+  for (const p of trick.plays) {
+    if (p.card.suit === lead && p.card.rank > best.card.rank) best = p;
+    if (best.card.suit !== lead && p.card.suit === lead) best = p;
+  }
+  return best.player;
+}
+
+export function pointsInCards(cards: Card[]): number {
+  let sum = 0;
+  for (const c of cards) {
+    if (c.suit === 'hearts') sum += 1;
+    if (c.suit === 'spades' && c.rank === 12) sum += 13;
+  }
+  return sum;
+}
+
+export function shotTheMoon(taken: Card[]): boolean {
+  return pointsInCards(taken) === 26;
+}
