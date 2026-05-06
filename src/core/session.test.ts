@@ -135,3 +135,21 @@ describe('session — IDB blobs', () => {
     expect(await readBlobAsText(loaded['drop-w1'].canvas)).toBe('a2');
   });
 });
+
+import { clearSession } from './session';
+
+describe('session — clear', () => {
+  beforeEach(() => {
+    ensureLocalStorage();
+  });
+
+  it('removes localStorage key and drops IDB DB', async () => {
+    saveSnapshot(sample);
+    await saveBlobs({ 'cls-w1': { canvas: await makeBlob('a') } }, ['cls-w1']);
+
+    await clearSession();
+
+    expect(loadSnapshot()).toBeNull();
+    expect(await loadBlobs(['cls-w1'])).toEqual({});
+  });
+});

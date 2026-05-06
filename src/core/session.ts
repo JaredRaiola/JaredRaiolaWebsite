@@ -161,3 +161,21 @@ export async function loadBlobs(windowIds: string[]): Promise<AllBlobs> {
     };
   });
 }
+
+export async function clearSession(): Promise<void> {
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+  await new Promise<void>((resolve) => {
+    try {
+      const req = indexedDB.deleteDatabase(SESSION_DB);
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+      req.onblocked = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
