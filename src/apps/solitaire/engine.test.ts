@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { makeDeck, deal, DEFAULT_OPTIONS } from './engine';
+import { makeDeck, deal, DEFAULT_OPTIONS, type PileId } from './engine';
 import { makeRng } from './rng';
 
 describe('makeDeck', () => {
@@ -17,13 +17,13 @@ describe('makeDeck', () => {
 describe('deal', () => {
   it('puts 28 cards in the tableau (1+2+3+4+5+6+7)', () => {
     const s = deal(makeRng(1));
-    const tab = [0, 1, 2, 3, 4, 5, 6].map((i) => s.piles[`tableau-${i}` as const].length);
+    const tab = [0, 1, 2, 3, 4, 5, 6].map((i) => s.piles[`tableau-${i}` as PileId].length);
     expect(tab).toEqual([1, 2, 3, 4, 5, 6, 7]);
   });
   it('only top tableau card is face up', () => {
     const s = deal(makeRng(1));
     for (let i = 0; i < 7; i++) {
-      const col = s.piles[`tableau-${i}` as const];
+      const col = s.piles[`tableau-${i}` as PileId];
       expect(col[col.length - 1].faceUp).toBe(true);
       for (let j = 0; j < col.length - 1; j++) expect(col[j].faceUp).toBe(false);
     }
@@ -152,7 +152,7 @@ describe('isValidRun', () => {
 
 import { reducer, emptyPiles } from './engine';
 import type { GameState } from './engine';
-import type { Suit, Rank, Card, PileId } from './engine';
+import type { Suit, Rank, Card } from './engine';
 
 describe('reducer/drawFromStock', () => {
   it('draw 1 moves one card from stock to waste face-up', () => {
