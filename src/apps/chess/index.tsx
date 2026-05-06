@@ -9,6 +9,7 @@ import {
 import { chooseAiMove } from './ai';
 import Board from './components/Board';
 import NewGameDialog from './components/NewGameDialog';
+import PromotionDialog from './components/PromotionDialog';
 import './chess.css';
 
 const PIECE_GLYPH: Record<string, string> = {
@@ -163,6 +164,13 @@ export default function Chess({ api }: AppProps) {
             dispatch({ type: 'newGame', playerColor, difficulty });
             setNewGameOpen(false);
           }}
+        />
+      )}
+      {state.phase === 'promoting' && (
+        <PromotionDialog
+          color={state.playerColor}
+          onChoose={(p) => dispatch({ type: 'choosePromotion', promotion: p })}
+          onCancel={() => dispatch({ type: 'cancelPromotion' })}
         />
       )}
     </div>
