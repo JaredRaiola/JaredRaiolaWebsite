@@ -309,3 +309,61 @@ describe('reducer/autoFinish + win detection', () => {
     for (const suit of cols) expect(r.piles[`foundation-${suit}` as PileId]).toHaveLength(13);
   });
 });
+
+import type { Phase } from './engine';
+
+describe('reducer/undo', () => {
+  it('undo restores piles + score + recyclesUsed', () => {
+    const s0 = deal(makeRng(1));
+    const s1 = reducer(s0, { type: 'drawFromStock' });
+    expect(s1.prev).not.toBeNull();
+    const s2 = reducer(s1, { type: 'undo' });
+    expect(s2.piles.stock).toEqual(s0.piles.stock);
+    expect(s2.piles.waste).toEqual(s0.piles.waste);
+    expect(s2.prev).toBeNull();
+  });
+  it('undo with no prev no-ops', () => {
+    const s0 = deal(makeRng(1));
+    expect(reducer(s0, { type: 'undo' })).toBe(s0);
+  });
+  it('cannot undo twice in a row', () => {
+    const s0 = deal(makeRng(1));
+    const s1 = reducer(s0, { type: 'drawFromStock' });
+    const s2 = reducer(s1, { type: 'undo' });
+    expect(reducer(s2, { type: 'undo' })).toBe(s2);
+  });
+});
+
+describe('reducer/deal action', () => {
+  it('deal action wipes prev and starts fresh', () => {
+    const s0 = deal(makeRng(1));
+    const s1 = reducer(s0, { type: 'drawFromStock' });
+    const s2 = reducer(s1, { type: 'deal', rng: makeRng(2) });
+    expect(s2.phase).toBe('playing');
+    expect(s2.prev).toBeNull();
+    expect(s2.piles).not.toEqual(s0.piles);
+    expect(s2.options).toEqual(s0.options);
+  });
+});
+
+describe('reducer/setOptions', () => {
+  it('updates options and persists current game piles', () => {
+    const s0 = deal(makeRng(1));
+    const s1 = reducer(s0, { type: 'setOptions', options: { draw: 3 } });
+    expect(s1.options.draw).toBe(3);
+    expect(s1.piles).toEqual(s0.piles);
+  });
+});
+
+describe('reducer/tick', () => {
+  it('updates elapsedMs based on startedAt', () => {
+    const s0 = { ...deal(makeRng(1)), startedAt: 1000 };
+    const s1 = reducer(s0, { type: 'tick', now: 5000 });
+    expect(s1.elapsedMs).toBe(4000);
+  });
+  it('no-ops when not playing', () => {
+    const s0: GameState = { ...deal(makeRng(1)), phase: 'won' as Phase };
+    const s1 = reducer(s0, { type: 'tick', now: 999999 });
+    expect(s1.elapsedMs).toBe(0);
+  });
+});

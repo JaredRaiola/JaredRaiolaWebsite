@@ -280,12 +280,46 @@ function autoFinish(s: GameState): GameState {
 
 function applied(s: GameState): GameState { return checkWin(s); }
 
+function undo(s: GameState): GameState {
+  if (!s.prev) return s;
+  return {
+    ...s,
+    piles: clonePiles(s.prev.piles),
+    score: s.prev.score,
+    recyclesUsed: s.prev.recyclesUsed,
+    prev: null,
+  };
+}
+
+function setOptions(s: GameState, partial: Partial<Options>): GameState {
+  return { ...s, options: { ...s.options, ...partial } };
+}
+
+function pickUpDrag(s: GameState, from: PileId, cards: Card[], pointerOffset: { x: number; y: number }): GameState {
+  return { ...s, drag: { from, cards, pointerOffset } };
+}
+
+function cancelDrag(s: GameState): GameState {
+  return s.drag ? { ...s, drag: null } : s;
+}
+
+function tick(s: GameState, now: number): GameState {
+  if (s.phase !== 'playing' || s.startedAt === null) return s;
+  return { ...s, elapsedMs: Math.max(0, now - s.startedAt) };
+}
+
 export function reducer(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'drawFromStock': return applied(drawFromStock(s));
     case 'tryMove': return applied(tryMove(s, a.from, a.fromIdx, a.to));
     case 'autoMoveToFoundation': return applied(autoMoveToFoundation(s, a.from));
     case 'autoFinish': return autoFinish(s);
+    case 'undo': return undo(s);
+    case 'deal': return deal(a.rng, s.options);
+    case 'setOptions': return setOptions(s, a.options);
+    case 'pickUpDrag': return pickUpDrag(s, a.from, a.cards, a.pointerOffset);
+    case 'cancelDrag': return cancelDrag(s);
+    case 'tick': return tick(s, a.now);
     default: return s;
   }
 }
