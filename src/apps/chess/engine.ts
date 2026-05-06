@@ -76,21 +76,69 @@ function pawnMoves(pos: Position, sq: Square, piece: Piece, out: Move[]): void {
   const r = rankOf(sq);
   const dir = piece.color === 'white' ? 1 : -1;
   const startRank = piece.color === 'white' ? 1 : 6;
-  const oneAhead = makeSquare(f, r + dir);
-  if (onBoard(f, r + dir) && pos.board[oneAhead] === null) {
-    out.push({ from: sq, to: oneAhead });
-    if (r === startRank) {
-      const twoAhead = makeSquare(f, r + 2 * dir);
-      if (pos.board[twoAhead] === null) out.push({ from: sq, to: twoAhead });
+  const promoteRank = piece.color === 'white' ? 7 : 0;
+
+  const pushPawnMove = (target: Move): void => {
+    if (rankOf(target.to) === promoteRank) {
+      for (const promo of ['queen','rook','bishop','knight'] as const) {
+        out.push({ ...target, promotion: promo });
+      }
+    } else {
+      out.push(target);
+    }
+  };
+
+  // Single push.
+  if (onBoard(f, r + dir)) {
+    const oneAhead = makeSquare(f, r + dir);
+    if (pos.board[oneAhead] === null) {
+      pushPawnMove({ from: sq, to: oneAhead });
+      // Two-square push from start rank.
+      if (r === startRank) {
+        const twoAhead = makeSquare(f, r + 2 * dir);
+        if (pos.board[twoAhead] === null) {
+          out.push({ from: sq, to: twoAhead });
+        }
+      }
     }
   }
+  // Diagonal captures (incl. en passant).
   for (const df of [-1, 1]) {
-    const nf = f + df;
-    const nr = r + dir;
+    const nf = f + df, nr = r + dir;
     if (!onBoard(nf, nr)) continue;
-    const target = pos.board[makeSquare(nf, nr)];
+    const targetSq = makeSquare(nf, nr);
+    const target = pos.board[targetSq];
     if (target && target.color !== piece.color) {
-      out.push({ from: sq, to: makeSquare(nf, nr), capture: target.type });
+      pushPawnMove({ from: sq, to: targetSq, capture: target.type });
+    } else if (pos.enPassantTarget === targetSq && target === null) {
+      out.push({ from: sq, to: targetSq, enPassant: true, capture: 'pawn' });
+    }
+  }
+}
+
+function castlingMoves(pos: Position, sq: Square, piece: Piece, out: Move[]): void {
+  if (piece.type !== 'king') return;
+  const r = piece.color === 'white' ? 0 : 7;
+  if (sq !== makeSquare(4, r)) return;
+  const ks = piece.color === 'white' ? pos.castling.whiteKingside : pos.castling.blackKingside;
+  const qs = piece.color === 'white' ? pos.castling.whiteQueenside : pos.castling.blackQueenside;
+  if (ks) {
+    const f5 = makeSquare(5, r);
+    const f6 = makeSquare(6, r);
+    const rookSq = makeSquare(7, r);
+    const rook = pos.board[rookSq];
+    if (pos.board[f5] === null && pos.board[f6] === null && rook && rook.type === 'rook' && rook.color === piece.color) {
+      out.push({ from: sq, to: f6, castle: 'kingside' });
+    }
+  }
+  if (qs) {
+    const f1 = makeSquare(1, r);
+    const f2 = makeSquare(2, r);
+    const f3 = makeSquare(3, r);
+    const rookSq = makeSquare(0, r);
+    const rook = pos.board[rookSq];
+    if (pos.board[f1] === null && pos.board[f2] === null && pos.board[f3] === null && rook && rook.type === 'rook' && rook.color === piece.color) {
+      out.push({ from: sq, to: f2, castle: 'queenside' });
     }
   }
 }
@@ -138,7 +186,10 @@ export function generatePseudoLegalMoves(pos: Position, square: Square): Move[] 
   switch (piece.type) {
     case 'pawn': pawnMoves(pos, square, piece, out); break;
     case 'knight': leaperMoves(pos, square, piece, KNIGHT_OFFSETS, out); break;
-    case 'king': leaperMoves(pos, square, piece, KING_OFFSETS, out); break;
+    case 'king':
+      leaperMoves(pos, square, piece, KING_OFFSETS, out);
+      castlingMoves(pos, square, piece, out);
+      break;
     case 'bishop': sliderMoves(pos, square, piece, BISHOP_DIRS, out); break;
     case 'rook': sliderMoves(pos, square, piece, ROOK_DIRS, out); break;
     case 'queen': sliderMoves(pos, square, piece, [...BISHOP_DIRS, ...ROOK_DIRS], out); break;

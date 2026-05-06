@@ -199,3 +199,85 @@ describe('generatePseudoLegalMoves — initial position', () => {
     expect(all).toHaveLength(20);
   });
 });
+
+describe('generatePseudoLegalMoves — castling', () => {
+  it('white kingside castle when path clear and rights held', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 7, 0, { color: 'white', type: 'rook' });
+    p.castling.whiteKingside = true;
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 0));
+    const castleMove = m.find(x => x.castle === 'kingside');
+    expect(castleMove).toBeDefined();
+    expect(castleMove?.to).toBe(makeSquare(6, 0));
+  });
+  it('white queenside castle when path clear', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 0, 0, { color: 'white', type: 'rook' });
+    p.castling.whiteQueenside = true;
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 0));
+    const castleMove = m.find(x => x.castle === 'queenside');
+    expect(castleMove).toBeDefined();
+    expect(castleMove?.to).toBe(makeSquare(2, 0));
+  });
+  it('castle blocked by piece in path', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 7, 0, { color: 'white', type: 'rook' });
+    place(p, 5, 0, { color: 'white', type: 'bishop' });
+    p.castling.whiteKingside = true;
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 0));
+    expect(m.find(x => x.castle === 'kingside')).toBeUndefined();
+  });
+  it('castle disabled when right is false', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 7, 0, { color: 'white', type: 'rook' });
+    p.castling.whiteKingside = false;
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 0));
+    expect(m.find(x => x.castle === 'kingside')).toBeUndefined();
+  });
+});
+
+describe('generatePseudoLegalMoves — en passant', () => {
+  it('en passant capture available when target set', () => {
+    const p = emptyPos();
+    place(p, 4, 4, { color: 'white', type: 'pawn' });
+    place(p, 5, 4, { color: 'black', type: 'pawn' });
+    p.enPassantTarget = makeSquare(5, 5);
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 4));
+    const ep = m.find(x => x.enPassant);
+    expect(ep).toBeDefined();
+    expect(ep?.to).toBe(makeSquare(5, 5));
+    expect(ep?.capture).toBe('pawn');
+  });
+  it('no en passant when target null', () => {
+    const p = emptyPos();
+    place(p, 4, 4, { color: 'white', type: 'pawn' });
+    place(p, 5, 4, { color: 'black', type: 'pawn' });
+    p.enPassantTarget = null;
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 4));
+    expect(m.find(x => x.enPassant)).toBeUndefined();
+  });
+});
+
+describe('generatePseudoLegalMoves — promotion', () => {
+  it('white pawn reaching rank 8 expands to 4 promotion moves', () => {
+    const p = emptyPos();
+    place(p, 4, 6, { color: 'white', type: 'pawn' });
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 6));
+    const promotes = m.filter(x => x.promotion !== undefined);
+    expect(promotes).toHaveLength(4);
+    expect(new Set(promotes.map(x => x.promotion))).toEqual(new Set(['queen', 'rook', 'bishop', 'knight']));
+  });
+  it('promotion via capture also expands', () => {
+    const p = emptyPos();
+    place(p, 4, 6, { color: 'white', type: 'pawn' });
+    place(p, 5, 7, { color: 'black', type: 'rook' });
+    const m = generatePseudoLegalMoves(p, makeSquare(4, 6));
+    const captures = m.filter(x => x.to === makeSquare(5, 7));
+    expect(captures).toHaveLength(4);
+    expect(captures.every(x => x.capture === 'rook')).toBe(true);
+  });
+});
