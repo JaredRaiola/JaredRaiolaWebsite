@@ -4,6 +4,7 @@ import { FileDialog } from '@/shell/FileDialog';
 import { basename } from '@/core/fs/paths';
 import { useWindowStore } from '@/stores/windowStore';
 import { useHotkeys } from '@/lib/useHotkeys';
+import { printImage } from '@/lib/print';
 import { History } from './history';
 import { PaintCanvas, type PaintCanvasRef } from './canvas';
 import { Toolbox } from './toolbox';
@@ -287,6 +288,12 @@ export default function Paint({ api, fs, args }: AppProps) {
     setFg(hex);
   }, []);
 
+  const print = (): void => {
+    const canvas = canvasRef.current?.getCanvas();
+    if (!canvas) return;
+    printImage(canvas.toDataURL('image/png'), path ? basename(path) : 'Untitled');
+  };
+
   useHotkeys(
     {
       'ctrl+z': undo,
@@ -294,6 +301,7 @@ export default function Paint({ api, fs, args }: AppProps) {
       'ctrl+n': () => void newFile(),
       'ctrl+o': () => setDialogMode('open'),
       'ctrl+s': () => void save(),
+      'ctrl+p': () => print(),
     },
     { enabled: focused },
   );
@@ -331,6 +339,8 @@ export default function Paint({ api, fs, args }: AppProps) {
             { label: 'Open...', onSelect: () => setDialogMode('open') },
             { label: 'Save', onSelect: () => void save() },
             { label: 'Save As...', onSelect: () => void saveAs() },
+            { kind: 'sep' },
+            { label: 'Print...', onSelect: print },
             { kind: 'sep' },
             { label: 'Exit', onSelect: () => void api.requestClose() },
           ]}
@@ -411,7 +421,7 @@ export default function Paint({ api, fs, args }: AppProps) {
           initialPath={
             path
               ? path.replace(/\\[^\\]+$/, '')
-              : 'C:\\Windows\\User\\My Documents'
+              : 'C:\\Windows\\User\\Desktop\\My Documents'
           }
           defaultFileName={path ? basename(path) : 'untitled.png'}
           filterExt={['.png']}

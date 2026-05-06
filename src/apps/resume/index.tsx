@@ -14,7 +14,6 @@ export default function Resume(_props: AppProps) {
       <iframe
         id="resume-frame"
         className="resume-frame"
-        sandbox="allow-same-origin"
         src="/resume/index.html"
         title="Resume"
       />

@@ -4,6 +4,7 @@ import { FileDialog } from '@/shell/FileDialog';
 import { basename } from '@/core/fs/paths';
 import { useWindowStore } from '@/stores/windowStore';
 import { useHotkeys } from '@/lib/useHotkeys';
+import { printText } from '@/lib/print';
 import './notepad.css';
 
 const WRAP_KEY = 'notepad.wordWrap';
@@ -43,12 +44,17 @@ export default function Notepad({ api, fs, args }: AppProps) {
     localStorage.setItem(WRAP_KEY, String(wrap));
   }, [wrap]);
 
+  const print = (): void => {
+    printText(content, path ? basename(path) : 'Untitled');
+  };
+
   useHotkeys(
     {
       'ctrl+n': () => void newFile(),
       'ctrl+o': () => setDialogMode('open'),
       'ctrl+s': () => void save(),
       'ctrl+shift+s': () => void saveAs(),
+      'ctrl+p': () => print(),
     },
     { enabled: focused },
   );
@@ -103,7 +109,7 @@ export default function Notepad({ api, fs, args }: AppProps) {
             { label: 'Save As...', onSelect: () => void saveAs() },
             { kind: 'sep' },
             { label: 'Page Setup...', disabled: true },
-            { label: 'Print...', disabled: true },
+            { label: 'Print...', onSelect: print },
             { kind: 'sep' },
             { label: 'Exit', onSelect: () => api.requestClose() },
           ]}
@@ -149,7 +155,7 @@ export default function Notepad({ api, fs, args }: AppProps) {
       {dialogMode && (
         <FileDialog
           mode={dialogMode}
-          initialPath={path ? path.replace(/\\[^\\]+$/, '') : 'C:\\My Documents'}
+          initialPath={path ? path.replace(/\\[^\\]+$/, '') : 'C:\\Windows\\User\\Desktop\\My Documents'}
           defaultFileName={path ? basename(path) : ''}
           filterExt={['.txt']}
           onCancel={() => {
