@@ -6,6 +6,7 @@ import { useWindowStore } from '@/stores/windowStore';
 import {
   reducer, initialState, type GameState, type Square as Sq,
 } from './engine';
+import { chooseAiMove } from './ai';
 import Board from './components/Board';
 import './chess.css';
 
@@ -56,6 +57,23 @@ export default function Chess({ api }: AppProps) {
       window.removeEventListener('pointercancel', onUp);
     };
   }, [dragPos !== null]);
+
+  // AI move on thinking phase.
+  useEffect(() => {
+    if (state.phase !== 'thinking') return;
+    const id = window.setTimeout(() => {
+      let move = chooseAiMove(state.position, state.difficulty);
+      if (move.promotion === undefined) {
+        const piece = state.position.board[move.from];
+        if (piece && piece.type === 'pawn') {
+          const r = move.to >> 3;
+          if (r === 0 || r === 7) move = { ...move, promotion: 'queen' };
+        }
+      }
+      dispatch({ type: 'aiMove', move });
+    }, 200);
+    return () => window.clearTimeout(id);
+  }, [state.phase, state.position, state.difficulty]);
 
   const handleSquareClick = (sq: Sq, e: React.MouseEvent): void => {
     e.stopPropagation();
