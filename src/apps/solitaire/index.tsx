@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
-import { reducer, deal, isValidRun, isValidSolitaireSnapshot, canAutoFinish, type GameState, type Suit, type PileId, type Card, type Options } from './engine';
+import { reducer, deal, isValidRun, isValidSolitaireSnapshot, canAutoFinish, nextAutoFinishMove, type GameState, type Suit, type PileId, type Card, type Options } from './engine';
 import { makeRng } from './rng';
 import { loadOptions, saveOptions, loadVegasBalance, saveVegasBalance } from './options';
 import { sysPrompt } from '@/lib/dialog';
@@ -52,6 +52,8 @@ export default function Solitaire({ api, restoreState }: AppProps) {
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragMetaRef = useRef<{ from: PileId; fromIdx: number } | null>(null);
   const wonHandledRef = useRef(false);
+  const [autoFinishing, setAutoFinishing] = useState(false);
+  const [flying, setFlying] = useState<{ card: Card; from: { x: number; y: number }; to: { x: number; y: number }; dest: PileId } | null>(null);
 
   useEffect(() => { saveOptions(state.options); }, [state.options]);
 
@@ -115,9 +117,46 @@ export default function Solitaire({ api, restoreState }: AppProps) {
   }, [state.phase, state.elapsedMs, state.options, state.score]);
 
   const isDragSource = (cardId: string): boolean => {
-    if (!state.drag) return false;
-    return state.drag.cards.some((c) => c.id === cardId);
+    if (state.drag && state.drag.cards.some((c) => c.id === cardId)) return true;
+    if (flying && flying.card.id === cardId) return true;
+    return false;
   };
+
+  // Auto-finish stepper: when active, find next legal move, measure its source
+  // and destination DOM rects, render a flying-card overlay that slides to the
+  // foundation, then on landing dispatch the actual move and continue.
+  useEffect(() => {
+    if (!autoFinishing) return;
+    if (flying) return;
+    if (state.phase !== 'playing') { setAutoFinishing(false); return; }
+    const next = nextAutoFinishMove(state);
+    if (!next) { setAutoFinishing(false); return; }
+    const sourcePile = document.querySelector(`[data-pile-id="${next.from}"]`) as HTMLElement | null;
+    const destSuit = `foundation-${next.card.suit}` as PileId;
+    const destPile = document.querySelector(`[data-pile-id="${destSuit}"]`) as HTMLElement | null;
+    if (!sourcePile || !destPile) { setAutoFinishing(false); return; }
+    // Source: the last `.sol-card` inside the tableau pile (its actual rendered position).
+    const sourceCardEl = sourcePile.querySelector('.sol-card:last-of-type') as HTMLElement | null;
+    const srcRect = (sourceCardEl ?? sourcePile).getBoundingClientRect();
+    const dstRect = destPile.getBoundingClientRect();
+    setFlying({
+      card: next.card,
+      from: { x: srcRect.left, y: srcRect.top },
+      to: { x: dstRect.left, y: dstRect.top },
+      dest: destSuit,
+    });
+  }, [autoFinishing, flying, state]);
+
+  useEffect(() => {
+    if (!flying) return;
+    // Wait for the slide to finish, then commit the move.
+    const SLIDE_MS = 280;
+    const id = window.setTimeout(() => {
+      dispatch({ type: 'autoFinishStep' });
+      setFlying(null);
+    }, SLIDE_MS);
+    return () => window.clearTimeout(id);
+  }, [flying]);
 
   // Window-level drag tracking. We avoid setPointerCapture / element-bound
   // listeners because if the captured element unmounts mid-drag (which can
@@ -171,7 +210,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
     <div
       className="sol-root"
       onClick={() => setOpenMenu(null)}
-      onContextMenu={(e) => { e.preventDefault(); dispatch({ type: 'autoFinish' }); }}
+      onContextMenu={(e) => { e.preventDefault(); if (canAutoFinish(state)) setAutoFinishing(true); }}
     >
       <div className="sol-menubar">
         <div className={`sol-menu${openMenu === 'game' ? ' open' : ''}`} onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === 'game' ? null : 'game'); }}>
@@ -199,10 +238,10 @@ export default function Solitaire({ api, restoreState }: AppProps) {
       </div>
 
       <div className="sol-felt">
-        {canAutoFinish(state) && state.phase === 'playing' && (
+        {canAutoFinish(state) && state.phase === 'playing' && !autoFinishing && (
           <button
             className="sol-autofinish-hint"
-            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'autoFinish' }); }}
+            onClick={(e) => { e.stopPropagation(); setAutoFinishing(true); }}
           >
             Auto-Finish
           </button>
@@ -270,6 +309,11 @@ export default function Solitaire({ api, restoreState }: AppProps) {
         document.body,
       )}
 
+      {flying && createPortal(
+        <FlyingAutoFinishCard card={flying.card} from={flying.from} to={flying.to} />,
+        document.body,
+      )}
+
       {state.options.statusBar && (
         <StatusBar score={state.score} elapsedSec={elapsedSec} showScore={state.options.scoring !== 'none'} />
       )}
@@ -281,6 +325,28 @@ export default function Solitaire({ api, restoreState }: AppProps) {
         />
       )}
       {statsOpen && <StatisticsDialog onClose={() => setStatsOpen(false)} />}
+    </div>
+  );
+}
+
+function FlyingAutoFinishCard({ card, from, to }: { card: Card; from: { x: number; y: number }; to: { x: number; y: number } }): React.ReactElement {
+  const [arrived, setArrived] = useState(false);
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setArrived(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  return (
+    <div
+      className="sol-flying-card"
+      style={{
+        left: from.x,
+        top: from.y,
+        transform: arrived ? `translate(${dx}px, ${dy}px)` : 'translate(0, 0)',
+      }}
+    >
+      <CardFaceSvg suit={card.suit} rank={card.rank} />
     </div>
   );
 }
