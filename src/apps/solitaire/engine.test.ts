@@ -203,6 +203,45 @@ describe('reducer/drawFromStock', () => {
     expect(b.piles.waste).toHaveLength(3);
     expect(b.wasteFanSize).toBe(3);
   });
+  it('full-flow: draw 3 → tryMove each waste card to foundations → draw 3 still draws 3', () => {
+    // Construct a state where 3 cards in waste are A♠, A♥, A♣ so each goes to its foundation.
+    const piles = emptyPiles();
+    // Stock has 6 cards (so we can draw 3 twice).
+    piles.stock = [
+      { id: '5S', suit: 'spades', rank: 5, faceUp: false },
+      { id: '6S', suit: 'spades', rank: 6, faceUp: false },
+      { id: '7S', suit: 'spades', rank: 7, faceUp: false },
+      // These three will be drawn into the waste (popped from end first).
+      { id: 'AC', suit: 'clubs', rank: 1, faceUp: false },
+      { id: 'AH', suit: 'hearts', rank: 1, faceUp: false },
+      { id: 'AS', suit: 'spades', rank: 1, faceUp: false },
+    ];
+    const opts = { ...DEFAULT_OPTIONS, draw: 3 as const, scoring: 'standard' as const };
+    const s0: GameState = {
+      phase: 'playing', piles, options: opts, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
+    };
+    // Draw 3 — pops AS, AH, AC (in that order) onto waste.
+    const a = reducer(s0, { type: 'drawFromStock' });
+    expect(a.piles.waste.map((c) => c.id)).toEqual(['AS', 'AH', 'AC']);
+    expect(a.wasteFanSize).toBe(3);
+
+    // Move each waste top to its foundation. After each move, top is the next-down card.
+    const b = reducer(a, { type: 'tryMove', from: 'waste', fromIdx: a.piles.waste.length - 1, to: 'foundation-clubs' });
+    expect(b.piles.waste.map((c) => c.id)).toEqual(['AS', 'AH']);
+    expect(b.wasteFanSize).toBe(2);
+    const c = reducer(b, { type: 'tryMove', from: 'waste', fromIdx: b.piles.waste.length - 1, to: 'foundation-hearts' });
+    expect(c.piles.waste.map((cc) => cc.id)).toEqual(['AS']);
+    expect(c.wasteFanSize).toBe(1);
+    const d = reducer(c, { type: 'tryMove', from: 'waste', fromIdx: c.piles.waste.length - 1, to: 'foundation-spades' });
+    expect(d.piles.waste).toHaveLength(0);
+    expect(d.wasteFanSize).toBe(0);
+    // Stock still has 3 cards. Click stock — should draw 3.
+    expect(d.piles.stock).toHaveLength(3);
+    const e = reducer(d, { type: 'drawFromStock' });
+    expect(e.piles.waste).toHaveLength(3);
+    expect(e.wasteFanSize).toBe(3);
+  });
 });
 
 describe('reducer/tryMove', () => {

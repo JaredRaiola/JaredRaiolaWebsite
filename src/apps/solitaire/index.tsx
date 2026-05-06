@@ -21,14 +21,16 @@ import './solitaire.css';
 
 const SUITS: Suit[] = ['spades', 'hearts', 'clubs', 'diamonds'];
 
-function initFrom(restored: unknown, fallbackOptions: Options): GameState {
+function initFrom(restored: unknown, currentOptions: Options): GameState {
   if (isValidSolitaireSnapshot(restored)) {
-    const opts = restored.options;
-    const startedAt = restored.phase === 'playing' && opts.timed ? Date.now() - restored.elapsedMs : null;
+    // Use the live (localStorage-backed) options, NOT the snapshot's frozen
+    // copy. Otherwise changing Draw/Scoring in Options would never take
+    // effect after a refresh — the snapshot would re-apply the old values.
+    const startedAt = restored.phase === 'playing' && currentOptions.timed ? Date.now() - restored.elapsedMs : null;
     return {
       phase: restored.phase,
       piles: restored.piles,
-      options: opts,
+      options: currentOptions,
       score: restored.score,
       vegasBalance: restored.vegasBalance,
       startedAt,
@@ -39,7 +41,7 @@ function initFrom(restored: unknown, fallbackOptions: Options): GameState {
       drag: null,
     };
   }
-  return deal(makeRng((Math.random() * 0x7fffffff) | 0), fallbackOptions);
+  return deal(makeRng((Math.random() * 0x7fffffff) | 0), currentOptions);
 }
 
 export default function Solitaire({ api, restoreState }: AppProps) {
