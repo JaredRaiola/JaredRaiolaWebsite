@@ -152,7 +152,8 @@ export type Action =
   | { type: 'pickUpDrag'; from: PileId; cards: Card[]; pointerOffset: { x: number; y: number } }
   | { type: 'cancelDrag' }
   | { type: 'setOptions'; options: Partial<Options> }
-  | { type: 'tick'; now: number };
+  | { type: 'tick'; now: number }
+  | { type: 'setPhase'; phase: Phase };
 
 function snapshotPrev(s: GameState): GameState['prev'] {
   return { piles: clonePiles(s.piles), score: s.score, recyclesUsed: s.recyclesUsed };
@@ -354,6 +355,7 @@ export function reducer(s: GameState, a: Action): GameState {
     case 'pickUpDrag': return pickUpDrag(s, a.from, a.cards, a.pointerOffset);
     case 'cancelDrag': return cancelDrag(s);
     case 'tick': return tick(s, a.now);
+    case 'setPhase': return { ...s, phase: a.phase };
     default: return s;
   }
 }

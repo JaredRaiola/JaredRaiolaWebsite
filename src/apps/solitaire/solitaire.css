@@ -116,3 +116,9 @@
   display: flex; justify-content: flex-end; gap: 6px; padding: 8px 12px; border-top: 1px solid #808080;
 }
 .sol-dialog-buttons button { min-width: 75px; }
+
+.sol-cascade {
+  position: absolute; inset: 0;
+  z-index: 100;
+  cursor: pointer;
+}

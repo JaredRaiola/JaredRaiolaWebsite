@@ -12,6 +12,7 @@ import Tableau from './components/Tableau';
 import StatusBar from './components/StatusBar';
 import OptionsDialog from './components/OptionsDialog';
 import StatisticsDialog from './components/StatisticsDialog';
+import WinCascade from './components/WinCascade';
 import CardFaceSvg from './cards/CardFaceSvg';
 import './solitaire.css';
 
@@ -47,6 +48,12 @@ export default function Solitaire({ api }: AppProps) {
     const id = window.setInterval(() => dispatch({ type: 'tick', now: Date.now() }), 1000);
     return () => window.clearInterval(id);
   }, [state.phase, state.options.timed]);
+
+  useEffect(() => {
+    if (state.phase !== 'won') return;
+    const id = window.setTimeout(() => dispatch({ type: 'setPhase', phase: 'cascading' }), 500);
+    return () => window.clearTimeout(id);
+  }, [state.phase]);
 
   const isDragSource = (cardId: string): boolean => {
     if (!state.drag) return false;
@@ -164,6 +171,9 @@ export default function Solitaire({ api }: AppProps) {
             </div>
           ))}
         </div>
+        {state.phase === 'cascading' && (
+          <WinCascade onSkip={() => dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) })} />
+        )}
       </div>
 
       {state.drag && dragPos && (
