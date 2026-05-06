@@ -50,14 +50,22 @@ export function preload(): void {
     });
   }
 
-  // 2. Preload visible desktop icons + common icon assets used across the
-  //    shell. <img>s inside React components share the browser image cache,
-  //    so subsequent renders are instant.
+  // 2. Preload visible desktop icons + common icon assets + every registered
+  //    app's icon (so the Start menu's Programs/Accessories/Games submenus
+  //    don't flash missing-image placeholders on first hover). <img>s inside
+  //    React components share the browser image cache, so subsequent renders
+  //    are instant.
   const seen = new Set<string>();
   for (const url of COMMON_ICON_ASSETS) {
     if (!seen.has(url)) {
       seen.add(url);
       preloadImage(url);
+    }
+  }
+  for (const app of listApps()) {
+    if (!seen.has(app.icon)) {
+      seen.add(app.icon);
+      preloadImage(app.icon);
     }
   }
   for (const icon of Object.values(useDesktopStore.getState().icons)) {
