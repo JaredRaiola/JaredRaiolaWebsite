@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initialPosition, fileOf, rankOf, makeSquare, generatePseudoLegalMoves, type Move, type Position, type Piece } from './engine';
+import { initialPosition, fileOf, rankOf, makeSquare, generatePseudoLegalMoves, makeMove, type Move, type Position, type Piece } from './engine';
 
 describe('initialPosition', () => {
   it('returns 64-square board with white to move', () => {
@@ -279,5 +279,120 @@ describe('generatePseudoLegalMoves — promotion', () => {
     const captures = m.filter(x => x.to === makeSquare(5, 7));
     expect(captures).toHaveLength(4);
     expect(captures.every(x => x.capture === 'rook')).toBe(true);
+  });
+});
+
+describe('makeMove — basic', () => {
+  it('moves piece and clears origin', () => {
+    const p = initialPosition();
+    const sq = makeSquare(4, 1);
+    const dest = makeSquare(4, 3);
+    const r = makeMove(p, { from: sq, to: dest });
+    expect(r.board[sq]).toBeNull();
+    expect(r.board[dest]).toEqual({ color: 'white', type: 'pawn' });
+    expect(r.toMove).toBe('black');
+    expect(r.fullmoveNumber).toBe(1); // increments after black move only
+  });
+  it('black move increments fullmoveNumber', () => {
+    let p = initialPosition();
+    p = makeMove(p, { from: makeSquare(4, 1), to: makeSquare(4, 3) });
+    p = makeMove(p, { from: makeSquare(4, 6), to: makeSquare(4, 4) });
+    expect(p.fullmoveNumber).toBe(2);
+  });
+  it('pawn two-square advance sets enPassantTarget', () => {
+    const p = initialPosition();
+    const r = makeMove(p, { from: makeSquare(4, 1), to: makeSquare(4, 3) });
+    expect(r.enPassantTarget).toBe(makeSquare(4, 2));
+  });
+  it('non-pawn move clears enPassantTarget', () => {
+    let p = initialPosition();
+    p = makeMove(p, { from: makeSquare(4, 1), to: makeSquare(4, 3) });
+    p = makeMove(p, { from: makeSquare(6, 7), to: makeSquare(5, 5) });
+    expect(p.enPassantTarget).toBeNull();
+  });
+  it('halfmoveClock increments on a non-pawn non-capture move', () => {
+    const p = initialPosition();
+    const r = makeMove(p, { from: makeSquare(1, 0), to: makeSquare(2, 2) });
+    expect(r.halfmoveClock).toBe(1);
+  });
+  it('halfmoveClock resets to 0 on pawn move', () => {
+    const p = initialPosition();
+    const r = makeMove(p, { from: makeSquare(4, 1), to: makeSquare(4, 3) });
+    expect(r.halfmoveClock).toBe(0);
+  });
+  it('halfmoveClock resets on capture', () => {
+    const p = emptyPos();
+    p.halfmoveClock = 10;
+    place(p, 0, 0, { color: 'white', type: 'rook' });
+    place(p, 0, 7, { color: 'black', type: 'rook' });
+    const r = makeMove(p, { from: makeSquare(0, 0), to: makeSquare(0, 7), capture: 'rook' });
+    expect(r.halfmoveClock).toBe(0);
+  });
+});
+
+describe('makeMove — castling', () => {
+  it('white kingside castle moves both king and rook', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 7, 0, { color: 'white', type: 'rook' });
+    p.castling.whiteKingside = true;
+    const r = makeMove(p, { from: makeSquare(4, 0), to: makeSquare(6, 0), castle: 'kingside' });
+    expect(r.board[makeSquare(6, 0)]).toEqual({ color: 'white', type: 'king' });
+    expect(r.board[makeSquare(5, 0)]).toEqual({ color: 'white', type: 'rook' });
+    expect(r.board[makeSquare(4, 0)]).toBeNull();
+    expect(r.board[makeSquare(7, 0)]).toBeNull();
+    expect(r.castling.whiteKingside).toBe(false);
+    expect(r.castling.whiteQueenside).toBe(false);
+  });
+  it('white queenside castle moves king to c1 and rook to d1', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 0, 0, { color: 'white', type: 'rook' });
+    p.castling.whiteQueenside = true;
+    const r = makeMove(p, { from: makeSquare(4, 0), to: makeSquare(2, 0), castle: 'queenside' });
+    expect(r.board[makeSquare(2, 0)]).toEqual({ color: 'white', type: 'king' });
+    expect(r.board[makeSquare(3, 0)]).toEqual({ color: 'white', type: 'rook' });
+  });
+  it('king move revokes both castling rights for that color', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    p.castling.whiteKingside = true;
+    p.castling.whiteQueenside = true;
+    p.castling.blackKingside = true;
+    const r = makeMove(p, { from: makeSquare(4, 0), to: makeSquare(4, 1) });
+    expect(r.castling.whiteKingside).toBe(false);
+    expect(r.castling.whiteQueenside).toBe(false);
+    expect(r.castling.blackKingside).toBe(true);
+  });
+  it('rook move revokes only that side\'s castling right', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 0, 0, { color: 'white', type: 'rook' });
+    p.castling.whiteKingside = true;
+    p.castling.whiteQueenside = true;
+    const r = makeMove(p, { from: makeSquare(0, 0), to: makeSquare(0, 4) });
+    expect(r.castling.whiteKingside).toBe(true);
+    expect(r.castling.whiteQueenside).toBe(false);
+  });
+});
+
+describe('makeMove — en passant', () => {
+  it('en passant removes the captured pawn from its square (not destination)', () => {
+    const p = emptyPos();
+    place(p, 4, 4, { color: 'white', type: 'pawn' });
+    place(p, 5, 4, { color: 'black', type: 'pawn' });
+    p.enPassantTarget = makeSquare(5, 5);
+    const r = makeMove(p, { from: makeSquare(4, 4), to: makeSquare(5, 5), enPassant: true, capture: 'pawn' });
+    expect(r.board[makeSquare(5, 5)]).toEqual({ color: 'white', type: 'pawn' });
+    expect(r.board[makeSquare(5, 4)]).toBeNull();
+  });
+});
+
+describe('makeMove — promotion', () => {
+  it('promotion replaces pawn with chosen piece', () => {
+    const p = emptyPos();
+    place(p, 4, 6, { color: 'white', type: 'pawn' });
+    const r = makeMove(p, { from: makeSquare(4, 6), to: makeSquare(4, 7), promotion: 'queen' });
+    expect(r.board[makeSquare(4, 7)]).toEqual({ color: 'white', type: 'queen' });
   });
 });

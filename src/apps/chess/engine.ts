@@ -196,3 +196,86 @@ export function generatePseudoLegalMoves(pos: Position, square: Square): Move[] 
   }
   return out;
 }
+
+function copyBoard(board: (Piece | null)[]): (Piece | null)[] {
+  return board.map(p => p ? { ...p } : null);
+}
+
+function copyCastling(c: CastlingRights): CastlingRights {
+  return { ...c };
+}
+
+export function makeMove(pos: Position, move: Move): Position {
+  const board = copyBoard(pos.board);
+  const piece = board[move.from];
+  if (!piece) throw new Error(`makeMove: no piece at ${move.from}`);
+  const isPawn = piece.type === 'pawn';
+  const isCapture = board[move.to] !== null || move.enPassant === true;
+
+  // Move the piece (or place the promotion piece).
+  if (move.promotion) {
+    board[move.to] = { color: piece.color, type: move.promotion };
+  } else {
+    board[move.to] = piece;
+  }
+  board[move.from] = null;
+
+  // En passant: remove the captured pawn from its actual square (one rank back).
+  if (move.enPassant) {
+    const capDir = piece.color === 'white' ? -1 : 1;
+    const capSq = makeSquare(fileOf(move.to), rankOf(move.to) + capDir);
+    board[capSq] = null;
+  }
+
+  // Castling: move the rook to its post-castle square.
+  if (move.castle) {
+    const r = piece.color === 'white' ? 0 : 7;
+    if (move.castle === 'kingside') {
+      board[makeSquare(5, r)] = board[makeSquare(7, r)];
+      board[makeSquare(7, r)] = null;
+    } else {
+      board[makeSquare(3, r)] = board[makeSquare(0, r)];
+      board[makeSquare(0, r)] = null;
+    }
+  }
+
+  // Castling rights updates.
+  const castling = copyCastling(pos.castling);
+  if (piece.type === 'king') {
+    if (piece.color === 'white') { castling.whiteKingside = false; castling.whiteQueenside = false; }
+    else { castling.blackKingside = false; castling.blackQueenside = false; }
+  }
+  if (piece.type === 'rook') {
+    if (piece.color === 'white' && move.from === makeSquare(0, 0)) castling.whiteQueenside = false;
+    if (piece.color === 'white' && move.from === makeSquare(7, 0)) castling.whiteKingside = false;
+    if (piece.color === 'black' && move.from === makeSquare(0, 7)) castling.blackQueenside = false;
+    if (piece.color === 'black' && move.from === makeSquare(7, 7)) castling.blackKingside = false;
+  }
+  // Captured rook removes the corresponding right.
+  if (move.to === makeSquare(0, 0)) castling.whiteQueenside = false;
+  if (move.to === makeSquare(7, 0)) castling.whiteKingside = false;
+  if (move.to === makeSquare(0, 7)) castling.blackQueenside = false;
+  if (move.to === makeSquare(7, 7)) castling.blackKingside = false;
+
+  // En passant target: only set after a two-square pawn advance.
+  let enPassantTarget: Square | null = null;
+  if (isPawn && Math.abs(rankOf(move.to) - rankOf(move.from)) === 2) {
+    const between = (rankOf(move.from) + rankOf(move.to)) / 2;
+    enPassantTarget = makeSquare(fileOf(move.from), between);
+  }
+
+  // Half-move clock.
+  const halfmoveClock = (isPawn || isCapture) ? 0 : pos.halfmoveClock + 1;
+
+  // Full-move number.
+  const fullmoveNumber = pos.toMove === 'black' ? pos.fullmoveNumber + 1 : pos.fullmoveNumber;
+
+  return {
+    board,
+    toMove: opposite(pos.toMove),
+    castling,
+    enPassantTarget,
+    halfmoveClock,
+    fullmoveNumber,
+  };
+}
