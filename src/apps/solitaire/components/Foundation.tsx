@@ -1,10 +1,7 @@
 import type { Card as CardModel, Suit } from '../engine';
 import Pile from './Pile';
 import Card from './Card';
-
-const SUIT_OUTLINE: Record<Suit, string> = {
-  spades: '♠', hearts: '♥', clubs: '♣', diamonds: '♦',
-};
+import { SUIT_GLYPHS, SUIT_COLOR } from '../cards/suitGlyphs';
 
 type Props = {
   suit: Suit;
@@ -18,9 +15,18 @@ type Props = {
 export default function Foundation({ suit, cards, outlineDragging, isDragSource, onPointerDownTop, onDoubleClickTop }: Props): React.ReactElement {
   const top = cards[cards.length - 1];
   const dragging = top ? isDragSource(top.id) : false;
+  const glyph = SUIT_GLYPHS[suit];
   return (
     <Pile className="sol-foundation">
-      {!top && <div className={`sol-foundation-outline sol-foundation-${suit}`}>{SUIT_OUTLINE[suit]}</div>}
+      {!top && (
+        <svg
+          className="sol-foundation-outline"
+          viewBox={glyph.viewBox}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <path d={glyph.path} fill={SUIT_COLOR[suit]} fillOpacity={0.35} />
+        </svg>
+      )}
       {top && (
         <Card
           card={top}

@@ -40,12 +40,14 @@
 }
 .sol-stock-no-recycle { color: #f66; }
 .sol-foundation-outline {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 36px; opacity: 0.4;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  display: block;
 }
-.sol-foundation-hearts, .sol-foundation-diamonds { color: #c00; }
-.sol-foundation-spades, .sol-foundation-clubs { color: #000; }
 .sol-tableau {
   position: relative;
   width: 71px;
