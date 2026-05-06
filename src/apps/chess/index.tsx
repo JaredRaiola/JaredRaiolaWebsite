@@ -10,6 +10,11 @@ import { chooseAiMove } from './ai';
 import Board from './components/Board';
 import NewGameDialog from './components/NewGameDialog';
 import PromotionDialog from './components/PromotionDialog';
+import OutcomeDialog from './components/OutcomeDialog';
+import StatisticsDialog from './components/StatisticsDialog';
+import AboutDialog from './components/AboutDialog';
+import ResignConfirm from './components/ResignConfirm';
+import { recordOutcome } from './scores';
 import './chess.css';
 
 const PIECE_GLYPH: Record<string, string> = {
@@ -23,8 +28,13 @@ function init(): GameState {
 
 export default function Chess({ api }: AppProps) {
   const [state, dispatch] = useReducer(reducer, undefined, init);
-  const [openMenu, setOpenMenu] = useState<'game' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'game' | 'help' | null>(null);
   const [newGameOpen, setNewGameOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [resignOpen, setResignOpen] = useState(false);
+  const [outcomeAck, setOutcomeAck] = useState(false);
+  const recordedRef = useRef(false);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ from: Sq; offset: { x: number; y: number } } | null>(null);
 
@@ -63,6 +73,26 @@ export default function Chess({ api }: AppProps) {
       window.removeEventListener('pointercancel', onUp);
     };
   }, [dragPos !== null]);
+
+  // Record outcome once when game reaches terminal phase.
+  useEffect(() => {
+    const terminal = state.phase === 'checkmate' || state.phase === 'stalemate' || state.phase === 'draw' || state.phase === 'resigned';
+    if (!terminal) {
+      recordedRef.current = false;
+      setOutcomeAck(false);
+      return;
+    }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    if (state.phase === 'checkmate') {
+      const result: 'win' | 'loss' = state.position.toMove === state.playerColor ? 'loss' : 'win';
+      recordOutcome(result);
+    } else if (state.phase === 'resigned') {
+      recordOutcome('loss');
+    } else {
+      recordOutcome('draw');
+    }
+  }, [state.phase, state.playerColor, state.position.toMove]);
 
   // AI move on thinking phase.
   useEffect(() => {
@@ -126,8 +156,25 @@ export default function Chess({ api }: AppProps) {
                 className={`item${state.history.length === 0 ? ' disabled' : ''}`}
                 onClick={() => { if (state.history.length > 0) { dispatch({ type: 'undo' }); setOpenMenu(null); } }}
               >Undo&nbsp;&nbsp;Ctrl+Z</div>
+              <div
+                className={`item${state.phase !== 'playing' && state.phase !== 'thinking' ? ' disabled' : ''}`}
+                onClick={() => { if (state.phase === 'playing' || state.phase === 'thinking') { setResignOpen(true); setOpenMenu(null); } }}
+              >Resign</div>
+              <div className="sep" />
+              <div className="item" onClick={() => { setStatsOpen(true); setOpenMenu(null); }}>Statistics…</div>
               <div className="sep" />
               <div className="item" onClick={() => api.requestClose()}>Exit</div>
+            </div>
+          )}
+        </div>
+        <div
+          className={`ch-menu${openMenu === 'help' ? ' open' : ''}`}
+          onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === 'help' ? null : 'help'); }}
+        >
+          Help
+          {openMenu === 'help' && (
+            <div className="ch-menu-popup" onClick={(e) => e.stopPropagation()}>
+              <div className="item" onClick={() => { setAboutOpen(true); setOpenMenu(null); }}>About Chess…</div>
             </div>
           )}
         </div>
@@ -171,6 +218,21 @@ export default function Chess({ api }: AppProps) {
           color={state.playerColor}
           onChoose={(p) => dispatch({ type: 'choosePromotion', promotion: p })}
           onCancel={() => dispatch({ type: 'cancelPromotion' })}
+        />
+      )}
+      {statsOpen && <StatisticsDialog onClose={() => setStatsOpen(false)} />}
+      {aboutOpen && <AboutDialog onClose={() => setAboutOpen(false)} />}
+      {resignOpen && (
+        <ResignConfirm
+          onYes={() => { dispatch({ type: 'resign' }); setResignOpen(false); }}
+          onNo={() => setResignOpen(false)}
+        />
+      )}
+      {!outcomeAck && (state.phase === 'checkmate' || state.phase === 'stalemate' || state.phase === 'draw' || state.phase === 'resigned') && (
+        <OutcomeDialog
+          state={state}
+          onNewGame={() => { setNewGameOpen(true); setOutcomeAck(true); }}
+          onClose={() => setOutcomeAck(true)}
         />
       )}
     </div>
