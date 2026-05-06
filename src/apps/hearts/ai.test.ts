@@ -30,3 +30,41 @@ describe('Easy AI', () => {
     }
   });
 });
+
+describe('Medium AI', () => {
+  it('passes Q♠, K♠, A♠ when held', () => {
+    const hand: Card[] = [
+      c('AS', 'spades', 14), c('KS', 'spades', 13), c('QS', 'spades', 12),
+      c('2C', 'clubs', 2), c('3C', 'clubs', 3),
+    ];
+    const passed = chooseAiPass(hand, 'left', 'medium');
+    expect(passed.map((x) => x.id).sort()).toEqual(['AS', 'KS', 'QS']);
+  });
+  it('leads lowest non-heart while hearts unbroken', () => {
+    const hand: Card[] = [
+      c('5C', 'clubs', 5), c('2D', 'diamonds', 2), c('3H', 'hearts', 3),
+    ];
+    const trick: Trick = { leader: 1, leadSuit: null, plays: [] };
+    const choice = chooseAiPlay(hand, trick, [], false, false, 'medium');
+    expect(choice.suit).not.toBe('hearts');
+    expect(choice.id).toBe('2D');
+  });
+  it('ducks under current winner when avoidable', () => {
+    const hand: Card[] = [c('2C', 'clubs', 2), c('JC', 'clubs', 11)];
+    const trick: Trick = {
+      leader: 0, leadSuit: 'clubs',
+      plays: [{ player: 0, card: c('KC', 'clubs', 13) }],
+    };
+    const choice = chooseAiPlay(hand, trick, [], false, false, 'medium');
+    expect(choice.id).toBe('JC');
+  });
+  it('takes with lowest legal when forced', () => {
+    const hand: Card[] = [c('3C', 'clubs', 3), c('JC', 'clubs', 11)];
+    const trick: Trick = {
+      leader: 0, leadSuit: 'clubs',
+      plays: [{ player: 0, card: c('2C', 'clubs', 2) }],
+    };
+    const choice = chooseAiPlay(hand, trick, [], false, false, 'medium');
+    expect(choice.id).toBe('3C');
+  });
+});
