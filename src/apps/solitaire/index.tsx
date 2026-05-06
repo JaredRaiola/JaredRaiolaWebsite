@@ -2,7 +2,7 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
-import { reducer, deal, isValidRun, type GameState, type Suit, type PileId, type Card } from './engine';
+import { reducer, deal, isValidRun, isValidSolitaireSnapshot, type GameState, type Suit, type PileId, type Card, type Options } from './engine';
 import { makeRng } from './rng';
 import { loadOptions, saveOptions, loadVegasBalance, saveVegasBalance } from './options';
 import { sysPrompt } from '@/lib/dialog';
@@ -20,13 +20,28 @@ import './solitaire.css';
 
 const SUITS: Suit[] = ['spades', 'hearts', 'clubs', 'diamonds'];
 
-function init(): GameState {
-  const opts = loadOptions();
-  return deal(makeRng((Math.random() * 0x7fffffff) | 0), opts);
+function initFrom(restored: unknown, fallbackOptions: Options): GameState {
+  if (isValidSolitaireSnapshot(restored)) {
+    const opts = restored.options;
+    const startedAt = restored.phase === 'playing' && opts.timed ? Date.now() - restored.elapsedMs : null;
+    return {
+      phase: restored.phase,
+      piles: restored.piles,
+      options: opts,
+      score: restored.score,
+      vegasBalance: restored.vegasBalance,
+      startedAt,
+      elapsedMs: restored.elapsedMs,
+      recyclesUsed: restored.recyclesUsed,
+      prev: null,
+      drag: null,
+    };
+  }
+  return deal(makeRng((Math.random() * 0x7fffffff) | 0), fallbackOptions);
 }
 
-export default function Solitaire({ api }: AppProps) {
-  const [state, dispatch] = useReducer(reducer, undefined, init);
+export default function Solitaire({ api, restoreState }: AppProps) {
+  const [state, dispatch] = useReducer(reducer, undefined, () => initFrom(restoreState, loadOptions()));
   const [openMenu, setOpenMenu] = useState<'game' | 'help' | null>(null);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
@@ -51,6 +66,19 @@ export default function Solitaire({ api }: AppProps) {
     const id = window.setInterval(() => dispatch({ type: 'tick', now: Date.now() }), 1000);
     return () => window.clearInterval(id);
   }, [state.phase, state.options.timed]);
+
+  useEffect(() => {
+    return api.registerSnapshot(() => ({
+      piles: state.piles,
+      options: state.options,
+      score: state.score,
+      vegasBalance: state.vegasBalance,
+      startedAt: null,
+      elapsedMs: state.elapsedMs,
+      recyclesUsed: state.recyclesUsed,
+      phase: state.phase === 'won' || state.phase === 'cascading' ? 'idle' : state.phase,
+    }));
+  }, [state, api]);
 
   useEffect(() => {
     if (state.phase !== 'won') return;

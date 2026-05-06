@@ -359,3 +359,26 @@ export function reducer(s: GameState, a: Action): GameState {
     default: return s;
   }
 }
+
+export type SolitaireSnapshot = {
+  piles: GameState['piles'];
+  options: Options;
+  score: number;
+  vegasBalance: number;
+  startedAt: null;
+  elapsedMs: number;
+  recyclesUsed: number;
+  phase: 'idle' | 'playing';
+};
+
+export function isValidSolitaireSnapshot(v: unknown): v is SolitaireSnapshot {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  if (typeof s.score !== 'number' || typeof s.elapsedMs !== 'number' || typeof s.recyclesUsed !== 'number') return false;
+  if (s.phase !== 'idle' && s.phase !== 'playing') return false;
+  if (!s.piles || typeof s.piles !== 'object') return false;
+  for (const p of ALL_PILES) {
+    if (!Array.isArray((s.piles as Record<string, unknown>)[p])) return false;
+  }
+  return true;
+}
