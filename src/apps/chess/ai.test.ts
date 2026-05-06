@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { evaluate } from './ai';
-import { initialPosition, makeSquare, type Position, type Piece } from './engine';
+import { evaluate, chooseAiMove } from './ai';
+import { initialPosition, makeSquare, generateLegalMoves, makeMove, fileOf, rankOf, type Position, type Piece } from './engine';
 
 function emptyPos(): Position {
   return {
@@ -41,5 +41,51 @@ describe('evaluate', () => {
     place(p, 4, 1, { color: 'white', type: 'pawn' });
     place(p, 4, 6, { color: 'black', type: 'pawn' });
     expect(evaluate(p)).toBe(0);
+  });
+});
+
+describe('chooseAiMove — Beginner', () => {
+  it('returns a legal move from initial position', () => {
+    const p = initialPosition();
+    const m = chooseAiMove(p, 'beginner');
+    const legal = generateLegalMoves(p);
+    expect(legal.find(x => x.from === m.from && x.to === m.to && x.promotion === m.promotion)).toBeDefined();
+  });
+});
+
+describe('chooseAiMove — Intermediate', () => {
+  it('captures a hanging queen at depth 3', () => {
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 3, 0, { color: 'white', type: 'rook' });
+    place(p, 7, 7, { color: 'black', type: 'king' });
+    place(p, 3, 4, { color: 'black', type: 'queen' });
+    p.toMove = 'white';
+    const m = chooseAiMove(p, 'intermediate');
+    expect(m.to).toBe(makeSquare(3, 4));
+    expect(m.from).toBe(makeSquare(3, 0));
+  });
+  it('avoids hanging its queen for free', () => {
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 3, 0, { color: 'white', type: 'queen' });
+    place(p, 7, 7, { color: 'black', type: 'king' });
+    place(p, 3, 7, { color: 'black', type: 'rook' });
+    p.toMove = 'white';
+    const m = chooseAiMove(p, 'intermediate');
+    if (m.from === makeSquare(3, 0)) {
+      // If the AI moved the queen, the destination must not be a hanging square on the d-file.
+      const dangerous = fileOf(m.to) === 3 && rankOf(m.to) !== 7;
+      expect(dangerous).toBe(false);
+    }
+  });
+});
+
+describe('chooseAiMove — determinism', () => {
+  it('same (position, difficulty) yields same move', () => {
+    const p = initialPosition();
+    const a = chooseAiMove(p, 'intermediate');
+    const b = chooseAiMove(p, 'intermediate');
+    expect(a).toEqual(b);
   });
 });

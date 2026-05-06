@@ -1,4 +1,7 @@
-import type { Position, PieceType } from './engine';
+import {
+  generateLegalMoves, makeMove, isCheckmate, opposite,
+  type Position, type Move, type PieceType, type Color, type Difficulty,
+} from './engine';
 
 const PIECE_VALUE: Record<PieceType, number> = {
   pawn: 100, knight: 320, bishop: 330, rook: 500, queen: 900, king: 20000,
@@ -80,4 +83,73 @@ export function evaluate(pos: Position): number {
     score += p.color === 'white' ? (value + pst) : -(value + pst);
   }
   return score;
+}
+
+const MATE_SCORE = 100000;
+
+function moveOrder(moves: Move[]): Move[] {
+  const captures: Array<{ m: Move; key: number }> = [];
+  const quiets: Move[] = [];
+  for (const m of moves) {
+    if (m.capture) {
+      captures.push({ m, key: PIECE_VALUE[m.capture] });
+    } else {
+      quiets.push(m);
+    }
+  }
+  captures.sort((a, b) => b.key - a.key);
+  return [...captures.map(x => x.m), ...quiets];
+}
+
+function negamax(pos: Position, depth: number, alpha: number, beta: number, color: Color): number {
+  if (depth === 0) {
+    return color === 'white' ? evaluate(pos) : -evaluate(pos);
+  }
+  const moves = generateLegalMoves(pos);
+  if (moves.length === 0) {
+    if (isCheckmate(pos)) return -MATE_SCORE + (10 - depth);
+    return 0; // stalemate
+  }
+  let best = -Infinity;
+  for (const m of moveOrder(moves)) {
+    const next = makeMove(pos, m);
+    const score = -negamax(next, depth - 1, -beta, -alpha, opposite(color));
+    if (score > best) best = score;
+    if (best > alpha) alpha = best;
+    if (alpha >= beta) break;
+  }
+  return best;
+}
+
+function searchBestMove(pos: Position, depth: number): { move: Move; score: number; ties: Move[] } {
+  const moves = generateLegalMoves(pos);
+  if (moves.length === 0) throw new Error('chooseAiMove: no legal moves');
+  let bestScore = -Infinity;
+  let ties: Move[] = [];
+  const color = pos.toMove;
+  for (const m of moveOrder(moves)) {
+    const next = makeMove(pos, m);
+    const score = -negamax(next, depth - 1, -Infinity, Infinity, opposite(color));
+    if (score > bestScore) {
+      bestScore = score;
+      ties = [m];
+    } else if (score === bestScore) {
+      ties.push(m);
+    }
+  }
+  return { move: ties[0], score: bestScore, ties };
+}
+
+function seededIndex(pos: Position, n: number): number {
+  const seed = pos.fullmoveNumber * 31 + pos.halfmoveClock + (pos.toMove === 'white' ? 1 : 0);
+  return Math.abs(seed) % n;
+}
+
+export function chooseAiMove(pos: Position, difficulty: Difficulty): Move {
+  const depth = difficulty === 'beginner' ? 1 : difficulty === 'intermediate' ? 3 : 4;
+  const { ties } = searchBestMove(pos, depth);
+  if (difficulty === 'beginner' && ties.length > 1) {
+    return ties[seededIndex(pos, ties.length)];
+  }
+  return ties[0];
 }
