@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
 import { useThemeStore } from '@/stores/themeStore';
 import { DisplayTab } from './display';
@@ -6,9 +6,18 @@ import './controlpanel.css';
 
 type Tab = 'display' | 'sounds' | 'datetime';
 
-export default function ControlPanel({ api, args }: AppProps) {
-  const initialTab = ((args as { tab?: Tab } | undefined)?.tab ?? 'display') as Tab;
-  const [tab, setTab] = useState<Tab>(initialTab);
+type ControlPanelSnapshot = { tab: Tab };
+
+export default function ControlPanel({ api, args, restoreState }: AppProps) {
+  const restored = (restoreState as Partial<ControlPanelSnapshot> | undefined);
+  const initialTab =
+    restored?.tab ??
+    ((args as { tab?: Tab } | undefined)?.tab ?? 'display');
+  const [tab, setTab] = useState<Tab>(initialTab as Tab);
+
+  useEffect(() => {
+    return api.registerSnapshot((): ControlPanelSnapshot => ({ tab }));
+  }, [tab, api]);
 
   const initialDraft = {
     wallpaperKey: useThemeStore.getState().wallpaperKey as string,
