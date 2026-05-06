@@ -30,3 +30,24 @@ export type SessionSnapshot = {
 
 export type WindowBlobs = Record<string, Blob>;
 export type AllBlobs = Record<string, WindowBlobs>;
+
+export function saveSnapshot(snapshot: SessionSnapshot): void {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(snapshot));
+  } catch {
+    /* quota / privacy mode — silent best-effort */
+  }
+}
+
+export function loadSnapshot(): SessionSnapshot | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<SessionSnapshot>;
+    if (parsed.version !== 1) return null;
+    if (!Array.isArray(parsed.windows)) return null;
+    return parsed as SessionSnapshot;
+  } catch {
+    return null;
+  }
+}
