@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initialPosition, fileOf, rankOf, makeSquare, generatePseudoLegalMoves, makeMove, type Move, type Position, type Piece } from './engine';
+import { initialPosition, fileOf, rankOf, makeSquare, generatePseudoLegalMoves, makeMove, isCheck, generateLegalMoves, isCheckmate, isStalemate, type Move, type Position, type Piece } from './engine';
 
 describe('initialPosition', () => {
   it('returns 64-square board with white to move', () => {
@@ -394,5 +394,92 @@ describe('makeMove — promotion', () => {
     place(p, 4, 6, { color: 'white', type: 'pawn' });
     const r = makeMove(p, { from: makeSquare(4, 6), to: makeSquare(4, 7), promotion: 'queen' });
     expect(r.board[makeSquare(4, 7)]).toEqual({ color: 'white', type: 'queen' });
+  });
+});
+
+describe('isCheck', () => {
+  it('detects rook attacking king', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 4, 7, { color: 'black', type: 'rook' });
+    expect(isCheck(p, 'white')).toBe(true);
+  });
+  it('blocked attack is not check', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 4, 4, { color: 'white', type: 'pawn' });
+    place(p, 4, 7, { color: 'black', type: 'rook' });
+    expect(isCheck(p, 'white')).toBe(false);
+  });
+  it('knight check', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 5, 2, { color: 'black', type: 'knight' });
+    expect(isCheck(p, 'white')).toBe(true);
+  });
+});
+
+describe('generateLegalMoves — filters self-check', () => {
+  it('pinned piece cannot move off the pin', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 4, 3, { color: 'white', type: 'rook' });   // pinned by black queen
+    place(p, 4, 7, { color: 'black', type: 'queen' });
+    const m = generateLegalMoves(p, makeSquare(4, 3));
+    // rook can move along the file but not off it
+    expect(m.every(x => fileOf(x.to) === 4)).toBe(true);
+  });
+  it('king cannot castle through check', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 7, 0, { color: 'white', type: 'rook' });
+    place(p, 5, 7, { color: 'black', type: 'rook' });   // attacks f-file
+    p.castling.whiteKingside = true;
+    const m = generateLegalMoves(p, makeSquare(4, 0));
+    expect(m.find(x => x.castle === 'kingside')).toBeUndefined();
+  });
+  it('king cannot castle while in check', () => {
+    const p = emptyPos();
+    place(p, 4, 0, { color: 'white', type: 'king' });
+    place(p, 7, 0, { color: 'white', type: 'rook' });
+    place(p, 4, 7, { color: 'black', type: 'rook' });   // attacks e-file
+    p.castling.whiteKingside = true;
+    const m = generateLegalMoves(p, makeSquare(4, 0));
+    expect(m.find(x => x.castle === 'kingside')).toBeUndefined();
+  });
+});
+
+describe('isCheckmate', () => {
+  it('back-rank mate', () => {
+    const p = emptyPos();
+    place(p, 6, 0, { color: 'white', type: 'king' });
+    place(p, 5, 1, { color: 'white', type: 'pawn' });
+    place(p, 6, 1, { color: 'white', type: 'pawn' });
+    place(p, 7, 1, { color: 'white', type: 'pawn' });
+    place(p, 0, 0, { color: 'black', type: 'rook' });
+    p.toMove = 'white';
+    expect(isCheckmate(p)).toBe(true);
+  });
+  it('not checkmate when escape exists', () => {
+    const p = emptyPos();
+    place(p, 6, 0, { color: 'white', type: 'king' });
+    place(p, 0, 0, { color: 'black', type: 'rook' });
+    p.toMove = 'white';
+    expect(isCheckmate(p)).toBe(false);
+  });
+});
+
+describe('isStalemate', () => {
+  it('classic king-pawn stalemate (white to move)', () => {
+    // Ka1 vs Kc2 + Qb3: queen on b3 controls a2 (diag) and b1 (rook-file),
+    // black king on c2 controls b1, b2, d2; white king on a1 has no legal move
+    // and is NOT in check (b3→a1 is not a queen ray).
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 2, 1, { color: 'black', type: 'king' });
+    place(p, 1, 2, { color: 'black', type: 'queen' });
+    p.toMove = 'white';
+    expect(isStalemate(p)).toBe(true);
+    expect(isCheckmate(p)).toBe(false);
   });
 });

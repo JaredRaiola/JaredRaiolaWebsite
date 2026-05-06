@@ -197,6 +197,74 @@ export function generatePseudoLegalMoves(pos: Position, square: Square): Move[] 
   return out;
 }
 
+// ─── Legal move filter + game-end detection ───────────────────────────────────
+
+function findKing(pos: Position, color: Color): Square {
+  for (let sq = 0; sq < 64; sq++) {
+    const p = pos.board[sq];
+    if (p && p.color === color && p.type === 'king') return sq;
+  }
+  return -1;
+}
+
+function squareAttackedBy(pos: Position, sq: Square, attacker: Color): boolean {
+  // Build a "pretend it's attacker's turn" view and check pseudo-legal moves.
+  const probe: Position = { ...pos, toMove: attacker };
+  for (let from = 0; from < 64; from++) {
+    const p = probe.board[from];
+    if (!p || p.color !== attacker) continue;
+    // Skip castling — castling cannot deliver a check on the move it occurs.
+    if (p.type === 'king') {
+      const f = fileOf(from), r = rankOf(from);
+      for (const [df, dr] of KING_OFFSETS) {
+        if (onBoard(f + df, r + dr) && makeSquare(f + df, r + dr) === sq) return true;
+      }
+      continue;
+    }
+    const moves = generatePseudoLegalMoves(probe, from);
+    for (const m of moves) if (m.to === sq) return true;
+  }
+  return false;
+}
+
+export function isCheck(pos: Position, color: Color): boolean {
+  const ksq = findKing(pos, color);
+  if (ksq === -1) return false;
+  return squareAttackedBy(pos, ksq, opposite(color));
+}
+
+export function generateLegalMoves(pos: Position, square?: Square): Move[] {
+  const out: Move[] = [];
+  const sources: Square[] = square !== undefined ? [square] : Array.from({ length: 64 }, (_, i) => i);
+  for (const from of sources) {
+    const piece = pos.board[from];
+    if (!piece || piece.color !== pos.toMove) continue;
+    const candidates = generatePseudoLegalMoves(pos, from);
+    for (const m of candidates) {
+      // Castling additionally requires: not currently in check; not passing through attacked square.
+      if (m.castle) {
+        if (isCheck(pos, piece.color)) continue;
+        const r = piece.color === 'white' ? 0 : 7;
+        const passSq = m.castle === 'kingside' ? makeSquare(5, r) : makeSquare(3, r);
+        if (squareAttackedBy(pos, passSq, opposite(piece.color))) continue;
+      }
+      const next = makeMove(pos, m);
+      if (!isCheck(next, piece.color)) out.push(m);
+    }
+  }
+  return out;
+}
+
+export function isCheckmate(pos: Position): boolean {
+  return isCheck(pos, pos.toMove) && generateLegalMoves(pos).length === 0;
+}
+
+export function isStalemate(pos: Position): boolean {
+  return !isCheck(pos, pos.toMove) && generateLegalMoves(pos).length === 0;
+}
+
+// ─── Internal helpers ────────────────────────────────────────────────────────
+
 function copyBoard(board: (Piece | null)[]): (Piece | null)[] {
   return board.map(p => p ? { ...p } : null);
 }
