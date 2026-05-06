@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initialPosition, fileOf, rankOf, makeSquare, generatePseudoLegalMoves, makeMove, isCheck, generateLegalMoves, isCheckmate, isStalemate, type Move, type Position, type Piece } from './engine';
+import { initialPosition, fileOf, rankOf, makeSquare, generatePseudoLegalMoves, makeMove, isCheck, generateLegalMoves, isCheckmate, isStalemate, isInsufficientMaterial, positionHash, type Move, type Position, type Piece } from './engine';
 
 describe('initialPosition', () => {
   it('returns 64-square board with white to move', () => {
@@ -481,5 +481,65 @@ describe('isStalemate', () => {
     p.toMove = 'white';
     expect(isStalemate(p)).toBe(true);
     expect(isCheckmate(p)).toBe(false);
+  });
+});
+
+describe('isInsufficientMaterial', () => {
+  it('K vs K is insufficient', () => {
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 7, 7, { color: 'black', type: 'king' });
+    expect(isInsufficientMaterial(p)).toBe(true);
+  });
+  it('K+B vs K is insufficient', () => {
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 1, 0, { color: 'white', type: 'bishop' });
+    place(p, 7, 7, { color: 'black', type: 'king' });
+    expect(isInsufficientMaterial(p)).toBe(true);
+  });
+  it('K+N vs K is insufficient', () => {
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 1, 0, { color: 'white', type: 'knight' });
+    place(p, 7, 7, { color: 'black', type: 'king' });
+    expect(isInsufficientMaterial(p)).toBe(true);
+  });
+  it('K+R vs K is sufficient (mate possible)', () => {
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 1, 0, { color: 'white', type: 'rook' });
+    place(p, 7, 7, { color: 'black', type: 'king' });
+    expect(isInsufficientMaterial(p)).toBe(false);
+  });
+  it('any pawn means sufficient', () => {
+    const p = emptyPos();
+    place(p, 0, 0, { color: 'white', type: 'king' });
+    place(p, 4, 1, { color: 'white', type: 'pawn' });
+    place(p, 7, 7, { color: 'black', type: 'king' });
+    expect(isInsufficientMaterial(p)).toBe(false);
+  });
+});
+
+describe('positionHash', () => {
+  it('same position hashes equal', () => {
+    const p1 = initialPosition();
+    const p2 = initialPosition();
+    expect(positionHash(p1)).toBe(positionHash(p2));
+  });
+  it('different en-passant rights hash differently', () => {
+    const p1 = initialPosition();
+    const p2 = { ...initialPosition(), enPassantTarget: makeSquare(0, 2) };
+    expect(positionHash(p1)).not.toBe(positionHash(p2));
+  });
+  it('different side-to-move hash differently', () => {
+    const p1 = initialPosition();
+    const p2 = { ...initialPosition(), toMove: 'black' as const };
+    expect(positionHash(p1)).not.toBe(positionHash(p2));
+  });
+  it('halfmove/fullmove differences do NOT affect hash', () => {
+    const p1 = initialPosition();
+    const p2 = { ...initialPosition(), halfmoveClock: 17, fullmoveNumber: 5 };
+    expect(positionHash(p1)).toBe(positionHash(p2));
   });
 });

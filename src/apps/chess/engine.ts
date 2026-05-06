@@ -273,6 +273,43 @@ function copyCastling(c: CastlingRights): CastlingRights {
   return { ...c };
 }
 
+export function isInsufficientMaterial(pos: Position): boolean {
+  let whiteMinors = 0, blackMinors = 0;
+  for (let sq = 0; sq < 64; sq++) {
+    const p = pos.board[sq];
+    if (!p) continue;
+    if (p.type === 'king') continue;
+    if (p.type === 'pawn' || p.type === 'rook' || p.type === 'queen') return false;
+    // bishop or knight
+    if (p.color === 'white') whiteMinors++; else blackMinors++;
+  }
+  if (whiteMinors === 0 && blackMinors === 0) return true;
+  if (whiteMinors === 1 && blackMinors === 0) return true;
+  if (whiteMinors === 0 && blackMinors === 1) return true;
+  return false;
+}
+
+const PIECE_CHAR: Record<PieceType, string> = {
+  king: 'k', queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p',
+};
+
+export function positionHash(pos: Position): string {
+  const parts: string[] = [];
+  for (let sq = 0; sq < 64; sq++) {
+    const p = pos.board[sq];
+    if (!p) parts.push('.');
+    else {
+      const ch = PIECE_CHAR[p.type];
+      parts.push(p.color === 'white' ? ch.toUpperCase() : ch);
+    }
+  }
+  const c = pos.castling;
+  const cs = (c.whiteKingside ? 'K' : '') + (c.whiteQueenside ? 'Q' : '') +
+             (c.blackKingside ? 'k' : '') + (c.blackQueenside ? 'q' : '') || '-';
+  const ep = pos.enPassantTarget === null ? '-' : String(pos.enPassantTarget);
+  return `${parts.join('')} ${pos.toMove} ${cs} ${ep}`;
+}
+
 export function makeMove(pos: Position, move: Move): Position {
   const board = copyBoard(pos.board);
   const piece = board[move.from];
