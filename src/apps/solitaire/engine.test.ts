@@ -192,6 +192,17 @@ describe('reducer/drawFromStock', () => {
     const s2 = reducer(s, { type: 'drawFromStock' });
     expect(s2).toBe(s);
   });
+  it('draw 3, place all 3 from waste, draw 3 again still draws 3', () => {
+    const s0 = deal(makeRng(1), { ...DEFAULT_OPTIONS, draw: 3 });
+    const a = reducer(s0, { type: 'drawFromStock' });
+    expect(a.piles.waste).toHaveLength(3);
+    expect(a.wasteFanSize).toBe(3);
+    // Empty the waste manually (simulates user moving all 3 to foundations).
+    let s: GameState = { ...a, piles: { ...a.piles, waste: [] }, wasteFanSize: 0 };
+    const b = reducer(s, { type: 'drawFromStock' });
+    expect(b.piles.waste).toHaveLength(3);
+    expect(b.wasteFanSize).toBe(3);
+  });
 });
 
 describe('reducer/tryMove', () => {
