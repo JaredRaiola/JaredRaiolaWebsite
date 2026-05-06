@@ -41,3 +41,23 @@ export function onBoard(file: number, rank: number): boolean {
   return file >= 0 && file < 8 && rank >= 0 && rank < 8;
 }
 export function opposite(c: Color): Color { return c === 'white' ? 'black' : 'white'; }
+
+const BACK_RANK: PieceType[] = ['rook','knight','bishop','queen','king','bishop','knight','rook'];
+
+export function initialPosition(): Position {
+  const board: (Piece | null)[] = new Array(64).fill(null);
+  for (let f = 0; f < 8; f++) {
+    board[makeSquare(f, 0)] = { color: 'white', type: BACK_RANK[f] };
+    board[makeSquare(f, 1)] = { color: 'white', type: 'pawn' };
+    board[makeSquare(f, 6)] = { color: 'black', type: 'pawn' };
+    board[makeSquare(f, 7)] = { color: 'black', type: BACK_RANK[f] };
+  }
+  return {
+    board,
+    toMove: 'white',
+    castling: { whiteKingside: true, whiteQueenside: true, blackKingside: true, blackQueenside: true },
+    enPassantTarget: null,
+    halfmoveClock: 0,
+    fullmoveNumber: 1,
+  };
+}
