@@ -34,3 +34,35 @@
   opacity: 0.5;
 }
 .hearts-hand-card svg { width: 100%; height: 100%; display: block; }
+
+.hearts-ai { color: #fff; font-size: 11px; }
+.hearts-ai-label { margin-bottom: 4px; text-align: center; }
+.hearts-ai-fan { position: relative; height: 96px; width: 71px; }
+.hearts-ai.vertical .hearts-ai-fan { width: 71px; }
+.hearts-ai-card {
+  position: absolute;
+  width: 71px;
+  height: 96px;
+}
+.hearts-ai-card svg { width: 100%; height: 100%; display: block; }
+.hearts-ai.highlighted .hearts-ai-fan {
+  outline: 3px solid #ffd700;
+  outline-offset: 4px;
+  transition: outline 300ms;
+}
+
+.hearts-trick {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+.hearts-trick-card {
+  position: absolute;
+  left: 75px;
+  top: 62px;
+  width: 71px;
+  height: 96px;
+  transition: opacity 200ms;
+}
+.hearts-trick-card svg { width: 100%; height: 100%; display: block; }
+.hearts-trick.resolving .hearts-trick-card { opacity: 0; }
