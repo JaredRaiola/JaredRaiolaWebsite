@@ -111,14 +111,14 @@ export default function Hearts({ api, restoreState }: AppProps) {
         state.options.difficulty,
       );
       dispatch({ type: 'aiPlay', player, card });
-    }, 600);
+    }, 900);
     return () => window.clearTimeout(id);
   }, [state.turn, state.phase, state.hands, state.trick, state.history, state.heartsBroken, state.options.difficulty]);
 
-  // End-of-trick auto-resolve effect.
+  // End-of-trick auto-resolve effect — long enough for the user to read all 4 cards.
   useEffect(() => {
     if (state.phase !== 'trick-resolved') return;
-    const id = window.setTimeout(() => dispatch({ type: 'resolveTrick' }), 1000);
+    const id = window.setTimeout(() => dispatch({ type: 'resolveTrick' }), 1800);
     return () => window.clearTimeout(id);
   }, [state.phase]);
 
@@ -177,11 +177,11 @@ export default function Hearts({ api, restoreState }: AppProps) {
         </div>
       </div>
       <div className="hearts-felt">
-        <div className="hearts-top"><AiHand count={state.hands[2].length} orientation="horizontal" name="Meatball" /></div>
+        <div className="hearts-top"><AiHand count={state.hands[2].length} orientation="horizontal" name="Meatball" highlighted={(state.passReceived?.[2]?.length ?? 0) > 0 && state.history.length === 0} /></div>
         <div className="hearts-mid">
-          <div className="hearts-left"><AiHand count={state.hands[1].length} orientation="vertical" name="Jared" /></div>
+          <div className="hearts-left"><AiHand count={state.hands[1].length} orientation="vertical" name="Jared" highlighted={(state.passReceived?.[1]?.length ?? 0) > 0 && state.history.length === 0} /></div>
           <TrickArea trick={state.trick} resolving={state.phase === 'trick-resolved'} />
-          <div className="hearts-right"><AiHand count={state.hands[3].length} orientation="vertical" name="John" /></div>
+          <div className="hearts-right"><AiHand count={state.hands[3].length} orientation="vertical" name="John" highlighted={(state.passReceived?.[3]?.length ?? 0) > 0 && state.history.length === 0} /></div>
         </div>
         <div className="hearts-bottom">
           <Hand

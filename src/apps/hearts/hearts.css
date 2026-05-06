@@ -38,17 +38,44 @@
 .hearts-ai { color: #fff; font-size: 11px; }
 .hearts-ai-label { margin-bottom: 4px; text-align: center; }
 .hearts-ai-fan { position: relative; height: 96px; width: 71px; }
-.hearts-ai.vertical .hearts-ai-fan { width: 71px; }
+/* Vertical (left/right players): cards are sideways — long edge horizontal.
+   Padding-top absorbs the rotated card's 12.5px upward overflow so it
+   doesn't cover the player's name label. */
+.hearts-ai.vertical .hearts-ai-fan {
+  width: 96px;
+  height: auto;
+  min-height: 71px;
+  padding-top: 14px;
+}
 .hearts-ai-card {
   position: absolute;
   width: 71px;
   height: 96px;
 }
 .hearts-ai-card svg { width: 100%; height: 100%; display: block; }
+/* For vertical, the card rotates 90deg around its center. The card div is
+   resized to the rotated bounding box (96 wide × 71 tall). */
+.hearts-ai.vertical .hearts-ai-card {
+  width: 96px;
+  height: 71px;
+}
+.hearts-ai.vertical .hearts-ai-card svg {
+  width: 71px;
+  height: 96px;
+  transform: rotate(90deg);
+  transform-origin: 35.5px 35.5px;
+  position: absolute;
+  left: 12.5px;
+  top: -12.5px;
+}
 .hearts-ai.highlighted .hearts-ai-fan {
   outline: 3px solid #ffd700;
   outline-offset: 4px;
-  transition: outline 300ms;
+  animation: hearts-glow 600ms ease-out;
+}
+@keyframes hearts-glow {
+  0% { outline-color: #ffd700; }
+  100% { outline-color: rgba(255, 215, 0, 0); }
 }
 
 .hearts-trick {
@@ -117,14 +144,21 @@
   z-index: 50;
 }
 .hearts-dialog { min-width: 280px; }
-.hearts-scoresheet { padding: 12px; }
+.hearts-scoresheet-dialog { min-width: 360px; font-size: 13px; }
+.hearts-scoresheet { padding: 16px; font-size: 13px; }
 .hearts-scoresheet table { width: 100%; border-collapse: collapse; }
-.hearts-scoresheet th, .hearts-scoresheet td { padding: 4px 8px; text-align: left; border-bottom: 1px solid #808080; }
+.hearts-scoresheet th, .hearts-scoresheet td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #808080;
+  font-size: 13px;
+}
 .hearts-scoresheet .moon-banner {
-  margin: 0 0 8px;
-  padding: 6px 8px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
   background: #ffd700; color: #000; font-weight: bold;
   text-align: center;
+  font-size: 14px;
 }
 .hearts-dialog-buttons {
   display: flex; justify-content: flex-end; gap: 6px;
