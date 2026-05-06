@@ -64,13 +64,41 @@ function detectBuiltinDifficulty(state: GameState): BuiltinDifficulty | null {
   return null;
 }
 
-export default function Minesweeper({ api }: AppProps) {
-  const [state, dispatch] = useReducer(reducer, undefined, () => createInitialState(DIFFICULTIES.beginner));
+function isValidMinesweeperState(v: unknown): v is GameState {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  return (
+    Array.isArray(s.cells) &&
+    typeof s.width === 'number' &&
+    typeof s.height === 'number' &&
+    typeof s.mines === 'number' &&
+    typeof s.elapsedMs === 'number'
+  );
+}
+
+export default function Minesweeper({ api, restoreState }: AppProps) {
+  const [state, dispatch] = useReducer(reducer, undefined, () => {
+    if (isValidMinesweeperState(restoreState)) {
+      // If the restored game was mid-play, clamp startedAt so the timer
+      // continues from the saved elapsedMs rather than ballooning by the
+      // wall-clock time the tab was closed.
+      if (restoreState.phase === 'playing' && restoreState.startedAt !== null) {
+        return { ...restoreState, startedAt: Date.now() - restoreState.elapsedMs };
+      }
+      return restoreState;
+    }
+    return createInitialState(DIFFICULTIES.beginner);
+  });
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [customOpen, setCustomOpen] = useState(false);
   const [bestTimesOpen, setBestTimesOpen] = useState(false);
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   const wonHandledRef = useRef(false);
+
+  // Register session snapshot.
+  useEffect(() => {
+    return api.registerSnapshot(() => state);
+  }, [state, api]);
 
   const elapsedSeconds = Math.min(999, Math.floor(state.elapsedMs / 1000));
   const minesRemaining = state.mines - state.flagsPlaced;
