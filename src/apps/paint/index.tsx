@@ -94,19 +94,35 @@ function Menu({
   );
 }
 
-export default function Paint({ api, fs, args }: AppProps) {
+type PaintSnapshot = {
+  toolId: Tool['id'];
+  fg: string;
+  bg: string;
+  size: number;
+  path: string | null;
+  dirty: boolean;
+  canvasW: number;
+  canvasH: number;
+};
+
+export default function Paint({ api, fs, args, restoreState, restoreBlobs }: AppProps) {
   const initial = (args as Args | undefined) ?? {};
-  const [toolId, setToolId] = useState<Tool['id']>('pencil');
-  const [fg, setFg] = useState('#000000');
-  const [bg, setBg] = useState('#ffffff');
-  const [size, setSize] = useState(3);
-  const [path, setPath] = useState<string | null>(initial.path ?? null);
-  const [dirty, setDirty] = useState(false);
+  const restored = (restoreState as Partial<PaintSnapshot> | undefined);
+  const [toolId, setToolId] = useState<Tool['id']>(restored?.toolId ?? 'pencil');
+  const [fg, setFg] = useState(restored?.fg ?? '#000000');
+  const [bg, setBg] = useState(restored?.bg ?? '#ffffff');
+  const [size, setSize] = useState(restored?.size ?? 3);
+  const [path, setPath] = useState<string | null>(restored?.path ?? initial.path ?? null);
+  const [dirty, setDirty] = useState<boolean>(restored?.dirty ?? false);
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ x: number; y: number } | null>(null);
-  const [canvasW, setCanvasW] = useState(INITIAL_W);
-  const [canvasH, setCanvasH] = useState(INITIAL_H);
+  const [canvasW, setCanvasW] = useState(
+    typeof restored?.canvasW === 'number' ? restored.canvasW : INITIAL_W,
+  );
+  const [canvasH, setCanvasH] = useState(
+    typeof restored?.canvasH === 'number' ? restored.canvasH : INITIAL_H,
+  );
   const [attributesOpen, setAttributesOpen] = useState(false);
 
   const canvasRef = useRef<PaintCanvasRef>(null);
@@ -123,12 +139,46 @@ export default function Paint({ api, fs, args }: AppProps) {
     api.setTitle(title);
   }, [path, dirty, api]);
 
-  // Open file passed as arg on mount
+  // On mount: prefer restoring the previous canvas blob over loading args.path.
   useEffect(() => {
-    if (!initial.path) return;
-    void loadFromPath(initial.path);
+    const blob = restoreBlobs?.canvas;
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const c = canvasRef.current?.getCanvas();
+        const ctx = c?.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvasW, canvasH);
+          ctx.drawImage(img, 0, 0);
+          const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
+          historyRef.current.reset(imgData);
+        }
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => URL.revokeObjectURL(url);
+      img.src = url;
+      return;
+    }
+    if (initial.path) void loadFromPath(initial.path);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Register session snapshot + canvas blob.
+  useEffect(() => {
+    return api.registerSnapshot((): PaintSnapshot => ({
+      toolId, fg, bg, size, path, dirty, canvasW, canvasH,
+    }));
+  }, [toolId, fg, bg, size, path, dirty, canvasW, canvasH, api]);
+
+  useEffect(() => {
+    return api.registerBlob('canvas', () => new Promise<Blob>((res, rej) => {
+      const c = canvasRef.current?.getCanvas();
+      if (!c) { rej(new Error('canvas not ready')); return; }
+      c.toBlob((b) => b ? res(b) : rej(new Error('toBlob null')), 'image/png');
+    }));
+  }, [api]);
 
   const getCtx = (): CanvasRenderingContext2D | null => {
     const canvas = canvasRef.current?.getCanvas();
