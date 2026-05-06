@@ -8,7 +8,7 @@ const STAGE_ORDER: Stage[] = ['floppy', 'bios', 'config', 'splash'];
 const STAGE_DURATIONS: Record<Stage, number> = {
   floppy: 3000,
   bios: 4000,
-  config: 2500,
+  config: 4000,
   splash: 2500,
 };
 
@@ -182,25 +182,25 @@ function ConfigStage() {
         <div className="boot-cfg-line" style={{ animationDelay: '0s' }}>{'                       Award Software, Inc.'}</div>
         <div className="boot-cfg-line" style={{ animationDelay: '0.1s' }}>{'                       System Configurations'}</div>
         <div className="boot-cfg-table">
-          <div className="boot-cfg-edge" style={{ animationDelay: '0.2s' }} />
+          <div className="boot-cfg-edge" style={{ animationDelay: '0.3s' }} />
           <div className="boot-cfg-section">
             {top.map((r, i) => (
-              <div key={`t${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.3 + i * 0.1}s` }}>
+              <div key={`t${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.5 + i * 0.2}s` }}>
                 <span>{r[0]}</span><span>{r[1]}</span><span>{r[2]}</span><span>{r[3]}</span>
               </div>
             ))}
           </div>
-          <div className="boot-cfg-edge" style={{ animationDelay: `${0.3 + top.length * 0.1}s` }} />
+          <div className="boot-cfg-edge" style={{ animationDelay: `${0.5 + top.length * 0.2}s` }} />
           <div className="boot-cfg-section">
             {bot.map((r, i) => (
-              <div key={`b${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.4 + (top.length + i) * 0.1}s` }}>
+              <div key={`b${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.7 + (top.length + i) * 0.2}s` }}>
                 <span>{r[0]}</span><span>{r[1]}</span><span>{r[2]}</span><span>{r[3]}</span>
               </div>
             ))}
           </div>
-          <div className="boot-cfg-edge" style={{ animationDelay: `${0.4 + (top.length + bot.length) * 0.1}s` }} />
+          <div className="boot-cfg-edge" style={{ animationDelay: `${0.7 + (top.length + bot.length) * 0.2}s` }} />
         </div>
-        <div className="boot-bios-starting" style={{ animationDelay: `${0.6 + (top.length + bot.length) * 0.1}s` }}>
+        <div className="boot-bios-starting" style={{ animationDelay: `${1.0 + (top.length + bot.length) * 0.2}s` }}>
           Starting Windows 95...<span className="boot-bios-cursor">_</span>
         </div>
       </div>
