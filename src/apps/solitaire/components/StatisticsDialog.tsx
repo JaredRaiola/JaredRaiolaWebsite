@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { loadVegasBalance } from '../options';
 import { loadBestTime } from '../bestTimes';
 
@@ -6,7 +7,7 @@ type Props = { onClose: () => void };
 export default function StatisticsDialog({ onClose }: Props): React.ReactElement {
   const balance = loadVegasBalance();
   const best = loadBestTime();
-  return (
+  return createPortal(
     <div className="sol-dialog-overlay" onClick={onClose}>
       <div className="sol-dialog window" onClick={(e) => e.stopPropagation()}>
         <div className="title-bar"><div className="title-bar-text">Statistics</div></div>
@@ -18,6 +19,7 @@ export default function StatisticsDialog({ onClose }: Props): React.ReactElement
           <button onClick={onClose}>OK</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

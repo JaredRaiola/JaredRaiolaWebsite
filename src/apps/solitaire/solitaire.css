@@ -4,6 +4,9 @@
   height: 100%;
   overflow: hidden;
   background: #008000;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  user-select: none;
 }
 .sol-felt {
   flex: 1;
@@ -52,28 +55,35 @@
 
 .sol-menubar {
   display: flex;
+  gap: 8px;
   background: #c0c0c0;
+  color: #000;
   border-bottom: 1px solid #808080;
-  font-size: 11px;
-  padding: 2px 4px;
+  padding: 2px 6px;
   user-select: none;
 }
 .sol-menu { padding: 2px 8px; cursor: default; position: relative; }
-.sol-menu.open { background: #000080; color: #fff; }
+.sol-menu:hover, .sol-menu.open { background: #000080; color: #fff; }
 .sol-menu-popup {
-  position: absolute; top: 100%; left: 0;
-  background: #c0c0c0; color: #000;
-  border: 1px solid #fff;
-  box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #dfdfdf, 1px 1px 0 #000;
-  padding: 2px 0;
-  min-width: 140px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #c0c0c0;
+  color: #000;
+  border: 1px solid;
+  border-color: #fff #404040 #404040 #fff;
+  padding: 2px;
+  min-width: 160px;
   z-index: 10;
 }
-.sol-menu-popup .item { padding: 3px 18px; cursor: default; }
-.sol-menu-popup .item:hover { background: #000080; color: #fff; }
+.sol-menu-popup .item {
+  padding: 3px 16px 3px 8px;
+  cursor: default;
+  white-space: nowrap;
+}
 .sol-menu-popup .item.disabled { color: #808080; }
-.sol-menu-popup .item.disabled:hover { background: transparent; color: #808080; }
-.sol-menu-popup .sep { height: 1px; background: #808080; margin: 2px 0; box-shadow: 0 1px 0 #fff; }
+.sol-menu-popup .item:not(.disabled):hover { background: #000080; color: #fff; }
+.sol-menu-popup .sep { height: 1px; margin: 3px 2px; background: #808080; box-shadow: 0 1px 0 #fff; }
 
 .sol-top-row {
   display: flex; justify-content: space-between; gap: 16px; margin-bottom: 24px;

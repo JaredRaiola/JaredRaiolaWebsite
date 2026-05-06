@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Options } from '../engine';
 
 type Props = {
@@ -9,7 +10,7 @@ type Props = {
 
 export default function OptionsDialog({ initial, onCancel, onOk }: Props): React.ReactElement {
   const [o, setO] = useState<Options>(initial);
-  return (
+  return createPortal(
     <div className="sol-dialog-overlay" onClick={onCancel}>
       <div className="sol-dialog window" onClick={(e) => e.stopPropagation()}>
         <div className="title-bar"><div className="title-bar-text">Options</div></div>
@@ -35,6 +36,7 @@ export default function OptionsDialog({ initial, onCancel, onOk }: Props): React
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

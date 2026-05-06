@@ -57,7 +57,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
   useHotkeys(
     {
       'f2': () => dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }),
-      'mod+z': () => dispatch({ type: 'undo' }),
+      'ctrl+z': () => dispatch({ type: 'undo' }),
     },
     { enabled: focused },
   );
