@@ -14,3 +14,11 @@
   font-size: 12px;
   padding: 12px;
 }
+.sol-card {
+  width: 71px;
+  height: 96px;
+  user-select: none;
+  cursor: default;
+}
+.sol-card svg { width: 100%; height: 100%; display: block; }
+.sol-card-dimmed { opacity: 0.55; }
