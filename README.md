@@ -28,3 +28,12 @@ Cloudflare Pages auto-deploys on push to `main`.
 ## Phases
 
 This is Phase 1 of a multi-phase build. Phase 1 ships the OS shell + Notepad + File Explorer. See `docs/superpowers/specs/` for the design document and `docs/superpowers/plans/` for implementation plans.
+
+## Credits
+
+- **W95FA font** — community recreation of the original Windows 95 system font, licensed under the SIL Open Font License (free for personal and commercial use).
+- **Win98 icons** (`/public/assets/win98/`) — community-archived icon set that has circulated freely since the late 1990s. Used here in good-faith homage.
+
+## Disclaimer
+
+This site is an unofficial Windows 95 visual homage built for fun and as a personal portfolio. It is not affiliated with, endorsed by, or sponsored by Microsoft Corporation. Windows and Windows 95 are trademarks of Microsoft Corporation.

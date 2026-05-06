@@ -191,6 +191,10 @@ export function Desktop() {
         <DesktopIcon key={i.id} icon={i} />
       ))}
       {lasso && <div className="lasso" style={{ left: lasso.x, top: lasso.y, width: lasso.w, height: lasso.h }} />}
+      <div className="desktop-watermark" aria-hidden="true">
+        <div className="desktop-watermark-line1">Windows 95 facsimile</div>
+        <div className="desktop-watermark-line2">Not affiliated with Microsoft.</div>
+      </div>
     </div>
   );
 }

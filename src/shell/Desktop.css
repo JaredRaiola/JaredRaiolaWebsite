@@ -49,3 +49,27 @@
   0%   { opacity: 0.4; }
   100% { opacity: 1; }
 }
+
+/* "Activate Windows"-style watermark in the bottom-right of the desktop:
+   acknowledges the homage and flags this as not affiliated with Microsoft. */
+.desktop-watermark {
+  position: absolute;
+  right: 24px;
+  bottom: 12px;
+  pointer-events: none;
+  user-select: none;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.42);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+  font-family: 'W95FA', 'Tahoma', sans-serif;
+  letter-spacing: 0.5px;
+}
+.desktop-watermark-line1 {
+  font-size: 22px;
+  line-height: 1.1;
+}
+.desktop-watermark-line2 {
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0.85;
+}
