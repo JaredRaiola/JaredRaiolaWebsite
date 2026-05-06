@@ -154,11 +154,25 @@ export default function Solitaire({ api, restoreState }: AppProps) {
   }, [state.drag]);
 
   const startDrag = (from: PileId, fromIdx: number, e: React.PointerEvent): void => {
-    if (state.phase !== 'playing') return;
+    // eslint-disable-next-line no-console
+    console.log('[solitaire/startDrag-entry]', { from, fromIdx, phase: state.phase, dragSet: !!state.drag });
+    if (state.phase !== 'playing') {
+      // eslint-disable-next-line no-console
+      console.log('[solitaire/startDrag] bail: phase not playing');
+      return;
+    }
     const src = state.piles[from];
     const cards: Card[] = src.slice(fromIdx);
-    if (cards.length === 0 || !cards[0].faceUp) return;
-    if (!isValidRun(cards)) return;
+    if (cards.length === 0 || !cards[0].faceUp) {
+      // eslint-disable-next-line no-console
+      console.log('[solitaire/startDrag] bail: empty or face-down');
+      return;
+    }
+    if (!isValidRun(cards)) {
+      // eslint-disable-next-line no-console
+      console.log('[solitaire/startDrag] bail: invalid run');
+      return;
+    }
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const offset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     dragMetaRef.current = { from, fromIdx };
