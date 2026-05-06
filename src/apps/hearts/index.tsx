@@ -115,11 +115,20 @@ export default function Hearts({ api, restoreState }: AppProps) {
     return () => window.clearTimeout(id);
   }, [state.turn, state.phase, state.hands, state.trick, state.history, state.heartsBroken, state.options.difficulty]);
 
-  // End-of-trick auto-resolve effect — long enough for the user to read all 4 cards.
+  // End-of-trick: hold all 4 cards solid for 1500ms, fade them for 300ms,
+  // then resolve. trickFading drives the .resolving class for the fade only.
+  const [trickFading, setTrickFading] = useState(false);
   useEffect(() => {
-    if (state.phase !== 'trick-resolved') return;
-    const id = window.setTimeout(() => dispatch({ type: 'resolveTrick' }), 1800);
-    return () => window.clearTimeout(id);
+    if (state.phase !== 'trick-resolved') {
+      setTrickFading(false);
+      return;
+    }
+    const fadeTimer = window.setTimeout(() => setTrickFading(true), 1500);
+    const resolveTimer = window.setTimeout(() => dispatch({ type: 'resolveTrick' }), 1800);
+    return () => {
+      window.clearTimeout(fadeTimer);
+      window.clearTimeout(resolveTimer);
+    };
   }, [state.phase]);
 
   const legalIds: Set<string> | null = (() => {
@@ -180,7 +189,7 @@ export default function Hearts({ api, restoreState }: AppProps) {
         <div className="hearts-top"><AiHand count={state.hands[2].length} orientation="horizontal" name="Meatball" highlighted={(state.passReceived?.[2]?.length ?? 0) > 0 && state.history.length === 0} /></div>
         <div className="hearts-mid">
           <div className="hearts-left"><AiHand count={state.hands[1].length} orientation="vertical" name="Jared" highlighted={(state.passReceived?.[1]?.length ?? 0) > 0 && state.history.length === 0} /></div>
-          <TrickArea trick={state.trick} resolving={state.phase === 'trick-resolved'} />
+          <TrickArea trick={state.trick} resolving={trickFading} />
           <div className="hearts-right"><AiHand count={state.hands[3].length} orientation="vertical" name="John" highlighted={(state.passReceived?.[3]?.length ?? 0) > 0 && state.history.length === 0} /></div>
         </div>
         <div className="hearts-bottom">
