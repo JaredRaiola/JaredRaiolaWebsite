@@ -11,7 +11,7 @@ function fmt(s: number): string {
 export default function StatusBar({ score, elapsedSec, showScore }: Props): React.ReactElement {
   return (
     <div className="sol-status">
-      {showScore && <span className="sol-status-score">Score: {score}</span>}
+      <span className="sol-status-score">{showScore ? `Score: ${score}` : ''}</span>
       <span className="sol-status-time">Time: {fmt(elapsedSec)}</span>
     </div>
   );
