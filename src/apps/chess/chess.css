@@ -7,6 +7,7 @@
   font-family: Tahoma, sans-serif;
   font-size: 11px;
   user-select: none;
+  position: relative;
 }
 .ch-felt {
   flex: 1;
@@ -103,11 +104,12 @@
 }
 
 .ch-dialog-overlay {
-  position: fixed; inset: 0;
+  position: absolute; inset: 0;
   background: rgba(0,0,0,0.05);
   display: flex; align-items: center; justify-content: center;
   z-index: 50;
 }
+.ch-dialog .title-bar { cursor: move; }
 .ch-dialog { min-width: 280px; }
 .ch-dialog-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .ch-dialog-body fieldset { padding: 8px 10px; margin: 0; }
