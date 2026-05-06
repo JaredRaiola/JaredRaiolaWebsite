@@ -1,3 +1,5 @@
+import { dealForGameNumber } from './msrng';
+
 export type Suit = 'spades' | 'hearts' | 'clubs' | 'diamonds';
 export type Rank = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 export type Card = { id: string; suit: Suit; rank: Rank };
@@ -41,4 +43,16 @@ export function emptyPiles(): Record<PileId, Card[]> {
 
 export function color(suit: Suit): 'red' | 'black' {
   return suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+}
+
+export function dealGame(gameNumber: number): GameState {
+  return {
+    phase: 'playing',
+    piles: dealForGameNumber(gameNumber),
+    gameNumber,
+    startedAt: Date.now(),
+    elapsedMs: 0,
+    moveCount: 0,
+    prev: null,
+  };
 }
