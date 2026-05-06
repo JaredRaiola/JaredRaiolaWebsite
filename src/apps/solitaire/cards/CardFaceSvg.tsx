@@ -1,10 +1,25 @@
 import type { Suit, Rank } from '../engine';
 
-const SUIT_PATHS: Record<Suit, string> = {
-  spades:   'M50 8 C 28 26, 14 50, 26 68 C 34 78, 46 76, 50 66 C 54 76, 66 78, 74 68 C 86 50, 72 26, 50 8 Z M38 66 L62 66 L60 90 L40 90 Z',
-  hearts:   'M50 88 C 18 64, 8 36, 28 22 C 40 18, 48 24, 50 32 C 52 24, 60 18, 72 22 C 92 36, 82 64, 50 88 Z',
-  clubs:    'M50 8 a 16 16 0 1 0 0 32 a 16 16 0 1 0 0 -32 z M34 36 a 16 16 0 1 0 0 32 a 16 16 0 1 0 0 -32 z M66 36 a 16 16 0 1 0 0 32 a 16 16 0 1 0 0 -32 z M40 60 L60 60 L62 90 L38 90 Z',
-  diamonds: 'M50 8 L 84 50 L 50 92 L 16 50 Z',
+type SuitGlyph = { path: string; viewBox: string };
+
+// Spade and clubs paths from Wikimedia Commons (public domain).
+const SUIT_GLYPHS: Record<Suit, SuitGlyph> = {
+  spades: {
+    viewBox: '315 345 215 260',
+    path: 'M 420.37498,349.55102 C 360.40052,390.08152 320.37505,467.57634 320.375,514.71623 C 320.375,539.21657 340.29885,560.81235 366.92151,560.81235 C 388.48053,560.81235 406.86151,541.23743 406.86146,514.26579 C 406.86146,510.20054 408.9958,508.40994 410.76536,508.40994 C 413.08604,508.40994 415.42002,511.71285 415.42002,518.01954 C 415.42002,533.65083 407.57185,573.31705 396.95155,597.44898 C 403.08128,595.63666 411.25603,593.8454 420.37498,593.8454 C 429.49402,593.8454 437.81882,595.63666 443.94856,597.44898 C 433.32825,573.31705 425.48008,533.65083 425.48008,518.01954 C 425.48008,511.71285 427.81406,508.40994 430.13474,508.40994 C 431.9043,508.40994 433.88849,510.20054 433.88849,514.26579 C 433.88854,541.23743 452.41957,560.81235 473.97859,560.81235 C 500.60125,560.81235 520.375,539.21657 520.375,514.71623 C 520.37505,467.57634 480.34948,390.08152 420.37498,349.55102 z',
+  },
+  clubs: {
+    viewBox: '285 365 245 225',
+    path: 'M 408.15639,368.79905 C 379.39014,368.79906 356.02769,392.16149 356.02769,420.92775 C 356.02772,441.41782 367.85955,459.15021 385.07688,467.65086 C 390.25818,470.20901 384.60395,476.8313 380.79941,472.53939 C 371.24485,461.76088 357.31062,454.95947 341.78513,454.95947 C 313.01888,454.95946 289.65635,478.32191 289.65635,507.08817 C 289.65635,535.85443 313.01903,559.16987 341.78513,559.16987 C 370.33092,559.16987 393.61306,536.20881 393.91384,507.74624 C 393.96721,502.69704 401.7167,502.17398 401.7167,508.96838 C 401.7167,519.66771 391.43054,576.49172 385.92297,587.32595 C 391.9345,585.8101 401.95338,584.55266 408.15639,584.55265 C 414.35941,584.55266 424.37829,585.8101 430.38982,587.32595 C 424.88225,576.49172 414.59609,519.66771 414.59609,508.96838 C 414.59609,502.17398 422.34558,502.69704 422.39895,507.74624 C 422.69973,536.20881 445.98193,559.16987 474.52765,559.16987 C 503.29392,559.16987 526.65632,535.85443 526.65635,507.08817 C 526.65635,478.32191 503.29392,454.95946 474.52765,454.95947 C 459.00226,454.95947 445.06794,461.76088 435.51338,472.53939 C 431.70884,476.8313 426.05461,470.20901 431.23591,467.65086 C 448.45324,459.15021 460.28507,441.41782 460.28509,420.92775 C 460.28509,392.16149 436.92265,368.79906 408.15639,368.79905 z',
+  },
+  hearts: {
+    viewBox: '0 0 100 100',
+    path: 'M50 88 C 18 64, 8 36, 28 22 C 40 18, 48 24, 50 32 C 52 24, 60 18, 72 22 C 92 36, 82 64, 50 88 Z',
+  },
+  diamonds: {
+    viewBox: '0 0 100 100',
+    path: 'M50 8 L 84 50 L 50 92 L 16 50 Z',
+  },
 };
 
 const SUIT_COLOR: Record<Suit, string> = {
@@ -15,8 +30,6 @@ const RANK_LABEL: Record<Rank, string> = {
   1: 'A', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: 'J', 12: 'Q', 13: 'K',
 };
 
-// Pip positions are in card-space (the outer 100x140 viewBox).
-// The body region (between the corner indicators) is roughly y=38..102.
 const PIP_LAYOUTS: Partial<Record<Rank, [number, number][]>> = {
   2: [[50, 42], [50, 98]],
   3: [[50, 42], [50, 70], [50, 98]],
@@ -32,30 +45,33 @@ const PIP_LAYOUTS: Partial<Record<Rank, [number, number][]>> = {
 const COURT_LABEL: Partial<Record<Rank, string>> = { 11: 'J', 12: 'Q', 13: 'K' };
 
 const PIP_SIZE = 16;
+const CORNER_SIZE = 14;
 
 type Props = { suit: Suit; rank: Rank };
 
 export default function CardFaceSvg({ suit, rank }: Props): React.ReactElement {
   const color = SUIT_COLOR[suit];
+  const glyph = SUIT_GLYPHS[suit];
   const label = RANK_LABEL[rank];
   const isCourt = rank >= 11;
   const isAce = rank === 1;
+  const SuitMark = ({ x, y, size }: { x: number; y: number; size: number }) => (
+    <svg x={x} y={y} width={size} height={size} viewBox={glyph.viewBox} preserveAspectRatio="xMidYMid meet">
+      <path d={glyph.path} fill={color} />
+    </svg>
+  );
   return (
     <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" className="card-face">
       <rect width="100" height="140" rx="6" ry="6" fill="#fff" stroke="#000" strokeWidth="1" />
       <text x="6" y="20" fontFamily="Arial Black, Arial, sans-serif" fontSize="16" fontWeight="bold" fill={color}>{label}</text>
-      <svg x="4" y="22" width="14" height="14" viewBox="0 0 100 100"><path d={SUIT_PATHS[suit]} fill={color} /></svg>
+      <SuitMark x={4} y={22} size={CORNER_SIZE} />
       <g transform="translate(94 134) rotate(180)">
         <text x="0" y="14" fontFamily="Arial Black, Arial, sans-serif" fontSize="16" fontWeight="bold" fill={color}>{label}</text>
-        <svg x="-2" y="16" width="14" height="14" viewBox="0 0 100 100"><path d={SUIT_PATHS[suit]} fill={color} /></svg>
+        <SuitMark x={-2} y={16} size={CORNER_SIZE} />
       </g>
-      {isAce && (
-        <svg x="30" y="50" width="40" height="40" viewBox="0 0 100 100"><path d={SUIT_PATHS[suit]} fill={color} /></svg>
-      )}
+      {isAce && <SuitMark x={30} y={50} size={40} />}
       {!isAce && !isCourt && PIP_LAYOUTS[rank]?.map(([x, y], i) => (
-        <svg key={i} x={x - PIP_SIZE / 2} y={y - PIP_SIZE / 2} width={PIP_SIZE} height={PIP_SIZE} viewBox="0 0 100 100">
-          <path d={SUIT_PATHS[suit]} fill={color} />
-        </svg>
+        <SuitMark key={i} x={x - PIP_SIZE / 2} y={y - PIP_SIZE / 2} size={PIP_SIZE} />
       ))}
       {isCourt && (
         <g>
