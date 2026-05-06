@@ -93,10 +93,13 @@
 .sol-top-left, .sol-top-right { display: flex; gap: 12px; }
 .sol-tableau-row { display: flex; gap: 12px; }
 
+.sol-drag-layer,
+.sol-drag-layer * {
+  pointer-events: none !important;
+}
 .sol-drag-layer {
   position: fixed;
   z-index: 1000;
-  pointer-events: none;
   width: 71px;
   height: 96px;
 }
