@@ -384,3 +384,135 @@ export function makeMove(pos: Position, move: Move): Position {
     fullmoveNumber,
   };
 }
+
+export type GameState = {
+  phase: Phase;
+  position: Position;
+  history: { move: Move; positionBefore: Position }[];
+  positionsSeen: Map<string, number>;
+  playerColor: Color;
+  difficulty: Difficulty;
+  selectedSquare: Square | null;
+  legalDestinations: Square[];
+  pendingPromotion: { from: Square; to: Square } | null;
+  drawReason: DrawReason;
+};
+
+export type Action =
+  | { type: 'newGame'; playerColor: Color; difficulty: Difficulty }
+  | { type: 'selectSquare'; square: Square | null }
+  | { type: 'playerMove'; move: Move }
+  | { type: 'aiMove'; move: Move }
+  | { type: 'choosePromotion'; promotion: PromotionType }
+  | { type: 'cancelPromotion' }
+  | { type: 'undo' }
+  | { type: 'resign' };
+
+export function initialState(playerColor: Color, difficulty: Difficulty): GameState {
+  const position = initialPosition();
+  const positionsSeen = new Map<string, number>();
+  positionsSeen.set(positionHash(position), 1);
+  return {
+    phase: playerColor === 'white' ? 'playing' : 'thinking',
+    position,
+    history: [],
+    positionsSeen,
+    playerColor,
+    difficulty,
+    selectedSquare: null,
+    legalDestinations: [],
+    pendingPromotion: null,
+    drawReason: null,
+  };
+}
+
+function deriveOutcome(s: GameState): GameState {
+  const legal = generateLegalMoves(s.position);
+  if (legal.length === 0) {
+    if (isCheck(s.position, s.position.toMove)) return { ...s, phase: 'checkmate' };
+    return { ...s, phase: 'stalemate', drawReason: 'stalemate' };
+  }
+  if (s.position.halfmoveClock >= 100) return { ...s, phase: 'draw', drawReason: 'fifty-move' };
+  if ((s.positionsSeen.get(positionHash(s.position)) ?? 0) >= 3) return { ...s, phase: 'draw', drawReason: 'threefold' };
+  if (isInsufficientMaterial(s.position)) return { ...s, phase: 'draw', drawReason: 'insufficient-material' };
+  return { ...s, phase: s.position.toMove === s.playerColor ? 'playing' : 'thinking', drawReason: null };
+}
+
+function applyMove(s: GameState, move: Move): GameState {
+  // If pawn reaches last rank without promotion specified, enter promoting phase.
+  const piece = s.position.board[move.from];
+  if (piece && piece.type === 'pawn' && (rankOf(move.to) === 0 || rankOf(move.to) === 7) && !move.promotion) {
+    return { ...s, phase: 'promoting', pendingPromotion: { from: move.from, to: move.to }, selectedSquare: null, legalDestinations: [] };
+  }
+  const positionBefore = s.position;
+  const nextPos = makeMove(s.position, move);
+  const seen = new Map(s.positionsSeen);
+  const key = positionHash(nextPos);
+  seen.set(key, (seen.get(key) ?? 0) + 1);
+  const advanced: GameState = {
+    ...s,
+    position: nextPos,
+    history: [...s.history, { move, positionBefore }],
+    positionsSeen: seen,
+    selectedSquare: null,
+    legalDestinations: [],
+    pendingPromotion: null,
+  };
+  return deriveOutcome(advanced);
+}
+
+export function reducer(s: GameState, a: Action): GameState {
+  switch (a.type) {
+    case 'newGame': return initialState(a.playerColor, a.difficulty);
+    case 'selectSquare': {
+      if (s.phase !== 'playing') return s;
+      if (a.square === null) return { ...s, selectedSquare: null, legalDestinations: [] };
+      const piece = s.position.board[a.square];
+      if (!piece || piece.color !== s.playerColor) return { ...s, selectedSquare: null, legalDestinations: [] };
+      const legal = generateLegalMoves(s.position, a.square);
+      const dests = Array.from(new Set(legal.map(m => m.to)));
+      return { ...s, selectedSquare: a.square, legalDestinations: dests };
+    }
+    case 'playerMove': {
+      if (s.phase !== 'playing') return s;
+      const legal = generateLegalMoves(s.position, a.move.from);
+      const match = legal.find(m =>
+        m.from === a.move.from && m.to === a.move.to &&
+        (a.move.promotion === undefined || m.promotion === a.move.promotion));
+      if (!match) return s;
+      return applyMove(s, match);
+    }
+    case 'aiMove': {
+      if (s.phase !== 'thinking') return s;
+      return applyMove(s, a.move);
+    }
+    case 'choosePromotion': {
+      if (s.phase !== 'promoting' || !s.pendingPromotion) return s;
+      const legal = generateLegalMoves(s.position, s.pendingPromotion.from);
+      const match = legal.find(m => m.to === s.pendingPromotion!.to && m.promotion === a.promotion);
+      if (!match) return s;
+      return applyMove(s, match);
+    }
+    case 'cancelPromotion':
+      return { ...s, phase: 'playing', pendingPromotion: null };
+    case 'undo': {
+      if (s.history.length === 0) return s;
+      // Undo the most recent player+ai pair if available; otherwise just one ply.
+      const popCount = s.history.length >= 2 ? 2 : 1;
+      const newHistory = s.history.slice(0, s.history.length - popCount);
+      const restoredPos = s.history[s.history.length - popCount].positionBefore;
+      // Rebuild positionsSeen from scratch.
+      const seen = new Map<string, number>();
+      let cur = initialPosition();
+      seen.set(positionHash(cur), 1);
+      for (const entry of newHistory) {
+        cur = makeMove(cur, entry.move);
+        seen.set(positionHash(cur), (seen.get(positionHash(cur)) ?? 0) + 1);
+      }
+      const out: GameState = { ...s, position: restoredPos, history: newHistory, positionsSeen: seen, selectedSquare: null, legalDestinations: [], pendingPromotion: null, drawReason: null };
+      return deriveOutcome(out);
+    }
+    case 'resign':
+      return { ...s, phase: 'resigned' };
+  }
+}
