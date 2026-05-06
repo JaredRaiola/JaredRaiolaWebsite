@@ -5,7 +5,8 @@ import { useWindowStore } from '@/stores/windowStore';
 import {
   reducer, deal,
   legalCardsForLead, legalCardsForFollow,
-  type GameState, type Card, type PlayerId,
+  isValidHeartsSnapshot,
+  type GameState, type Card, type PlayerId, type Options,
 } from './engine';
 import { makeRng } from './rng';
 import { loadOptions, saveOptions } from './options';
@@ -21,12 +22,30 @@ import GameOverDialog from './components/GameOverDialog';
 import { recordResult } from './scores';
 import './hearts.css';
 
-function init(): GameState {
-  return deal(makeRng((Math.random() * 0x7fffffff) | 0), loadOptions());
+function initFrom(restored: unknown, currentOptions: Options): GameState {
+  if (isValidHeartsSnapshot(restored)) {
+    return {
+      phase: restored.phase as GameState['phase'],
+      hands: restored.hands,
+      taken: restored.taken,
+      scores: restored.scores,
+      handNumber: restored.handNumber,
+      passDirection: restored.passDirection,
+      passSelections: restored.passSelections,
+      passReceived: null,
+      heartsBroken: restored.heartsBroken,
+      trick: restored.trick,
+      turn: restored.turn,
+      history: restored.history,
+      options: currentOptions,
+      prev: null,
+    };
+  }
+  return deal(makeRng((Math.random() * 0x7fffffff) | 0), currentOptions);
 }
 
-export default function Hearts({ api }: AppProps) {
-  const [state, dispatch] = useReducer(reducer, undefined, init);
+export default function Hearts({ api, restoreState }: AppProps) {
+  const [state, dispatch] = useReducer(reducer, undefined, () => initFrom(restoreState, loadOptions()));
   const [openMenu, setOpenMenu] = useState<'game' | null>(null);
   const [optionsOpen, setOptionsOpen] = useState(false);
 
@@ -38,6 +57,22 @@ export default function Hearts({ api }: AppProps) {
   }, [state.phase, state.history.length, state.scores]);
 
   useEffect(() => { saveOptions(state.options); }, [state.options]);
+
+  useEffect(() => {
+    return api.registerSnapshot(() => ({
+      phase: state.phase === 'trick-resolved' ? 'playing' : state.phase,
+      hands: state.hands,
+      taken: state.taken,
+      scores: state.scores,
+      handNumber: state.handNumber,
+      passDirection: state.passDirection,
+      passSelections: state.passSelections,
+      heartsBroken: state.heartsBroken,
+      trick: state.trick,
+      turn: state.turn,
+      history: state.history,
+    }));
+  }, [state, api]);
 
   const recordedRef = useRef(false);
   useEffect(() => {

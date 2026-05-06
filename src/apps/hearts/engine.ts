@@ -397,3 +397,32 @@ export function applyHandScores(
   }
   return result;
 }
+
+export type HeartsSnapshot = {
+  phase: 'passing' | 'playing' | 'hand-over' | 'game-over';
+  hands: Record<PlayerId, Card[]>;
+  taken: Record<PlayerId, Card[]>;
+  scores: Record<PlayerId, number>;
+  handNumber: number;
+  passDirection: PassDirection;
+  passSelections: Card[] | null;
+  heartsBroken: boolean;
+  trick: Trick | null;
+  turn: PlayerId | null;
+  history: Card[];
+};
+
+export function isValidHeartsSnapshot(v: unknown): v is HeartsSnapshot {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  if (s.phase !== 'passing' && s.phase !== 'playing' && s.phase !== 'hand-over' && s.phase !== 'game-over') return false;
+  if (!s.hands || !s.taken || !s.scores) return false;
+  for (const p of PLAYERS) {
+    if (!Array.isArray((s.hands as Record<string, unknown>)[p])) return false;
+    if (!Array.isArray((s.taken as Record<string, unknown>)[p])) return false;
+    if (typeof (s.scores as Record<string, unknown>)[p] !== 'number') return false;
+  }
+  if (typeof s.handNumber !== 'number') return false;
+  if (!Array.isArray(s.history)) return false;
+  return true;
+}
