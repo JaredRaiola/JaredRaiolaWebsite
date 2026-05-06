@@ -16,6 +16,9 @@ import TrickArea from './components/TrickArea';
 import PassPrompt from './components/PassPrompt';
 import PlayPrompt from './components/PlayPrompt';
 import ScoreSheet from './components/ScoreSheet';
+import OptionsDialog from './components/OptionsDialog';
+import GameOverDialog from './components/GameOverDialog';
+import { recordResult } from './scores';
 import './hearts.css';
 
 function init(): GameState {
@@ -25,6 +28,7 @@ function init(): GameState {
 export default function Hearts({ api }: AppProps) {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const [openMenu, setOpenMenu] = useState<'game' | null>(null);
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   const scoresAtHandStartRef = useRef<Record<PlayerId, number>>(state.scores);
   useEffect(() => {
@@ -35,13 +39,26 @@ export default function Hearts({ api }: AppProps) {
 
   useEffect(() => { saveOptions(state.options); }, [state.options]);
 
+  const recordedRef = useRef(false);
+  useEffect(() => {
+    if (state.phase !== 'game-over') {
+      recordedRef.current = false;
+      return;
+    }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const humanScore = state.scores[0];
+    const lowest = Math.min(state.scores[0], state.scores[1], state.scores[2], state.scores[3]);
+    recordResult({ humanWon: humanScore === lowest, humanScore });
+  }, [state.phase, state.scores]);
+
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   useHotkeys(
     {
       'f2': () => dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) }),
       'ctrl+z': () => dispatch({ type: 'undo' }),
     },
-    { enabled: focused },
+    { enabled: focused && !optionsOpen && state.phase !== 'game-over' },
   );
 
   // AI play effect.
@@ -117,6 +134,8 @@ export default function Hearts({ api }: AppProps) {
               <div className="item" onClick={() => { dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); setOpenMenu(null); }}>New Game&nbsp;&nbsp;F2</div>
               <div className="item" onClick={() => { dispatch({ type: 'undo' }); setOpenMenu(null); }}>Undo&nbsp;&nbsp;Ctrl+Z</div>
               <div className="sep" />
+              <div className="item" onClick={() => { setOptionsOpen(true); setOpenMenu(null); }}>Options...</div>
+              <div className="sep" />
               <div className="item" onClick={() => api.requestClose()}>Exit</div>
             </div>
           )}
@@ -148,6 +167,20 @@ export default function Hearts({ api }: AppProps) {
           scoresBefore={scoresAtHandStartRef.current}
           taken={state.taken}
           onContinue={() => dispatch({ type: 'nextHand', rng: makeRng((Math.random() * 0x7fffffff) | 0) })}
+        />
+      )}
+      {state.phase === 'game-over' && (
+        <GameOverDialog
+          scores={state.scores}
+          onNewGame={() => dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) })}
+          onClose={() => api.requestClose()}
+        />
+      )}
+      {optionsOpen && (
+        <OptionsDialog
+          initial={state.options}
+          onCancel={() => setOptionsOpen(false)}
+          onOk={(next) => { dispatch({ type: 'setOptions', options: next }); setOptionsOpen(false); }}
         />
       )}
     </div>

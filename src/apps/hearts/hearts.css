@@ -131,3 +131,10 @@
   padding: 8px 12px; border-top: 1px solid #808080;
 }
 .hearts-dialog-buttons button { min-width: 75px; }
+
+.hearts-dialog-body {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px;
+}
+.hearts-dialog-body fieldset { padding: 8px 10px; margin: 0; }
+.hearts-dialog-body legend { padding: 0 4px; }
+.hearts-dialog-body .field-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
