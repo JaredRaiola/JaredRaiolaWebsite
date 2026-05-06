@@ -241,3 +241,61 @@
   padding: 1px 6px;
   min-width: 80px;
 }
+
+/* ── Attributes dialog ── */
+.paint-attr-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99500;
+}
+.paint-attr-dialog {
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  min-width: 240px;
+  font-family: 'MS Sans Serif', Arial, sans-serif;
+  font-size: 12px;
+}
+.paint-attr-title {
+  background: #000080;
+  color: #fff;
+  padding: 3px 6px;
+  font-weight: 700;
+}
+.paint-attr-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.paint-attr-body label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.paint-attr-body input {
+  width: 80px;
+}
+.paint-attr-units {
+  margin-top: 4px;
+  color: #404040;
+  font-size: 11px;
+}
+.paint-attr-buttons {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid #808080;
+}
+.paint-attr-buttons button {
+  min-width: 70px;
+  height: 24px;
+}

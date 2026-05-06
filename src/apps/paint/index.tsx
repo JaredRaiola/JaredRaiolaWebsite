@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { AppProps } from '@/core/apps/registry';
 import { FileDialog } from '@/shell/FileDialog';
 import { basename } from '@/core/fs/paths';
@@ -20,8 +21,10 @@ import { pickerTool } from './tools/picker';
 import type { Tool } from './types';
 import './paint.css';
 
-const CANVAS_W = 480;
-const CANVAS_H = 360;
+const INITIAL_W = 480;
+const INITIAL_H = 360;
+const MIN_CANVAS_DIM = 1;
+const MAX_CANVAS_DIM = 2048;
 const HISTORY_CAPACITY = 32;
 
 const TOOLS: Record<Tool['id'], Tool> = {
@@ -102,10 +105,14 @@ export default function Paint({ api, fs, args }: AppProps) {
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ x: number; y: number } | null>(null);
+  const [canvasW, setCanvasW] = useState(INITIAL_W);
+  const [canvasH, setCanvasH] = useState(INITIAL_H);
+  const [attributesOpen, setAttributesOpen] = useState(false);
 
   const canvasRef = useRef<PaintCanvasRef>(null);
   const historyRef = useRef<History>(new History(HISTORY_CAPACITY));
   const pendingResolve = useRef<((b: boolean) => void) | null>(null);
+  const pendingResizeRef = useRef<HTMLCanvasElement | null>(null);
 
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   const currentTool = TOOLS[toolId];
@@ -133,7 +140,7 @@ export default function Paint({ api, fs, args }: AppProps) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const imgData = ctx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+    const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
     historyRef.current.push(imgData);
     setDirty(true);
   }, []);
@@ -161,8 +168,8 @@ export default function Paint({ api, fs, args }: AppProps) {
     const ctx = getCtx();
     if (!ctx) return;
     ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    const imgData = ctx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+    ctx.fillRect(0, 0, canvasW, canvasH);
+    const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
     historyRef.current.reset(imgData);
     setDirty(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -171,7 +178,7 @@ export default function Paint({ api, fs, args }: AppProps) {
   const invertColors = useCallback(() => {
     const ctx = getCtx();
     if (!ctx) return;
-    const imgData = ctx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+    const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
       d[i] = 255 - d[i];
@@ -192,16 +199,16 @@ export default function Paint({ api, fs, args }: AppProps) {
         const ctx = getCtx();
         if (!ctx) return;
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.fillRect(0, 0, canvasW, canvasH);
         // Scale to fit while preserving aspect ratio
-        const scale = Math.min(CANVAS_W / img.width, CANVAS_H / img.height);
+        const scale = Math.min(canvasW / img.width, canvasH / img.height);
         const w = img.width * scale;
         const h = img.height * scale;
-        const x = (CANVAS_W - w) / 2;
-        const y = (CANVAS_H - h) / 2;
+        const x = (canvasW - w) / 2;
+        const y = (canvasH - h) / 2;
         ctx.drawImage(img, x, y, w, h);
         URL.revokeObjectURL(url);
-        const imgData = ctx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+        const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
         historyRef.current.reset(imgData);
         setPath(filePath);
         setDirty(false);
@@ -223,8 +230,8 @@ export default function Paint({ api, fs, args }: AppProps) {
     const ctx = getCtx();
     if (!ctx) return;
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    const imgData = ctx.getImageData(0, 0, CANVAS_W, CANVAS_H);
+    ctx.fillRect(0, 0, canvasW, canvasH);
+    const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
     historyRef.current.reset(imgData);
     setPath(null);
     setDirty(false);
@@ -312,7 +319,7 @@ export default function Paint({ api, fs, args }: AppProps) {
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor(e.clientX - rect.left);
     const y = Math.floor(e.clientY - rect.top);
-    if (x >= 0 && x < CANVAS_W && y >= 0 && y < CANVAS_H) {
+    if (x >= 0 && x < canvasW && y >= 0 && y < canvasH) {
       setCoords({ x, y });
     } else {
       setCoords(null);
@@ -320,6 +327,38 @@ export default function Paint({ api, fs, args }: AppProps) {
   };
 
   const handlePointerLeave = () => setCoords(null);
+
+  const requestResize = (newW: number, newH: number): void => {
+    const canvas = canvasRef.current?.getCanvas();
+    if (!canvas) return;
+    if (newW === canvasW && newH === canvasH) return;
+    // Snapshot the current image into an offscreen canvas. The new canvas
+    // re-mounts when state changes; the useEffect below restores the snapshot.
+    const offscreen = document.createElement('canvas');
+    offscreen.width = canvasW;
+    offscreen.height = canvasH;
+    const octx = offscreen.getContext('2d');
+    if (octx) octx.drawImage(canvas, 0, 0);
+    pendingResizeRef.current = offscreen;
+    setCanvasW(newW);
+    setCanvasH(newH);
+  };
+
+  // Restore image content after a canvas resize.
+  useEffect(() => {
+    const offscreen = pendingResizeRef.current;
+    if (!offscreen) return;
+    const ctx = getCtx();
+    if (!ctx) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasW, canvasH);
+    ctx.drawImage(offscreen, 0, 0);
+    pendingResizeRef.current = null;
+    const newSnap = ctx.getImageData(0, 0, canvasW, canvasH);
+    historyRef.current.reset(newSnap);
+    setDirty(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasW, canvasH]);
 
   return (
     <div
@@ -359,6 +398,8 @@ export default function Paint({ api, fs, args }: AppProps) {
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
           items={[
+            { label: 'Attributes...', onSelect: () => setAttributesOpen(true) },
+            { kind: 'sep' },
             { label: 'Clear Image', onSelect: clearCanvas },
             { label: 'Invert Colors', onSelect: invertColors },
           ]}
@@ -390,8 +431,8 @@ export default function Paint({ api, fs, args }: AppProps) {
         <div className="paint-scroll">
           <PaintCanvas
             ref={canvasRef}
-            width={CANVAS_W}
-            height={CANVAS_H}
+            width={canvasW}
+            height={canvasH}
             tool={currentTool}
             fg={fg}
             bg={bg}
@@ -411,7 +452,7 @@ export default function Paint({ api, fs, args }: AppProps) {
         <span className="paint-status-pane">
           {coords ? `${coords.x}, ${coords.y}` : ''}
         </span>
-        <span className="paint-status-pane">{CANVAS_W} × {CANVAS_H}</span>
+        <span className="paint-status-pane">{canvasW} × {canvasH}</span>
       </div>
 
       {/* File dialog */}
@@ -445,6 +486,57 @@ export default function Paint({ api, fs, args }: AppProps) {
           }}
         />
       )}
+
+      {attributesOpen && (
+        <AttributesDialog
+          initialWidth={canvasW}
+          initialHeight={canvasH}
+          onCancel={() => setAttributesOpen(false)}
+          onSubmit={(w, h) => {
+            requestResize(w, h);
+            setAttributesOpen(false);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function AttributesDialog({
+  initialWidth,
+  initialHeight,
+  onCancel,
+  onSubmit,
+}: {
+  initialWidth: number;
+  initialHeight: number;
+  onCancel(): void;
+  onSubmit(w: number, h: number): void;
+}) {
+  const [w, setW] = useState(String(initialWidth));
+  const [h, setH] = useState(String(initialHeight));
+
+  const submit = (): void => {
+    const wn = Math.max(MIN_CANVAS_DIM, Math.min(MAX_CANVAS_DIM, parseInt(w, 10) || initialWidth));
+    const hn = Math.max(MIN_CANVAS_DIM, Math.min(MAX_CANVAS_DIM, parseInt(h, 10) || initialHeight));
+    onSubmit(wn, hn);
+  };
+
+  return createPortal(
+    <div className="paint-attr-backdrop" onClick={onCancel}>
+      <div className="paint-attr-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="paint-attr-title">Attributes</div>
+        <div className="paint-attr-body">
+          <label>Width: <input type="text" value={w} onChange={(e) => setW(e.target.value)} /></label>
+          <label>Height: <input type="text" value={h} onChange={(e) => setH(e.target.value)} /></label>
+          <div className="paint-attr-units">Pixels (1 to {MAX_CANVAS_DIM})</div>
+        </div>
+        <div className="paint-attr-buttons">
+          <button onClick={submit}>OK</button>
+          <button onClick={onCancel}>Cancel</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
