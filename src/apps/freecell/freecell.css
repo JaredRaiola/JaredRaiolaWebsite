@@ -25,7 +25,10 @@
 }
 .fc-card {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 71px;
+  height: 96px;
   cursor: pointer;
 }
 .fc-card svg { width: 100%; height: 100%; display: block; }
