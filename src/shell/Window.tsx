@@ -53,6 +53,10 @@ export function Window({ window: w }: Props) {
   const resize = useWindowStore((s) => s.resize);
   const setTitle = useWindowStore((s) => s.setTitle);
   const setIcon = useWindowStore((s) => s.setIcon);
+  const registerSnapshot = useWindowStore((s) => s.registerSnapshot);
+  const registerBlob = useWindowStore((s) => s.registerBlob);
+  const restoreState = useWindowStore((s) => s.restoreState[w.id]);
+  const restoreBlobs = useWindowStore((s) => s.restoreBlobs[w.id]);
   const fs = useFsStore((s) => s.fs);
   const open = useWindowStore((s) => s.open);
 
@@ -94,10 +98,10 @@ export function Window({ window: w }: Props) {
         new Promise<DialogResult>((resolve) => {
           setDialog({ opts, resolve: (r) => { setDialog(null); resolve(r); } });
         }),
-      registerSnapshot: () => () => { /* stub — real impl in Task 8 */ },
-      registerBlob: () => () => { /* stub — real impl in Task 8 */ },
+      registerSnapshot: (getter) => registerSnapshot(w.id, getter),
+      registerBlob: (key, getter) => registerBlob(w.id, key, getter),
     }),
-    [w.id, setTitle, setIcon, resize, close, open],
+    [w.id, setTitle, setIcon, resize, close, open, registerSnapshot, registerBlob],
   );
 
   if (!def || !fs) return null;
@@ -146,7 +150,13 @@ export function Window({ window: w }: Props) {
           <AppErrorBoundary name={def.displayName} onClose={() => close(w.id)}>
             {Comp && (
               <Suspense fallback={<div style={{ padding: 8 }}>Loading…</div>}>
-                <Comp api={api} fs={fs} args={w.args} />
+                <Comp
+                  api={api}
+                  fs={fs}
+                  args={w.args}
+                  restoreState={restoreState}
+                  restoreBlobs={restoreBlobs}
+                />
               </Suspense>
             )}
           </AppErrorBoundary>
