@@ -89,3 +89,20 @@ describe('chooseAiMove — determinism', () => {
     expect(a).toEqual(b);
   });
 });
+
+describe('chooseAiMove — Advanced', () => {
+  it('captures a hanging black queen on h8 with Rxh8', () => {
+    // Position: White Kg1, Rh1. Black Kg8, Qh8 (black queen on h8, undefended).
+    // Best line: 1. Rxh8+ — rook captures the queen (winning 900 cp),
+    // giving check; the AI at depth 4 + quiescence must find this.
+    const p = emptyPos();
+    place(p, 6, 0, { color: 'white', type: 'king' });
+    place(p, 7, 0, { color: 'white', type: 'rook' });
+    place(p, 6, 7, { color: 'black', type: 'king' });
+    place(p, 7, 7, { color: 'black', type: 'queen' });  // black Qh8
+    p.toMove = 'white';
+    const m = chooseAiMove(p, 'advanced');
+    expect(m.from).toBe(makeSquare(7, 0));
+    expect(m.to).toBe(makeSquare(7, 7));
+  });
+});

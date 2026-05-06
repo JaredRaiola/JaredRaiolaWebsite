@@ -101,9 +101,24 @@ function moveOrder(moves: Move[]): Move[] {
   return [...captures.map(x => x.m), ...quiets];
 }
 
-function negamax(pos: Position, depth: number, alpha: number, beta: number, color: Color): number {
+function quiescence(pos: Position, alpha: number, beta: number, color: Color, depthLimit: number): number {
+  const standPat = color === 'white' ? evaluate(pos) : -evaluate(pos);
+  if (standPat >= beta) return beta;
+  if (alpha < standPat) alpha = standPat;
+  if (depthLimit === 0) return alpha;
+  const moves = generateLegalMoves(pos).filter(m => m.capture);
+  for (const m of moveOrder(moves)) {
+    const next = makeMove(pos, m);
+    const score = -quiescence(next, -beta, -alpha, opposite(color), depthLimit - 1);
+    if (score >= beta) return beta;
+    if (score > alpha) alpha = score;
+  }
+  return alpha;
+}
+
+function negamax(pos: Position, depth: number, alpha: number, beta: number, color: Color, useQ: boolean): number {
   if (depth === 0) {
-    return color === 'white' ? evaluate(pos) : -evaluate(pos);
+    return useQ ? quiescence(pos, alpha, beta, color, 6) : (color === 'white' ? evaluate(pos) : -evaluate(pos));
   }
   const moves = generateLegalMoves(pos);
   if (moves.length === 0) {
@@ -113,7 +128,7 @@ function negamax(pos: Position, depth: number, alpha: number, beta: number, colo
   let best = -Infinity;
   for (const m of moveOrder(moves)) {
     const next = makeMove(pos, m);
-    const score = -negamax(next, depth - 1, -beta, -alpha, opposite(color));
+    const score = -negamax(next, depth - 1, -beta, -alpha, opposite(color), useQ);
     if (score > best) best = score;
     if (best > alpha) alpha = best;
     if (alpha >= beta) break;
@@ -121,7 +136,7 @@ function negamax(pos: Position, depth: number, alpha: number, beta: number, colo
   return best;
 }
 
-function searchBestMove(pos: Position, depth: number): { move: Move; score: number; ties: Move[] } {
+function searchBestMove(pos: Position, depth: number, useQ: boolean): { move: Move; score: number; ties: Move[] } {
   const moves = generateLegalMoves(pos);
   if (moves.length === 0) throw new Error('chooseAiMove: no legal moves');
   let bestScore = -Infinity;
@@ -129,7 +144,7 @@ function searchBestMove(pos: Position, depth: number): { move: Move; score: numb
   const color = pos.toMove;
   for (const m of moveOrder(moves)) {
     const next = makeMove(pos, m);
-    const score = -negamax(next, depth - 1, -Infinity, Infinity, opposite(color));
+    const score = -negamax(next, depth - 1, -Infinity, Infinity, opposite(color), useQ);
     if (score > bestScore) {
       bestScore = score;
       ties = [m];
@@ -147,7 +162,8 @@ function seededIndex(pos: Position, n: number): number {
 
 export function chooseAiMove(pos: Position, difficulty: Difficulty): Move {
   const depth = difficulty === 'beginner' ? 1 : difficulty === 'intermediate' ? 3 : 4;
-  const { ties } = searchBestMove(pos, depth);
+  const useQ = difficulty === 'advanced';
+  const { ties } = searchBestMove(pos, depth, useQ);
   if (difficulty === 'beginner' && ties.length > 1) {
     return ties[seededIndex(pos, ties.length)];
   }
