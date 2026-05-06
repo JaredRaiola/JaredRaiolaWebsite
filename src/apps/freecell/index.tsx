@@ -13,6 +13,8 @@ import Foundation from './components/Foundation';
 import Tableau from './components/Tableau';
 import SelectGameDialog from './components/SelectGameDialog';
 import StatisticsDialog from './components/StatisticsDialog';
+import OutcomeDialog from './components/OutcomeDialog';
+import { recordResult } from './scores';
 import CardFaceSvg from '@/apps/solitaire/cards/CardFaceSvg';
 import './freecell.css';
 
@@ -28,6 +30,7 @@ export default function FreeCell({ api }: AppProps) {
   const [statsOpen, setStatsOpen] = useState(false);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragMetaRef = useRef<{ from: PileId; fromIdx: number; cards: Card[]; offset: { x: number; y: number } } | null>(null);
+  const recordedRef = useRef(false);
 
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   useHotkeys(
@@ -53,6 +56,17 @@ export default function FreeCell({ api }: AppProps) {
     if (state.phase !== 'cascading') return;
     const id = window.setInterval(() => dispatch({ type: 'cascadeStep' }), 100);
     return () => window.clearInterval(id);
+  }, [state.phase]);
+
+  // Record result on win/lost.
+  useEffect(() => {
+    if (state.phase !== 'won' && state.phase !== 'lost') {
+      recordedRef.current = false;
+      return;
+    }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    recordResult(state.phase);
   }, [state.phase]);
 
   // Drag listeners.
@@ -204,6 +218,15 @@ export default function FreeCell({ api }: AppProps) {
         />
       )}
       {statsOpen && <StatisticsDialog onClose={() => setStatsOpen(false)} />}
+      {(state.phase === 'won' || state.phase === 'lost') && (
+        <OutcomeDialog
+          outcome={state.phase}
+          gameNumber={state.gameNumber}
+          moveCount={state.moveCount}
+          onNewGame={() => dispatch({ type: 'newGame', gameNumber: 1 + Math.floor(Math.random() * 32000) })}
+          onClose={() => api.requestClose()}
+        />
+      )}
 
       <div className="fc-status">
         <span>Game {state.gameNumber}</span>
