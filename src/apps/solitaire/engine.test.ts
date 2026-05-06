@@ -209,7 +209,7 @@ describe('reducer/tryMove', () => {
     piles['tableau-1'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
-      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 1, to: 'tableau-1' });
     expect(r.piles['tableau-1'].map((c) => c.id)).toEqual(['6S', '5H']);
@@ -226,7 +226,7 @@ describe('reducer/tryMove', () => {
     piles['tableau-1'] = [{ id: '7H', suit: 'hearts', rank: 7, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
-      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'tableau-1' });
     expect(r.piles['tableau-1']).toHaveLength(4);
@@ -241,7 +241,7 @@ describe('reducer/tryMove', () => {
     piles['foundation-spades'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
-      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'foundation-spades' });
     expect(r).toBe(s);
@@ -256,7 +256,7 @@ describe('reducer/autoMoveToFoundation', () => {
     piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
-      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'autoMoveToFoundation', from: 'waste' });
     expect(r.piles['foundation-spades'].map((c) => c.id)).toEqual(['AS']);
@@ -267,7 +267,7 @@ describe('reducer/autoMoveToFoundation', () => {
     piles['waste'] = [{ id: '5H', suit: 'hearts', rank: 5, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
-      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     expect(reducer(s, { type: 'autoMoveToFoundation', from: 'waste' })).toBe(s);
   });
@@ -279,7 +279,7 @@ describe('reducer/autoFinish + win detection', () => {
     piles['stock'] = [{ id: '5H', suit: 'hearts', rank: 5, faceUp: false }];
     const s: GameState = {
       phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
-      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     expect(reducer(s, { type: 'autoFinish' })).toBe(s);
   });
@@ -302,7 +302,7 @@ describe('reducer/autoFinish + win detection', () => {
     }
     const s: GameState = {
       phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
-      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'autoFinish' });
     expect(r.phase).toBe('won');
@@ -375,7 +375,7 @@ describe('scoring/standard', () => {
     piles['tableau-0'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
-      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'tableau-0' });
     expect(r.score).toBe(5);
@@ -385,7 +385,7 @@ describe('scoring/standard', () => {
     piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
-      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'foundation-spades' });
     expect(r.score).toBe(10);
@@ -395,7 +395,7 @@ describe('scoring/standard', () => {
     piles['tableau-0'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
-      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'foundation-spades' });
     expect(r.score).toBe(10);
@@ -409,7 +409,7 @@ describe('scoring/standard', () => {
     piles['tableau-1'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
-      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 1, to: 'tableau-1' });
     expect(r.score).toBe(5);
@@ -423,7 +423,7 @@ describe('scoring/standard', () => {
     piles['tableau-0'] = [{ id: '3H', suit: 'hearts', rank: 3, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
-      score: 100, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: 100, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'foundation-spades', fromIdx: 1, to: 'tableau-0' });
     expect(r.score).toBe(85);
@@ -434,7 +434,7 @@ describe('scoring/standard', () => {
     piles['tableau-0'] = [{ id: '2H', suit: 'hearts', rank: 2, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'standard' },
-      score: 5, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: 5, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'foundation-spades', fromIdx: 0, to: 'tableau-0' });
     expect(r.score).toBe(0);
@@ -451,7 +451,7 @@ describe('scoring/vegas', () => {
     piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'vegas' },
-      score: -52, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: -52, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r1 = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'foundation-spades' });
     expect(r1.score).toBe(-47);
@@ -462,7 +462,7 @@ describe('scoring/vegas', () => {
     piles['tableau-1'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'vegas' },
-      score: -52, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: -52, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'tableau-1' });
     expect(r.score).toBe(-52);
@@ -475,7 +475,7 @@ describe('scoring/none', () => {
     piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
     const s: GameState = {
       phase: 'playing', piles, options: { ...DEFAULT_OPTIONS, scoring: 'none' },
-      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+      score: 0, vegasBalance: 0, startedAt: null, elapsedMs: 0, recyclesUsed: 0, wasteFanSize: 0, prev: null, drag: null,
     };
     const r = reducer(s, { type: 'tryMove', from: 'waste', fromIdx: 0, to: 'foundation-spades' });
     expect(r.score).toBe(0);

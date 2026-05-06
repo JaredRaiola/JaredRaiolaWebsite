@@ -34,6 +34,7 @@ function initFrom(restored: unknown, fallbackOptions: Options): GameState {
       startedAt,
       elapsedMs: restored.elapsedMs,
       recyclesUsed: restored.recyclesUsed,
+      wasteFanSize: restored.wasteFanSize ?? 0,
       prev: null,
       drag: null,
     };
@@ -77,6 +78,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
       startedAt: null,
       elapsedMs: state.elapsedMs,
       recyclesUsed: state.recyclesUsed,
+      wasteFanSize: state.wasteFanSize,
       phase: state.phase === 'won' || state.phase === 'cascading' ? 'idle' : state.phase,
     }));
   }, [state, api]);
@@ -193,7 +195,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
             <div data-pile-id="waste">
               <Waste
                 cards={state.piles.waste}
-                draw={state.options.draw}
+                fanSize={state.wasteFanSize}
                 outlineDragging={state.options.outlineDragging}
                 isDragSource={isDragSource}
                 onPointerDownTop={(e) => startDrag('waste', state.piles.waste.length - 1, e)}
@@ -207,6 +209,8 @@ export default function Solitaire({ api, restoreState }: AppProps) {
                 <Foundation
                   suit={s}
                   cards={state.piles[`foundation-${s}` as PileId]}
+                  outlineDragging={state.options.outlineDragging}
+                  isDragSource={isDragSource}
                   onPointerDownTop={(e) => startDrag(`foundation-${s}` as PileId, state.piles[`foundation-${s}` as PileId].length - 1, e)}
                   onDoubleClickTop={() => dispatch({ type: 'autoMoveToFoundation', from: `foundation-${s}` as PileId })}
                 />

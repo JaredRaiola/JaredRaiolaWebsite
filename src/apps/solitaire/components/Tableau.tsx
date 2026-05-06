@@ -20,15 +20,19 @@ export default function Tableau({ cards, outlineDragging, isDragSource, onPointe
         const top = i === cards.length - 1;
         const offset = i === 0 ? 0 : (cards[i - 1].faceUp ? FACE_UP_OFFSET : FACE_DOWN_OFFSET);
         y += offset;
-        const dim = isDragSource(c.id) && outlineDragging;
+        const dragging = isDragSource(c.id);
         return (
           <Card
             key={c.id}
             card={c}
-            style={{ position: 'absolute', top: y, left: 0 }}
+            style={{
+              position: 'absolute',
+              top: y,
+              left: 0,
+              opacity: dragging ? (outlineDragging ? 0.55 : 0) : 1,
+            }}
             onPointerDown={c.faceUp ? (e) => onPointerDownAt(i, e) : undefined}
             onDoubleClick={top ? onDoubleClickTop : undefined}
-            dimmed={dim}
           />
         );
       })}

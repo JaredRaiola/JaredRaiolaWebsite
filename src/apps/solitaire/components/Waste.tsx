@@ -4,27 +4,33 @@ import Card from './Card';
 
 type Props = {
   cards: CardModel[];
-  draw: 1 | 3;
+  fanSize: number;
   outlineDragging: boolean;
   isDragSource: (cardId: string) => boolean;
   onPointerDownTop: (e: React.PointerEvent) => void;
   onDoubleClickTop: (e: React.MouseEvent) => void;
 };
 
-export default function Waste({ cards, draw, outlineDragging, isDragSource, onPointerDownTop, onDoubleClickTop }: Props): React.ReactElement {
-  const visible = draw === 1 ? cards.slice(-1) : cards.slice(-3);
+export default function Waste({ cards, fanSize, outlineDragging, isDragSource, onPointerDownTop, onDoubleClickTop }: Props): React.ReactElement {
+  const n = Math.min(Math.max(1, fanSize), cards.length);
+  const visible = cards.slice(-n);
   return (
     <Pile className="sol-waste">
       {visible.map((c, i) => {
         const isTop = i === visible.length - 1;
+        const dragging = isDragSource(c.id);
         return (
           <Card
             key={c.id}
             card={c}
-            style={{ position: 'absolute', left: i * 14, top: 0 }}
+            style={{
+              position: 'absolute',
+              left: i * 14,
+              top: 0,
+              opacity: dragging ? (outlineDragging ? 0.55 : 0) : 1,
+            }}
             onPointerDown={isTop ? onPointerDownTop : undefined}
             onDoubleClick={isTop ? onDoubleClickTop : undefined}
-            dimmed={isDragSource(c.id) && outlineDragging}
           />
         );
       })}

@@ -42,7 +42,11 @@ export type GameState = {
   startedAt: number | null;
   elapsedMs: number;
   recyclesUsed: number;
-  prev: { piles: Record<PileId, Card[]>; score: number; recyclesUsed: number } | null;
+  /** How many cards from the most recent draw are still on top of the waste pile.
+   *  Used to render the draw-3 fan. Decrements when a card is taken from waste;
+   *  resets on draw or recycle. */
+  wasteFanSize: number;
+  prev: { piles: Record<PileId, Card[]>; score: number; recyclesUsed: number; wasteFanSize: number } | null;
   drag: { from: PileId; cards: Card[]; pointerOffset: { x: number; y: number } } | null;
 };
 
@@ -108,6 +112,7 @@ export function deal(rng: RNG, options: Options = DEFAULT_OPTIONS): GameState {
     startedAt,
     elapsedMs: 0,
     recyclesUsed: 0,
+    wasteFanSize: 0,
     prev: null,
     drag: null,
   };
@@ -156,7 +161,7 @@ export type Action =
   | { type: 'setPhase'; phase: Phase };
 
 function snapshotPrev(s: GameState): GameState['prev'] {
-  return { piles: clonePiles(s.piles), score: s.score, recyclesUsed: s.recyclesUsed };
+  return { piles: clonePiles(s.piles), score: s.score, recyclesUsed: s.recyclesUsed, wasteFanSize: s.wasteFanSize };
 }
 
 function clonePiles(p: Record<PileId, Card[]>): Record<PileId, Card[]> {
@@ -179,7 +184,7 @@ function drawFromStock(s: GameState): GameState {
       card.faceUp = true;
       piles.waste.push(card);
     }
-    return { ...s, piles, prev: snapshotPrev(s) };
+    return { ...s, piles, wasteFanSize: n, prev: snapshotPrev(s) };
   }
   if (s.piles.waste.length === 0) return s;
   if (s.options.scoring === 'vegas' && s.recyclesUsed >= maxRecyclesForVegas(s.options.draw)) return s;
@@ -193,7 +198,7 @@ function drawFromStock(s: GameState): GameState {
   if (s.options.scoring === 'standard') {
     score = Math.max(0, score - (s.options.draw === 1 ? 100 : 20));
   }
-  return { ...s, piles, score, recyclesUsed: s.recyclesUsed + 1, prev: snapshotPrev(s) };
+  return { ...s, piles, score, recyclesUsed: s.recyclesUsed + 1, wasteFanSize: 0, prev: snapshotPrev(s) };
 }
 
 function isFoundationPile(p: PileId): boolean {
@@ -257,7 +262,8 @@ function tryMove(s: GameState, from: PileId, fromIdx: number, to: PileId): GameS
   const delta = scoreDelta(s.options, { from, to, movedCount: moving.length, revealed });
   let score = s.score + delta;
   if (s.options.scoring === 'standard' && score < 0) score = 0;
-  return { ...s, piles, score, prev: snapshotPrev(s) };
+  const wasteFanSize = from === 'waste' ? Math.max(0, s.wasteFanSize - 1) : s.wasteFanSize;
+  return { ...s, piles, score, wasteFanSize, prev: snapshotPrev(s) };
 }
 
 export function timeBonus(options: Options, elapsedMs: number): number {
@@ -322,6 +328,7 @@ function undo(s: GameState): GameState {
     piles: clonePiles(s.prev.piles),
     score: s.prev.score,
     recyclesUsed: s.prev.recyclesUsed,
+    wasteFanSize: s.prev.wasteFanSize,
     prev: null,
   };
 }
@@ -368,6 +375,7 @@ export type SolitaireSnapshot = {
   startedAt: null;
   elapsedMs: number;
   recyclesUsed: number;
+  wasteFanSize: number;
   phase: 'idle' | 'playing';
 };
 
