@@ -146,7 +146,14 @@
 
 /* Config-stage table — drawn with CSS borders rather than box-drawing chars
    because W95FA's box-drawing glyphs are wider than its letters and the
-   right edges never line up. */
+   right edges never line up. The whole table is revealed top-to-bottom via
+   a clip-path so the border itself appears progressively in step with the
+   rows fading in inside it. */
+@property --boot-cfg-reveal {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
 .boot-cfg-screen { display: block; }
 .boot-cfg-table {
   display: inline-block;
@@ -154,6 +161,13 @@
   margin-top: 6px;
   margin-bottom: 12px;
   margin-left: 1ch;
+  --boot-cfg-reveal: 0%;
+  clip-path: inset(0 0 calc(100% - var(--boot-cfg-reveal)) 0);
+  animation: boot-cfg-reveal 1.2s ease-out 0.1s forwards;
+}
+@keyframes boot-cfg-reveal {
+  from { --boot-cfg-reveal: 0%; }
+  to   { --boot-cfg-reveal: 100%; }
 }
 .boot-cfg-section { padding: 4px 0; }
 .boot-cfg-section + .boot-cfg-section { border-top: 1px solid #ffffff; }
@@ -162,9 +176,6 @@
   grid-template-columns: 18ch 22ch 18ch 14ch;
   padding: 0 1.5ch;
   column-gap: 0;
-  opacity: 0;
-  transform: translateY(8px);
-  animation: boot-line-in 0.25s ease-out forwards;
 }
 .boot-cfg-row > span { white-space: pre; }
 @keyframes boot-line-in {

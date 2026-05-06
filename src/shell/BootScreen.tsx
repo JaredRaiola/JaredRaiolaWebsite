@@ -184,20 +184,20 @@ function ConfigStage() {
         <div className="boot-cfg-table">
           <div className="boot-cfg-section">
             {top.map((r, i) => (
-              <div key={`t${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.2 + i * 0.08}s` }}>
+              <div key={`t${i}`} className="boot-cfg-row">
                 <span>{r[0]}</span><span>{r[1]}</span><span>{r[2]}</span><span>{r[3]}</span>
               </div>
             ))}
           </div>
           <div className="boot-cfg-section">
             {bot.map((r, i) => (
-              <div key={`b${i}`} className="boot-cfg-row" style={{ animationDelay: `${0.5 + i * 0.08}s` }}>
+              <div key={`b${i}`} className="boot-cfg-row">
                 <span>{r[0]}</span><span>{r[1]}</span><span>{r[2]}</span><span>{r[3]}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="boot-bios-starting" style={{ animationDelay: `${0.7 + bot.length * 0.08}s` }}>
+        <div className="boot-bios-starting" style={{ animationDelay: '1.4s' }}>
           Starting Windows 95...<span className="boot-bios-cursor">_</span>
         </div>
       </div>
