@@ -28,13 +28,21 @@
 .start-items {
   background: #c0c0c0;
   padding: 2px;
-  min-width: 180px;
+  min-width: 220px;
 }
 .start-items .flyout-item {
-  padding: 4px 8px 4px 4px;
-  font-size: 12px;
+  padding: 8px 14px 8px 6px;
+  font-size: 15px;
+  gap: 10px;
 }
 .start-items .flyout-item img {
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
+}
+.start-items .flyout-arrow {
+  font-size: 11px;
+  padding-left: 12px;
+}
+.start-items .flyout-sep {
+  margin: 4px 2px;
 }
