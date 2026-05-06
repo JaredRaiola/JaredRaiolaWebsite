@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState, reveal, neighbors, toggleMark, chord } from './engine';
+import { createInitialState, reveal, neighbors, toggleMark, chord, tick, newGame, setMarksEnabled } from './engine';
 import type { GameState } from './engine';
 
 describe('createInitialState', () => {
@@ -201,5 +201,37 @@ describe('lose detection', () => {
     expect(s.cells[0].exploded).toBe(true);
     expect(s.cells[0].revealed).toBe(true);
     expect(s.cells[3].revealed).toBe(true);
+  });
+});
+
+describe('tick', () => {
+  it('updates elapsedMs while playing', () => {
+    const s0: GameState = { ...createInitialState({ width: 9, height: 9, mines: 10 }), phase: 'playing', startedAt: 1000 };
+    const s1 = tick(s0, 1500);
+    expect(s1.elapsedMs).toBe(500);
+  });
+  it('does not change elapsedMs when not playing', () => {
+    const s0 = createInitialState({ width: 9, height: 9, mines: 10 });
+    const s1 = tick(s0, 9999);
+    expect(s1.elapsedMs).toBe(0);
+  });
+});
+
+describe('newGame', () => {
+  it('resets to a fresh idle state, keeping marksEnabled', () => {
+    let s = createInitialState({ width: 9, height: 9, mines: 10 });
+    s = setMarksEnabled(s, false);
+    s = reveal(s, 0);
+    const s2 = newGame(s);
+    expect(s2.phase).toBe('idle');
+    expect(s2.cells.every((c) => !c.revealed && !c.mine)).toBe(true);
+    expect(s2.marksEnabled).toBe(false);
+  });
+});
+
+describe('setMarksEnabled', () => {
+  it('updates the flag', () => {
+    const s = setMarksEnabled(createInitialState({ width: 9, height: 9, mines: 10 }), false);
+    expect(s.marksEnabled).toBe(false);
   });
 });

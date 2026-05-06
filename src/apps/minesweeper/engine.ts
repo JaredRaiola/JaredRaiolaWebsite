@@ -186,3 +186,20 @@ export function toggleMark(state: GameState, idx: number): GameState {
   const cells = state.cells.map((c, i) => (i === idx ? { ...c, mark: nextMark } : c));
   return { ...state, cells, flagsPlaced: state.flagsPlaced + flagDelta };
 }
+
+export function tick(state: GameState, now: number): GameState {
+  if (state.phase !== 'playing' || state.startedAt === null) return state;
+  const elapsedMs = Math.max(0, now - state.startedAt);
+  if (elapsedMs === state.elapsedMs) return state;
+  return { ...state, elapsedMs };
+}
+
+export function newGame(state: GameState): GameState {
+  const fresh = createInitialState({ width: state.width, height: state.height, mines: state.mines });
+  return { ...fresh, marksEnabled: state.marksEnabled };
+}
+
+export function setMarksEnabled(state: GameState, enabled: boolean): GameState {
+  if (state.marksEnabled === enabled) return state;
+  return { ...state, marksEnabled: enabled };
+}
