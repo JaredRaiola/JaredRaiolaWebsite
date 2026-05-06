@@ -78,3 +78,34 @@
 }
 .hearts-status button { min-width: 75px; }
 .hearts-broken-flag { color: #c00; font-style: italic; }
+
+.hearts-menubar {
+  display: flex; gap: 8px;
+  background: #c0c0c0;
+  color: #000;
+  border-bottom: 1px solid #808080;
+  padding: 2px 6px;
+}
+.hearts-menu { padding: 2px 8px; cursor: default; position: relative; }
+.hearts-menu:hover, .hearts-menu.open { background: #000080; color: #fff; }
+.hearts-menu-popup {
+  position: absolute; top: 100%; left: 0;
+  background: #c0c0c0; color: #000;
+  border: 1px solid; border-color: #fff #404040 #404040 #fff;
+  padding: 2px; min-width: 160px; z-index: 10;
+}
+.hearts-menu-popup .item { padding: 3px 16px 3px 8px; cursor: default; white-space: nowrap; }
+.hearts-menu-popup .item:hover { background: #000080; color: #fff; }
+.hearts-menu-popup .sep { height: 1px; margin: 3px 2px; background: #808080; box-shadow: 0 1px 0 #fff; }
+
+.hearts-felt {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 12px 0;
+  gap: 12px;
+}
+.hearts-top, .hearts-bottom { display: flex; justify-content: center; }
+.hearts-mid { display: flex; align-items: center; justify-content: center; gap: 30px; }
+.hearts-left, .hearts-right { display: flex; }
