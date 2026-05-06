@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Cell } from './Cell';
 import type { GameState } from '../engine';
+import { TILE_PX } from '../difficulties';
 
 type Props = {
   state: GameState;
@@ -9,8 +10,6 @@ type Props = {
   onChord(idx: number): void;
   onPressTile(idx: number | null): void;
 };
-
-const TILE_PX = 16;
 
 export function Board({ state, onReveal, onToggleMark, onChord, onPressTile }: Props) {
   const buttonsDown = useRef<Set<number>>(new Set()); // mouse buttons currently pressed

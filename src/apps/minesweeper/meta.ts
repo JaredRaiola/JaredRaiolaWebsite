@@ -11,6 +11,7 @@ const meta: AppDef = {
   minSize: { width: beginner.windowWidth, height: beginner.windowHeight },
   singleInstance: true,
   menuPath: ['Programs', 'Games'],
+  resizable: false,
   component: () => import('./index'),
 };
 

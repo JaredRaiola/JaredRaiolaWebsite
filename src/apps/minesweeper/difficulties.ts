@@ -23,14 +23,14 @@ export function maxMinesFor(width: number, height: number): number {
   return Math.max(CUSTOM_LIMITS.minMines, width * height - 9);
 }
 
-const TILE_PX = 16;
+export const TILE_PX = 24;
 
 /** Pixel size of the inner area (board + header + bevels), excluding window chrome. */
 export function computeContentSize(width: number, height: number): { contentWidth: number; contentHeight: number } {
-  const HEADER_H = 33;        // counter / smiley / timer strip
-  const OUTER_PAD = 6;        // raised outer frame thickness
+  const HEADER_H = 52;        // counter / smiley / timer strip (36px face + 12px padding + 4px border)
+  const OUTER_PAD = 8;        // raised outer frame thickness
   const INNER_PAD = 6;        // sunken inner frame thickness around board
-  const HEADER_GAP = 6;       // gap between header strip and board
+  const HEADER_GAP = 8;       // gap between header strip and board
   const boardW = width * TILE_PX;
   const boardH = height * TILE_PX;
   const contentWidth = OUTER_PAD * 2 + INNER_PAD * 2 + boardW;
@@ -40,12 +40,12 @@ export function computeContentSize(width: number, height: number): { contentWidt
 
 /**
  * Window size including chrome (title bar + menu bar + frame).
- * Approximates: 22 title bar + 22 menu bar + 4 horizontal frame, 4 vertical frame.
+ * Matches actual Window.css: 26px title bar + 4px padding + ~28px menu bar + 4px frame.
  */
 export function computeWindowSize(width: number, height: number): { windowWidth: number; windowHeight: number } {
   const { contentWidth, contentHeight } = computeContentSize(width, height);
-  const TITLE_H = 22;
-  const MENU_H = 22;
+  const TITLE_H = 30;
+  const MENU_H = 28;
   const FRAME_X = 4;
   const FRAME_Y = 4;
   return {

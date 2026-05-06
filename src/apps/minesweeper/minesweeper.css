@@ -40,21 +40,31 @@
 
 .ms-content {
   flex: 1;
-  padding: 6px;
+  padding: 8px;
   /* outer raised bevel */
   background: #c0c0c0;
   border-top: 2px solid #ffffff;
   border-left: 2px solid #ffffff;
   border-right: 2px solid #404040;
   border-bottom: 2px solid #404040;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ms-inner {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
 }
 
 .ms-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 6px;
-  margin-bottom: 6px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
   /* sunken */
   border-top: 2px solid #808080;
   border-left: 2px solid #808080;
@@ -66,25 +76,26 @@
 .ms-digits { display: flex; }
 
 .ms-face {
-  width: 26px;
-  height: 26px;
-  padding: 0;
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  box-sizing: border-box;
   background: #c0c0c0;
   border-top: 2px solid #ffffff;
   border-left: 2px solid #ffffff;
   border-right: 2px solid #404040;
   border-bottom: 2px solid #404040;
   cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.ms-face svg { width: 100%; height: 100%; display: block; }
 .ms-face.pressed {
   border-top: 2px solid #404040;
   border-left: 2px solid #404040;
   border-right: 2px solid #ffffff;
   border-bottom: 2px solid #ffffff;
-  padding-left: 2px;
-  padding-top: 2px;
-  width: 26px;
-  height: 26px;
 }
 
 .ms-board {
@@ -97,13 +108,14 @@
   background: #c0c0c0;
   width: max-content;
 }
-.ms-board-cell { width: 16px; height: 16px; }
+.ms-board-cell { width: 24px; height: 24px; }
 
 .ms-cell {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   display: block;
 }
+.ms-cell svg { width: 100%; height: 100%; display: block; }
 .ms-cell-raised {
   border-top: 2px solid #ffffff;
   border-left: 2px solid #ffffff;
@@ -118,15 +130,15 @@
   box-sizing: border-box;
 }
 
-/* Dialogs */
+/* Dialogs (portaled to document.body) */
 .ms-dialog-backdrop {
-  position: absolute;
+  position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,0.1);
-  z-index: 10;
+  z-index: 99500;
 }
 .ms-dialog {
   background: #c0c0c0;

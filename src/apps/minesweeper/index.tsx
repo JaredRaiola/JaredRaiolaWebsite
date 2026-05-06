@@ -175,19 +175,21 @@ export default function Minesweeper({ api }: AppProps) {
         </div>
       </div>
       <div className="ms-content">
-        <Header
-          minesRemaining={minesRemaining}
-          elapsedSeconds={elapsedSeconds}
-          faceState={faceState}
-          onFaceClick={() => dispatch({ type: 'newGame' })}
-        />
-        <Board
-          state={state}
-          onReveal={(idx) => dispatch({ type: 'reveal', idx })}
-          onToggleMark={(idx) => dispatch({ type: 'toggleMark', idx })}
-          onChord={(idx) => dispatch({ type: 'chord', idx })}
-          onPressTile={(idx) => dispatch({ type: 'pressTile', idx })}
-        />
+        <div className="ms-inner">
+          <Header
+            minesRemaining={minesRemaining}
+            elapsedSeconds={elapsedSeconds}
+            faceState={faceState}
+            onFaceClick={() => dispatch({ type: 'newGame' })}
+          />
+          <Board
+            state={state}
+            onReveal={(idx) => dispatch({ type: 'reveal', idx })}
+            onToggleMark={(idx) => dispatch({ type: 'toggleMark', idx })}
+            onChord={(idx) => dispatch({ type: 'chord', idx })}
+            onPressTile={(idx) => dispatch({ type: 'pressTile', idx })}
+          />
+        </div>
       </div>
 
       {customOpen && (

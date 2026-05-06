@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import type { BestTimes } from '../scores';
 
 type Props = {
@@ -14,7 +15,7 @@ export function BestTimesDialog({ times, onReset, onClose }: Props) {
       <span className="ms-bt-name">{rec ? rec.name : 'Anonymous'}</span>
     </div>
   );
-  return (
+  return createPortal(
     <div className="ms-dialog-backdrop">
       <div className="ms-dialog ms-bt-dialog">
         <div className="ms-dialog-title">Fastest Mine Sweepers</div>
@@ -28,6 +29,7 @@ export function BestTimesDialog({ times, onReset, onClose }: Props) {
           <button onClick={onClose}>OK</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CUSTOM_LIMITS, maxMinesFor } from '../difficulties';
 
 type Props = {
@@ -26,7 +27,7 @@ export function CustomDialog({ initialWidth, initialHeight, initialMines, onCanc
     onSubmit(width, height, mines);
   };
 
-  return (
+  return createPortal(
     <div className="ms-dialog-backdrop">
       <div className="ms-dialog">
         <div className="ms-dialog-title">Custom Field</div>
@@ -40,6 +41,7 @@ export function CustomDialog({ initialWidth, initialHeight, initialMines, onCanc
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
