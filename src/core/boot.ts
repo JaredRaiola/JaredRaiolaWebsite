@@ -12,6 +12,7 @@ import controlPanelMeta from '@/apps/controlpanel/meta';
 import calculatorMeta from '@/apps/calculator/meta';
 import cmdMeta from '@/apps/cmd/meta';
 import paintMeta from '@/apps/paint/meta';
+import minesweeperMeta from '@/apps/minesweeper/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import { uuid } from '@/lib/uuid';
@@ -20,15 +21,22 @@ import type { FsNode, DirNode } from '@/core/fs/tree';
 
 const DESKTOP_KEY = 'win95.desktop.icons';
 const DESKTOP_VERSION_KEY = 'win95.desktop.version';
-const DESKTOP_VERSION = '11';
+const DESKTOP_VERSION = '14';
 const FS_LAYOUT_KEY = 'win95.fs.layout';
-const FS_LAYOUT_VERSION = '4';
+const FS_LAYOUT_VERSION = '6';
 
 export const DESKTOP_DIR = 'C:\\Windows\\User\\Desktop';
 const DESKTOP_DIR_LOWER = DESKTOP_DIR.toLowerCase();
 
 const GRID_W = 84;
 const GRID_H = 92;
+const TASKBAR_H = 40;
+
+function maxRowsForViewport(): number {
+  if (typeof window === 'undefined') return 8;
+  const usable = window.innerHeight - TASKBAR_H;
+  return Math.max(1, Math.floor(usable / GRID_H));
+}
 
 // Special "system" desktop icons that don't live in C:\Windows\User\Desktop.
 // FS contents of the desktop folder are auto-managed by syncDesktopFromFs().
@@ -79,14 +87,6 @@ const DEFAULT_SHORTCUTS: DesktopIcon[] = [
     y: 4,
     target: { kind: 'app', appId: 'resume' },
     protected: true,
-  },
-  {
-    id: 'icon-mydocs',
-    label: 'My Documents',
-    iconUrl: '/assets/win98/png/directory_closed-0.png',
-    x: 0,
-    y: 5,
-    target: { kind: 'file', path: 'C:\\Windows\\User\\My Documents' },
   },
 ];
 
@@ -139,11 +139,18 @@ async function migrateFsLayout(): Promise<void> {
   const userDir = getOrCreateDir(winDir, 'User');
   const newDesktop = getOrCreateDir(userDir, 'Desktop');
 
-  // Move C:\My Documents → C:\Windows\User\My Documents
-  const oldMyDocs = detachChild(tree, 'My Documents');
-  if (oldMyDocs && !findChildKey(userDir, 'My Documents')) {
-    userDir.children['My Documents'] = oldMyDocs;
-    userDir.modifiedAt = Date.now();
+  // My Documents lives under Desktop now. Pull any prior copy back in: first
+  // C:\My Documents (very old), then C:\Windows\User\My Documents (recent).
+  // If multiple copies exist, the deepest/most-recent layout wins.
+  const oldMyDocsAtRoot = detachChild(tree, 'My Documents');
+  if (oldMyDocsAtRoot && oldMyDocsAtRoot.kind === 'dir' && !findChildKey(newDesktop, 'My Documents')) {
+    newDesktop.children['My Documents'] = oldMyDocsAtRoot;
+    newDesktop.modifiedAt = Date.now();
+  }
+  const oldMyDocsAtUser = detachChild(userDir, 'My Documents');
+  if (oldMyDocsAtUser && oldMyDocsAtUser.kind === 'dir' && !findChildKey(newDesktop, 'My Documents')) {
+    newDesktop.children['My Documents'] = oldMyDocsAtUser;
+    newDesktop.modifiedAt = Date.now();
   }
 
   // Move C:\Windows\Desktop\* → C:\Windows\User\Desktop\*
@@ -184,6 +191,12 @@ async function migrateFsLayout(): Promise<void> {
     newDesktop.modifiedAt = Date.now();
   }
 
+  // Strip stale top-level dupes from the desktop. Projects and About Me.txt
+  // belong inside My Documents, not next to it.
+  for (const stale of ['Projects', 'About Me.txt']) {
+    detachChild(newDesktop, stale);
+  }
+
   await putTree(tree);
   localStorage.setItem(FS_LAYOUT_KEY, FS_LAYOUT_VERSION);
 }
@@ -201,7 +214,7 @@ async function seedIfEmpty(): Promise<void> {
     if (n.kind === 'file') {
       if (path === 'C:\\Windows\\User\\Desktop\\README.txt')
         return [{ blobId: n.blobId, content: SEED_TEXT.README }];
-      if (path === 'C:\\Windows\\User\\My Documents\\About Me.txt')
+      if (path === 'C:\\Windows\\User\\Desktop\\My Documents\\About Me.txt')
         return [{ blobId: n.blobId, content: SEED_TEXT.ABOUT_ME }];
       return [];
     }
@@ -232,8 +245,13 @@ function hydrateDesktop(): void {
       /* fall through */
     }
   }
+  const maxRows = maxRowsForViewport();
   useDesktopStore.getState().hydrate(
-    DEFAULT_SHORTCUTS.map((i) => ({ ...i, x: i.x * GRID_W, y: i.y * GRID_H })),
+    DEFAULT_SHORTCUTS.map((i, idx) => ({
+      ...i,
+      x: Math.floor(idx / maxRows) * GRID_W,
+      y: (idx % maxRows) * GRID_H,
+    })),
   );
 }
 
@@ -267,8 +285,9 @@ function nextFreeGridSlot(icons: Record<string, DesktopIcon>): { x: number; y: n
     const row = Math.round(i.y / GRID_H);
     occupied.add(`${col},${row}`);
   }
+  const maxRows = maxRowsForViewport();
   for (let col = 0; col < 30; col++) {
-    for (let row = 0; row < 30; row++) {
+    for (let row = 0; row < maxRows; row++) {
       if (!occupied.has(`${col},${row}`)) {
         return { x: col * GRID_W, y: row * GRID_H };
       }
@@ -323,6 +342,7 @@ function registerAllApps(): void {
   registerApp(calculatorMeta);
   registerApp(cmdMeta);
   registerApp(paintMeta);
+  registerApp(minesweeperMeta);
 }
 
 export async function boot(): Promise<void> {
