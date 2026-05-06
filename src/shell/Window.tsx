@@ -69,6 +69,7 @@ export function Window({ window: w }: Props) {
       windowId: w.id,
       setTitle: (t) => setTitle(w.id, t),
       setIcon: (i) => setIcon(w.id, i),
+      setSize: (width, height) => resize(w.id, width, height),
       requestClose: () => close(w.id),
       openFile: (path) => {
         const appId = resolveAssociation(path);
@@ -94,7 +95,7 @@ export function Window({ window: w }: Props) {
           setDialog({ opts, resolve: (r) => { setDialog(null); resolve(r); } });
         }),
     }),
-    [w.id, setTitle, setIcon, close, open],
+    [w.id, setTitle, setIcon, resize, close, open],
   );
 
   if (!def || !fs) return null;

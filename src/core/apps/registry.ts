@@ -14,6 +14,7 @@ export type WindowApi = {
   windowId: string;
   setTitle(title: string): void;
   setIcon(iconUrl: string): void;
+  setSize(width: number, height: number): void;
   requestClose(): void;
   openFile(path: string): void;
   showDialog(opts: DialogOpts): Promise<DialogResult>;
