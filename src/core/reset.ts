@@ -3,7 +3,10 @@
 // scratch. Equivalent to opening DevTools and clearing site data, but
 // scoped to our keys so we don't nuke unrelated origin storage.
 
+import { unbindAutoSave } from './session';
+
 const FS_DB_NAME = 'win95-fs';
+const SESSION_DB_NAME = 'win95-session';
 const RESETTING_DURATION_MS = 2500;
 
 // Keys we keep across a reset. The first-boot flag drives the cute floppy
@@ -12,6 +15,10 @@ const RESETTING_DURATION_MS = 2500;
 const PRESERVED_KEYS = new Set<string>(['win95.firstBootSeen']);
 
 export async function resetComputer(): Promise<void> {
+  // Disable session auto-save BEFORE we wipe storage. Otherwise the
+  // pagehide hook fires on location.reload() and writes the in-memory
+  // window list back to localStorage after we cleared it.
+  unbindAutoSave();
   renderResettingScreen();
   // Hold the screen briefly so the user sees the reset is happening.
   await new Promise<void>((r) => setTimeout(r, RESETTING_DURATION_MS));
@@ -42,6 +49,17 @@ export async function resetComputer(): Promise<void> {
   await new Promise<void>((resolve) => {
     try {
       const req = indexedDB.deleteDatabase(FS_DB_NAME);
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+      req.onblocked = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+
+  await new Promise<void>((resolve) => {
+    try {
+      const req = indexedDB.deleteDatabase(SESSION_DB_NAME);
       req.onsuccess = () => resolve();
       req.onerror = () => resolve();
       req.onblocked = () => resolve();

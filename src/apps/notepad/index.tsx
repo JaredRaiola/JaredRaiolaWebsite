@@ -11,18 +11,33 @@ const WRAP_KEY = 'notepad.wordWrap';
 
 type Args = { path?: string };
 
-export default function Notepad({ api, fs, args }: AppProps) {
+type NotepadSnapshot = {
+  text: string;
+  path: string | null;
+  dirty: boolean;
+  wrap: boolean;
+};
+
+export default function Notepad({ api, fs, args, restoreState }: AppProps) {
   const initial = (args as Args | undefined) ?? {};
-  const [path, setPath] = useState<string | null>(initial.path ?? null);
-  const [content, setContent] = useState('');
-  const [dirty, setDirty] = useState(false);
-  const [wrap, setWrap] = useState<boolean>(() => localStorage.getItem(WRAP_KEY) !== 'false');
+  const restored = (restoreState as Partial<NotepadSnapshot> | undefined);
+  const [path, setPath] = useState<string | null>(restored?.path ?? initial.path ?? null);
+  const [content, setContent] = useState(typeof restored?.text === 'string' ? restored.text : '');
+  const [dirty, setDirty] = useState<boolean>(restored?.dirty ?? false);
+  const [wrap, setWrap] = useState<boolean>(
+    typeof restored?.wrap === 'boolean'
+      ? restored.wrap
+      : localStorage.getItem(WRAP_KEY) !== 'false',
+  );
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [dialogMode, setDialogMode] = useState<'open' | 'save' | null>(null);
   const pendingResolve = useRef<((b: boolean) => void) | null>(null);
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
 
   useEffect(() => {
+    // If restoring a session, the text/path/dirty are already in state.
+    // Don't re-read from FS — that would clobber unsaved buffer changes.
+    if (restored) return;
     if (initial.path) {
       void fs.readText(initial.path).then((text) => {
         setContent(text);
@@ -34,6 +49,11 @@ export default function Notepad({ api, fs, args }: AppProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Register session-snapshot getter.
+  useEffect(() => {
+    return api.registerSnapshot((): NotepadSnapshot => ({ text: content, path, dirty, wrap }));
+  }, [content, path, dirty, wrap, api]);
 
   useEffect(() => {
     const title = (path ? basename(path) : 'Untitled') + (dirty ? ' *' : '') + ' - Notepad';

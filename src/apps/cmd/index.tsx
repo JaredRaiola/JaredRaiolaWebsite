@@ -10,18 +10,39 @@ const BANNER = [
   '',
 ];
 const FORM_FEED = '\f';
+const SCROLLBACK_CAP = 1000;
 
-export default function CmdApp({ api, fs }: AppProps) {
-  const [cwd, setCwd] = useState('C:\\');
-  const [lines, setLines] = useState<string[]>(BANNER);
+type CmdSnapshot = {
+  scrollback: string[];
+  cwd: string;
+  history: string[];
+};
+
+export default function CmdApp({ api, fs, restoreState }: AppProps) {
+  const restored = (restoreState as Partial<CmdSnapshot> | undefined);
+  const [cwd, setCwd] = useState(typeof restored?.cwd === 'string' ? restored.cwd : 'C:\\');
+  const [lines, setLines] = useState<string[]>(
+    Array.isArray(restored?.scrollback) ? restored.scrollback : BANNER,
+  );
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<string[]>(
+    Array.isArray(restored?.history) ? restored.history : [],
+  );
   const [_hi, setHi] = useState<number>(-1);
   const rootRef = useRef<HTMLDivElement>(null);
   const printedBuffer = useRef<string[]>([]);
 
   // Register commands on first mount.
   useEffect(() => { registerAllCommands(); }, []);
+
+  // Register session snapshot.
+  useEffect(() => {
+    return api.registerSnapshot((): CmdSnapshot => ({
+      scrollback: lines.slice(-SCROLLBACK_CAP),
+      cwd,
+      history,
+    }));
+  }, [lines, cwd, history, api]);
 
   // Scroll-to-bottom on render.
   useEffect(() => {

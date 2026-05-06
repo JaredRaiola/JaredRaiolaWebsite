@@ -19,12 +19,27 @@ import './explorer.css';
 type Args = { path?: string };
 type View = 'icons' | 'list' | 'details';
 
-export default function Explorer({ api, fs, args }: AppProps) {
+type ExplorerSnapshot = {
+  history: string[];
+  hi: number;
+  view: View;
+};
+
+export default function Explorer({ api, fs, args, restoreState }: AppProps) {
   const initial = (args as Args | undefined) ?? {};
-  const [history, setHistory] = useState<string[]>([initial.path ?? 'C:\\']);
-  const [hi, setHi] = useState(0);
-  const [addr, setAddr] = useState(initial.path ?? 'C:\\');
-  const [view, setView] = useState<View>('icons');
+  const restored = (restoreState as Partial<ExplorerSnapshot> | undefined);
+  const [history, setHistory] = useState<string[]>(
+    Array.isArray(restored?.history) && restored.history.length > 0
+      ? restored.history
+      : [initial.path ?? 'C:\\'],
+  );
+  const [hi, setHi] = useState(typeof restored?.hi === 'number' ? restored.hi : 0);
+  const [addr, setAddr] = useState(
+    (Array.isArray(restored?.history) && restored.history[restored?.hi ?? 0]) ||
+      initial.path ||
+      'C:\\',
+  );
+  const [view, setView] = useState<View>(restored?.view ?? 'icons');
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [anchor, setAnchor] = useState<string | null>(null);
   const [lasso, setLasso] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
@@ -45,6 +60,11 @@ export default function Explorer({ api, fs, args }: AppProps) {
     setAddr(cwd);
     api.setTitle(`${basename(cwd)} - My Computer`);
   }, [cwd, api]);
+
+  // Register session snapshot.
+  useEffect(() => {
+    return api.registerSnapshot((): ExplorerSnapshot => ({ history, hi, view }));
+  }, [history, hi, view, api]);
 
   const items = useMemo<FsNode[]>(() => {
     if (isBinMode) {
