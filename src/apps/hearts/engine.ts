@@ -174,3 +174,85 @@ export function pointsInCards(cards: Card[]): number {
 export function shotTheMoon(taken: Card[]): boolean {
   return pointsInCards(taken) === 26;
 }
+
+export type Action =
+  | { type: 'selectPassCard'; card: Card }
+  | { type: 'deselectPassCard'; card: Card }
+  | { type: 'submitPass'; humanSelection: Card[]; aiPasses: Record<PlayerId, Card[]> }
+  | { type: 'playCard'; player: PlayerId; card: Card }
+  | { type: 'aiPlay'; player: PlayerId; card: Card }
+  | { type: 'resolveTrick' }
+  | { type: 'nextHand'; rng: RNG }
+  | { type: 'undo' }
+  | { type: 'newGame'; rng: RNG }
+  | { type: 'setOptions'; options: Partial<Options> };
+
+function passRecipient(from: PlayerId, direction: PassDirection): PlayerId | null {
+  if (direction === 'keep') return null;
+  if (direction === 'left') return ((from + 1) % 4) as PlayerId;
+  if (direction === 'right') return ((from + 3) % 4) as PlayerId;
+  return ((from + 2) % 4) as PlayerId;
+}
+
+function findTwoClubsHolder(hands: Record<PlayerId, Card[]>): PlayerId {
+  for (const p of PLAYERS) {
+    if (hands[p].some((c) => c.id === '2C')) return p;
+  }
+  throw new Error('2C not found in any hand');
+}
+
+function selectPassCard(s: GameState, card: Card): GameState {
+  if (s.phase !== 'passing') return s;
+  if (s.passSelections === null) return s;
+  if (s.passSelections.some((c) => c.id === card.id)) return s;
+  if (s.passSelections.length >= 3) return s;
+  return { ...s, passSelections: [...s.passSelections, card] };
+}
+
+function deselectPassCard(s: GameState, card: Card): GameState {
+  if (s.phase !== 'passing' || s.passSelections === null) return s;
+  return { ...s, passSelections: s.passSelections.filter((c) => c.id !== card.id) };
+}
+
+function submitPass(
+  s: GameState,
+  humanSelection: Card[],
+  aiPasses: Record<PlayerId, Card[]>,
+): GameState {
+  if (s.phase !== 'passing') return s;
+  if (s.passDirection !== 'keep' && humanSelection.length !== 3) return s;
+  const newHands: Record<PlayerId, Card[]> = {
+    0: s.hands[0].slice(), 1: s.hands[1].slice(), 2: s.hands[2].slice(), 3: s.hands[3].slice(),
+  };
+  const passReceived: Record<PlayerId, Card[]> = { 0: [], 1: [], 2: [], 3: [] };
+  if (s.passDirection !== 'keep') {
+    const sources: Record<PlayerId, Card[]> = { ...aiPasses, 0: humanSelection };
+    for (const from of PLAYERS) {
+      const to = passRecipient(from, s.passDirection)!;
+      newHands[from] = newHands[from].filter((c) => !sources[from].some((x) => x.id === c.id));
+      newHands[to] = [...newHands[to], ...sources[from]];
+      passReceived[to] = sources[from];
+    }
+  }
+  const turn = findTwoClubsHolder(newHands);
+  return {
+    ...s,
+    phase: 'playing',
+    hands: newHands,
+    passSelections: null,
+    passReceived: s.passDirection === 'keep' ? null : passReceived,
+    turn,
+    trick: { leader: turn, leadSuit: null, plays: [] },
+    history: [],
+    heartsBroken: false,
+  };
+}
+
+export function reducer(s: GameState, a: Action): GameState {
+  switch (a.type) {
+    case 'selectPassCard': return selectPassCard(s, a.card);
+    case 'deselectPassCard': return deselectPassCard(s, a.card);
+    case 'submitPass': return submitPass(s, a.humanSelection, a.aiPasses);
+    default: return s;
+  }
+}

@@ -165,3 +165,60 @@ describe('shotTheMoon', () => {
     expect(shotTheMoon(taken)).toBe(false);
   });
 });
+
+import { reducer } from './engine';
+
+describe('reducer/passing', () => {
+  it('selectPassCard adds to selections', () => {
+    const s0 = deal(makeRng(1));
+    const card = s0.hands[0][0];
+    const s1 = reducer(s0, { type: 'selectPassCard', card });
+    expect(s1.passSelections).toContainEqual(card);
+  });
+  it('cannot select more than 3 cards', () => {
+    const s0 = deal(makeRng(1));
+    let s = s0;
+    for (let i = 0; i < 4; i++) {
+      s = reducer(s, { type: 'selectPassCard', card: s0.hands[0][i] });
+    }
+    expect(s.passSelections).toHaveLength(3);
+  });
+  it('deselectPassCard removes from selections', () => {
+    const s0 = deal(makeRng(1));
+    const card = s0.hands[0][0];
+    const s1 = reducer(s0, { type: 'selectPassCard', card });
+    const s2 = reducer(s1, { type: 'deselectPassCard', card });
+    expect(s2.passSelections).not.toContainEqual(card);
+  });
+  it('submitPass with fewer than 3 selections is a no-op', () => {
+    const s0 = deal(makeRng(1));
+    const aiPasses: Record<PlayerId, Card[]> = { 0: [], 1: [], 2: [], 3: [] };
+    const s1 = reducer(s0, { type: 'submitPass', humanSelection: [], aiPasses });
+    expect(s1).toBe(s0);
+  });
+  it('submitPass with 3 cards exchanges and moves to playing', () => {
+    const s0 = deal(makeRng(1));
+    const human3 = s0.hands[0].slice(0, 3);
+    const ai1_3 = s0.hands[1].slice(0, 3);
+    const ai2_3 = s0.hands[2].slice(0, 3);
+    const ai3_3 = s0.hands[3].slice(0, 3);
+    const aiPasses: Record<PlayerId, Card[]> = { 0: human3, 1: ai1_3, 2: ai2_3, 3: ai3_3 };
+    const s1 = reducer(s0, { type: 'submitPass', humanSelection: human3, aiPasses });
+    expect(s1.phase).toBe('playing');
+    // Direction is 'left' so each player passes to (player+1)%4.
+    for (const c of human3) {
+      expect(s1.hands[1]).toContainEqual(c);
+      expect(s1.hands[0]).not.toContainEqual(c);
+    }
+    const twoCHolder = ([0, 1, 2, 3] as PlayerId[]).find((p) =>
+      s1.hands[p].some((c) => c.id === '2C'),
+    );
+    expect(s1.turn).toBe(twoCHolder);
+  });
+  it('keep direction: hands unchanged, jumps straight to playing', () => {
+    const s0 = { ...deal(makeRng(1)), passDirection: 'keep' as const };
+    const s1 = reducer(s0, { type: 'submitPass', humanSelection: [], aiPasses: { 0: [], 1: [], 2: [], 3: [] } });
+    expect(s1.phase).toBe('playing');
+    expect(s1.hands).toEqual(s0.hands);
+  });
+});
