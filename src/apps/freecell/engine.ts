@@ -332,3 +332,25 @@ export function reducer(s: GameState, a: Action): GameState {
     default: return s;
   }
 }
+
+export type FreeCellSnapshot = {
+  phase: 'playing' | 'won' | 'lost';
+  piles: Record<PileId, Card[]>;
+  gameNumber: number;
+  startedAt: null;
+  elapsedMs: number;
+  moveCount: number;
+};
+
+export function isValidFreeCellSnapshot(v: unknown): v is FreeCellSnapshot {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  if (s.phase !== 'playing' && s.phase !== 'won' && s.phase !== 'lost') return false;
+  if (typeof s.gameNumber !== 'number' || typeof s.moveCount !== 'number') return false;
+  if (typeof s.elapsedMs !== 'number') return false;
+  if (!s.piles || typeof s.piles !== 'object') return false;
+  for (const p of ALL_PILES) {
+    if (!Array.isArray((s.piles as Record<string, unknown>)[p])) return false;
+  }
+  return true;
+}

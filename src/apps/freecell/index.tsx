@@ -4,7 +4,7 @@ import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
 import {
-  reducer, dealGame, isValidRun, supermoveCapacity,
+  reducer, dealGame, isValidFreeCellSnapshot, isValidRun, supermoveCapacity,
   CELLS, FOUNDATIONS, TABLEAUS,
   type GameState, type Card, type PileId, type Suit,
 } from './engine';
@@ -18,13 +18,24 @@ import { recordResult } from './scores';
 import CardFaceSvg from '@/apps/solitaire/cards/CardFaceSvg';
 import './freecell.css';
 
-function init(): GameState {
-  const n = 1 + Math.floor(Math.random() * 32000);
-  return dealGame(n);
+function initFrom(restored: unknown): GameState {
+  if (isValidFreeCellSnapshot(restored)) {
+    const startedAt = restored.phase === 'playing' ? Date.now() - restored.elapsedMs : null;
+    return {
+      phase: restored.phase as GameState['phase'],
+      piles: restored.piles,
+      gameNumber: restored.gameNumber,
+      startedAt,
+      elapsedMs: restored.elapsedMs,
+      moveCount: restored.moveCount,
+      prev: null,
+    };
+  }
+  return dealGame(1 + Math.floor(Math.random() * 32000));
 }
 
-export default function FreeCell({ api }: AppProps) {
-  const [state, dispatch] = useReducer(reducer, undefined, init);
+export default function FreeCell({ api, restoreState }: AppProps) {
+  const [state, dispatch] = useReducer(reducer, undefined, () => initFrom(restoreState));
   const [openMenu, setOpenMenu] = useState<'game' | null>(null);
   const [selectGameOpen, setSelectGameOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
@@ -68,6 +79,18 @@ export default function FreeCell({ api }: AppProps) {
     recordedRef.current = true;
     recordResult(state.phase);
   }, [state.phase]);
+
+  // Snapshot for session persistence.
+  useEffect(() => {
+    return api.registerSnapshot(() => ({
+      phase: state.phase === 'cascading' ? 'playing' : state.phase,
+      piles: state.piles,
+      gameNumber: state.gameNumber,
+      startedAt: null,
+      elapsedMs: state.elapsedMs,
+      moveCount: state.moveCount,
+    }));
+  }, [state, api]);
 
   // Drag listeners.
   useEffect(() => {
