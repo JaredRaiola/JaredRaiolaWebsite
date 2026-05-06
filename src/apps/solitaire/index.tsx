@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
-import { reducer, deal, isValidRun, isValidSolitaireSnapshot, type GameState, type Suit, type PileId, type Card, type Options } from './engine';
+import { reducer, deal, isValidRun, isValidSolitaireSnapshot, canAutoFinish, type GameState, type Suit, type PileId, type Card, type Options } from './engine';
 import { makeRng } from './rng';
 import { loadOptions, saveOptions, loadVegasBalance, saveVegasBalance } from './options';
 import { sysPrompt } from '@/lib/dialog';
@@ -200,6 +200,14 @@ export default function Solitaire({ api, restoreState }: AppProps) {
       </div>
 
       <div className="sol-felt">
+        {canAutoFinish(state) && state.phase === 'playing' && (
+          <button
+            className="sol-autofinish-hint"
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: 'autoFinish' }); }}
+          >
+            Auto-Finish
+          </button>
+        )}
         <div className="sol-top-row">
           <div className="sol-top-left">
             <div data-pile-id="stock">

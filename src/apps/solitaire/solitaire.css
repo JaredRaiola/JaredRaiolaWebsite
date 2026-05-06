@@ -93,6 +93,22 @@
 .sol-top-left, .sol-top-right { display: flex; gap: 12px; }
 .sol-tableau-row { display: flex; gap: 12px; }
 
+.sol-autofinish-hint {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 5;
+  min-width: 90px;
+  font-size: 11px;
+  padding: 2px 8px;
+  cursor: pointer;
+  animation: sol-autofinish-pulse 1.5s ease-in-out infinite;
+}
+@keyframes sol-autofinish-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,128,0.6); }
+  50% { box-shadow: 0 0 0 6px rgba(255,255,128,0); }
+}
+
 .sol-drag-layer,
 .sol-drag-layer * {
   pointer-events: none !important;

@@ -293,7 +293,7 @@ function checkWin(s: GameState): GameState {
   return s;
 }
 
-function canAutoFinish(s: GameState): boolean {
+export function canAutoFinish(s: GameState): boolean {
   if (s.piles.stock.length > 0 || s.piles.waste.length > 0) return false;
   for (let i = 0; i < 7; i++) {
     const col = s.piles[`tableau-${i}` as PileId];
