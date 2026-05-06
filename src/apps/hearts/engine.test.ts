@@ -354,3 +354,28 @@ describe('reducer/playCard', () => {
     expect(s2.heartsBroken).toBe(true);
   });
 });
+
+import { applyHandScores } from './engine';
+
+describe('applyHandScores', () => {
+  it('adds raw points from each player taken pile', () => {
+    const taken: Record<PlayerId, Card[]> = {
+      0: [c('QS', 'spades', 12), c('5H', 'hearts', 5)],
+      1: [c('2H', 'hearts', 2)],
+      2: [],
+      3: [c('KH', 'hearts', 13)],
+    };
+    const scoresBefore: Record<PlayerId, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
+    const after = applyHandScores(scoresBefore, taken);
+    expect(after).toEqual({ 0: 14, 1: 1, 2: 0, 3: 1 });
+  });
+  it('shoot-the-moon: shooter gets 0, others get 26 each', () => {
+    const taken: Record<PlayerId, Card[]> = { 0: [c('QS', 'spades', 12)], 1: [], 2: [], 3: [] };
+    for (let r = 2; r <= 14; r++) {
+      taken[0].push(c(`H${r}`, 'hearts', r as Card['rank']));
+    }
+    const scoresBefore: Record<PlayerId, number> = { 0: 10, 1: 5, 2: 5, 3: 5 };
+    const after = applyHandScores(scoresBefore, taken);
+    expect(after).toEqual({ 0: 10, 1: 31, 2: 31, 3: 31 });
+  });
+});

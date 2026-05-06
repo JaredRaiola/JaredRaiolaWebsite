@@ -320,3 +320,24 @@ export function reducer(s: GameState, a: Action): GameState {
     default: return s;
   }
 }
+
+export function applyHandScores(
+  scoresBefore: Record<PlayerId, number>,
+  taken: Record<PlayerId, Card[]>,
+): Record<PlayerId, number> {
+  let shooter: PlayerId | null = null;
+  for (const p of PLAYERS) {
+    if (shotTheMoon(taken[p])) { shooter = p; break; }
+  }
+  const result: Record<PlayerId, number> = { ...scoresBefore };
+  if (shooter !== null) {
+    for (const p of PLAYERS) {
+      if (p !== shooter) result[p] += 26;
+    }
+  } else {
+    for (const p of PLAYERS) {
+      result[p] += pointsInCards(taken[p]);
+    }
+  }
+  return result;
+}
