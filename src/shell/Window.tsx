@@ -119,7 +119,7 @@ export function Window({ window: w }: Props) {
       onMouseDown={() => !focused && focus(w.id)}
       style={{ zIndex: w.zIndex }}
       disableDragging={w.state === 'maximized'}
-      enableResizing={w.state !== 'maximized'}
+      enableResizing={def.resizable !== false && w.state !== 'maximized'}
     >
       <div className={`win-frame ${focused ? 'focused' : ''}`} style={{ width: '100%', height: '100%' }}>
         <div
@@ -132,7 +132,11 @@ export function Window({ window: w }: Props) {
           </div>
           <div className="win-buttons">
             <button onClick={() => minimize(w.id)} title="Minimize">_</button>
-            <button onClick={() => toggleMaximize(w.id)} title="Maximize">▢</button>
+            <button
+              onClick={() => def.resizable !== false && toggleMaximize(w.id)}
+              disabled={def.resizable === false}
+              title="Maximize"
+            >▢</button>
             <button onClick={() => close(w.id)} title="Close">×</button>
           </div>
         </div>

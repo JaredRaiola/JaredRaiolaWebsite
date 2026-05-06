@@ -38,6 +38,8 @@ export type AppDef = {
   fileAssociations?: string[];
   /** Where the app appears in the Start menu. Default: ['Programs']. */
   menuPath?: string[];
+  /** When false, the user cannot resize or maximize this window. Default: true. */
+  resizable?: boolean;
   component: () => Promise<{ default: AppComponent }>;
 };
 
