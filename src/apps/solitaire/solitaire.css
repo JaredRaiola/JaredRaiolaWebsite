@@ -1,0 +1,155 @@
+.sol-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #008000;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  user-select: none;
+}
+.sol-felt {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  color: #fff;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: 12px;
+  padding: 12px;
+}
+.sol-card {
+  width: 71px;
+  height: 96px;
+  user-select: none;
+  cursor: default;
+}
+.sol-card svg { width: 100%; height: 100%; display: block; }
+.sol-pile {
+  width: 71px;
+  height: 96px;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.sol-stock-recycle, .sol-stock-no-recycle {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 28px; opacity: 0.6;
+}
+.sol-stock-no-recycle { color: #f66; }
+.sol-foundation-outline {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  display: block;
+}
+.sol-tableau {
+  position: relative;
+  width: 71px;
+  min-height: 96px;
+}
+.sol-waste { position: relative; }
+
+.sol-menubar {
+  display: flex;
+  gap: 8px;
+  background: #c0c0c0;
+  color: #000;
+  border-bottom: 1px solid #808080;
+  padding: 2px 6px;
+  user-select: none;
+}
+.sol-menu { padding: 2px 8px; cursor: default; position: relative; }
+.sol-menu:hover, .sol-menu.open { background: #000080; color: #fff; }
+.sol-menu-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #c0c0c0;
+  color: #000;
+  border: 1px solid;
+  border-color: #fff #404040 #404040 #fff;
+  padding: 2px;
+  min-width: 160px;
+  z-index: 10;
+}
+.sol-menu-popup .item {
+  padding: 3px 16px 3px 8px;
+  cursor: default;
+  white-space: nowrap;
+}
+.sol-menu-popup .item.disabled { color: #808080; }
+.sol-menu-popup .item:not(.disabled):hover { background: #000080; color: #fff; }
+.sol-menu-popup .sep { height: 1px; margin: 3px 2px; background: #808080; box-shadow: 0 1px 0 #fff; }
+
+.sol-top-row {
+  display: flex; justify-content: space-between; gap: 16px; margin-bottom: 24px;
+}
+.sol-top-left, .sol-top-right { display: flex; gap: 12px; }
+.sol-tableau-row { display: flex; gap: 12px; }
+
+.sol-autofinish-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  min-width: 100px;
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  animation: sol-autofinish-pulse 1.5s ease-in-out infinite;
+}
+@keyframes sol-autofinish-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,128,0.6); }
+  50% { box-shadow: 0 0 0 6px rgba(255,255,128,0); }
+}
+
+.sol-drag-layer,
+.sol-drag-layer * {
+  pointer-events: none !important;
+}
+.sol-drag-layer {
+  position: fixed;
+  z-index: 1000;
+  width: 71px;
+  height: 96px;
+}
+
+.sol-status {
+  display: flex; justify-content: space-between;
+  background: #c0c0c0;
+  border-top: 1px solid #fff;
+  box-shadow: inset 0 1px 0 #808080;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #000;
+}
+
+.sol-dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.05);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.sol-dialog { min-width: 280px; }
+.sol-dialog-body {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px;
+}
+.sol-dialog-body fieldset { padding: 8px 10px; margin: 0; }
+.sol-dialog-body legend { padding: 0 4px; }
+.sol-dialog-body .field-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.sol-dialog-buttons {
+  display: flex; justify-content: flex-end; gap: 6px; padding: 8px 12px; border-top: 1px solid #808080;
+}
+.sol-dialog-buttons button { min-width: 75px; }
+
+.sol-cascade {
+  position: absolute; inset: 0;
+  z-index: 100;
+  cursor: pointer;
+}
