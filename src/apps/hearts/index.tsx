@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
@@ -15,6 +15,7 @@ import AiHand from './components/AiHand';
 import TrickArea from './components/TrickArea';
 import PassPrompt from './components/PassPrompt';
 import PlayPrompt from './components/PlayPrompt';
+import ScoreSheet from './components/ScoreSheet';
 import './hearts.css';
 
 function init(): GameState {
@@ -24,6 +25,13 @@ function init(): GameState {
 export default function Hearts({ api }: AppProps) {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const [openMenu, setOpenMenu] = useState<'game' | null>(null);
+
+  const scoresAtHandStartRef = useRef<Record<PlayerId, number>>(state.scores);
+  useEffect(() => {
+    if ((state.phase === 'passing' || state.phase === 'playing') && state.history.length === 0) {
+      scoresAtHandStartRef.current = state.scores;
+    }
+  }, [state.phase, state.history.length, state.scores]);
 
   useEffect(() => { saveOptions(state.options); }, [state.options]);
 
@@ -134,6 +142,13 @@ export default function Hearts({ api }: AppProps) {
         <PassPrompt direction={state.passDirection} selectedCount={selectedSet.size} onPass={onPass} />
       ) : (
         <PlayPrompt turn={state.turn} heartsBroken={state.heartsBroken} />
+      )}
+      {state.phase === 'hand-over' && (
+        <ScoreSheet
+          scoresBefore={scoresAtHandStartRef.current}
+          taken={state.taken}
+          onContinue={() => dispatch({ type: 'nextHand', rng: makeRng((Math.random() * 0x7fffffff) | 0) })}
+        />
       )}
     </div>
   );

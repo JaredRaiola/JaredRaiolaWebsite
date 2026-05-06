@@ -109,3 +109,25 @@
 .hearts-top, .hearts-bottom { display: flex; justify-content: center; }
 .hearts-mid { display: flex; align-items: center; justify-content: center; gap: 30px; }
 .hearts-left, .hearts-right { display: flex; }
+
+.hearts-dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.05);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.hearts-dialog { min-width: 280px; }
+.hearts-scoresheet { padding: 12px; }
+.hearts-scoresheet table { width: 100%; border-collapse: collapse; }
+.hearts-scoresheet th, .hearts-scoresheet td { padding: 4px 8px; text-align: left; border-bottom: 1px solid #808080; }
+.hearts-scoresheet .moon-banner {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  background: #ffd700; color: #000; font-weight: bold;
+  text-align: center;
+}
+.hearts-dialog-buttons {
+  display: flex; justify-content: flex-end; gap: 6px;
+  padding: 8px 12px; border-top: 1px solid #808080;
+}
+.hearts-dialog-buttons button { min-width: 75px; }
