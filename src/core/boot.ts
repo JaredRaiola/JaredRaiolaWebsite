@@ -15,6 +15,14 @@ import paintMeta from '@/apps/paint/meta';
 import minesweeperMeta from '@/apps/minesweeper/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
+import {
+  loadSnapshot,
+  loadBlobs,
+  bindAutoSave,
+  type SessionSnapshot,
+  type AllBlobs,
+} from './session';
+import { useWindowStore } from '@/stores/windowStore';
 import { uuid } from '@/lib/uuid';
 import { extname } from '@/core/fs/paths';
 import type { FsNode, DirNode } from '@/core/fs/tree';
@@ -375,7 +383,69 @@ export async function boot(): Promise<void> {
   useFsStore.subscribe((s, prev) => {
     if (s.bumpVersion !== prev.bumpVersion) syncDesktopFromFs();
   });
+
+  // Restore previous session (open windows + per-app state).
+  // Best-effort silent — schema mismatch / missing app falls through.
+  const sessionSnapshot = loadSnapshot();
+  if (sessionSnapshot && sessionSnapshot.windows.length > 0) {
+    const ids = sessionSnapshot.windows.map((w) => w.id);
+    const sessionBlobs: AllBlobs = await loadBlobs(ids).catch(() => ({}));
+    useWindowStore.getState().hydrate(sessionSnapshot, sessionBlobs);
+  }
+
+  // Bind auto-save AFTER hydration so the rehydration itself doesn't kick
+  // off a save loop with stale getter state.
+  bindAutoSave({ buildSnapshot: buildSnapshotFromStore });
+
   // Fire-and-forget: warm app code chunks + icon caches so first opens are
   // instant. Done after the desktop is hydrated so the icon URLs are known.
   preload();
+}
+
+async function buildSnapshotFromStore(): Promise<{ snapshot: SessionSnapshot; blobs: AllBlobs }> {
+  const s = useWindowStore.getState();
+  const windows: SessionSnapshot['windows'] = [];
+  for (const w of Object.values(s.windows)) {
+    let appState: unknown;
+    try {
+      appState = s.snapshotGetters[w.id]?.();
+    } catch {
+      appState = undefined;
+    }
+    const blobKeys = Object.keys(s.blobGetters[w.id] ?? {});
+    windows.push({
+      id: w.id,
+      appId: w.appId,
+      title: w.title,
+      icon: w.icon,
+      args: w.args,
+      x: w.x,
+      y: w.y,
+      width: w.width,
+      height: w.height,
+      state: w.state,
+      zIndex: w.zIndex,
+      focused: s.focusedId === w.id,
+      appState,
+      blobKeys: blobKeys.length > 0 ? blobKeys : undefined,
+    });
+  }
+  // Resolve blob getters in parallel; tolerate individual failures.
+  const blobs: AllBlobs = {};
+  await Promise.all(
+    Object.entries(s.blobGetters).map(async ([windowId, keyMap]) => {
+      blobs[windowId] = {};
+      await Promise.all(
+        Object.entries(keyMap).map(async ([key, getter]) => {
+          try {
+            const result = getter();
+            blobs[windowId][key] = result instanceof Blob ? result : await result;
+          } catch {
+            /* skip individual getter failures */
+          }
+        }),
+      );
+    }),
+  );
+  return { snapshot: { version: 1, savedAt: Date.now(), windows }, blobs };
 }
