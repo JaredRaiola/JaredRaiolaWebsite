@@ -90,3 +90,18 @@
   width: 71px;
   height: 96px;
 }
+
+.fc-dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.05);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.fc-dialog { min-width: 280px; }
+.fc-dialog-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.fc-dialog-body input { width: 100%; padding: 4px; font-family: inherit; }
+.fc-dialog-buttons {
+  display: flex; justify-content: flex-end; gap: 6px;
+  padding: 8px 12px; border-top: 1px solid #808080;
+}
+.fc-dialog-buttons button { min-width: 75px; }

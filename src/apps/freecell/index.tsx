@@ -11,6 +11,7 @@ import {
 import FreeCellSlot from './components/FreeCellSlot';
 import Foundation from './components/Foundation';
 import Tableau from './components/Tableau';
+import SelectGameDialog from './components/SelectGameDialog';
 import CardFaceSvg from '@/apps/solitaire/cards/CardFaceSvg';
 import './freecell.css';
 
@@ -22,6 +23,7 @@ function init(): GameState {
 export default function FreeCell({ api }: AppProps) {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const [openMenu, setOpenMenu] = useState<'game' | null>(null);
+  const [selectGameOpen, setSelectGameOpen] = useState(false);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragMetaRef = useRef<{ from: PileId; fromIdx: number; cards: Card[]; offset: { x: number; y: number } } | null>(null);
 
@@ -121,6 +123,8 @@ export default function FreeCell({ api }: AppProps) {
               <div className="item" onClick={() => { dispatch({ type: 'newGame', gameNumber: 1 + Math.floor(Math.random() * 32000) }); setOpenMenu(null); }}>New Game&nbsp;&nbsp;F2</div>
               <div className="item" onClick={() => { dispatch({ type: 'undo' }); setOpenMenu(null); }}>Undo&nbsp;&nbsp;Ctrl+Z</div>
               <div className="sep" />
+              <div className="item" onClick={() => { setSelectGameOpen(true); setOpenMenu(null); }}>Select Game...</div>
+              <div className="sep" />
               <div className="item" onClick={() => api.requestClose()}>Exit</div>
             </div>
           )}
@@ -188,6 +192,13 @@ export default function FreeCell({ api }: AppProps) {
           ))}
         </div>,
         document.body,
+      )}
+
+      {selectGameOpen && (
+        <SelectGameDialog
+          onCancel={() => setSelectGameOpen(false)}
+          onOk={(gameNumber) => { dispatch({ type: 'newGame', gameNumber }); setSelectGameOpen(false); }}
+        />
       )}
 
       <div className="fc-status">
