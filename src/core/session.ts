@@ -179,3 +179,56 @@ export async function clearSession(): Promise<void> {
     }
   });
 }
+
+type SessionSource = {
+  /** Build the in-memory SessionSnapshot + blobs from current windowStore + getters. */
+  buildSnapshot(): Promise<{ snapshot: SessionSnapshot; blobs: AllBlobs }>;
+};
+
+let autoSaveSource: SessionSource | null = null;
+let saveTimer: number | null = null;
+let pagehideAttached = false;
+
+const DEBOUNCE_MS = 2000;
+
+/**
+ * Bind a snapshot-builder source. The shell calls this once after boot
+ * hydration so subsequent dirty-marks know how to save.
+ */
+export function bindAutoSave(source: SessionSource): void {
+  autoSaveSource = source;
+  if (!pagehideAttached && typeof window !== 'undefined') {
+    window.addEventListener('pagehide', flushNow);
+    pagehideAttached = true;
+  }
+}
+
+/**
+ * Mark the session dirty; a debounced save will fire in DEBOUNCE_MS unless
+ * marked dirty again before the timer fires.
+ */
+export function markSessionDirty(): void {
+  if (!autoSaveSource) return;
+  if (saveTimer !== null) window.clearTimeout(saveTimer);
+  saveTimer = window.setTimeout(() => {
+    saveTimer = null;
+    void doSave();
+  }, DEBOUNCE_MS);
+}
+
+/** Force an immediate save (used by `pagehide`). */
+export function flushNow(): void {
+  if (saveTimer !== null) {
+    window.clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  void doSave();
+}
+
+async function doSave(): Promise<void> {
+  if (!autoSaveSource) return;
+  const { snapshot, blobs } = await autoSaveSource.buildSnapshot();
+  saveSnapshot(snapshot);
+  const liveIds = snapshot.windows.map((w) => w.id);
+  await saveBlobs(blobs, liveIds);
+}
