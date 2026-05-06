@@ -59,3 +59,56 @@ export function emptyPiles(): Record<PileId, Card[]> {
     'tableau-0': [], 'tableau-1': [], 'tableau-2': [], 'tableau-3': [], 'tableau-4': [], 'tableau-5': [], 'tableau-6': [],
   };
 }
+
+import type { RNG } from './rng';
+
+export function makeDeck(): Card[] {
+  const suits: Suit[] = ['spades', 'hearts', 'clubs', 'diamonds'];
+  const suitChar: Record<Suit, string> = { spades: 'S', hearts: 'H', clubs: 'C', diamonds: 'D' };
+  const out: Card[] = [];
+  for (const suit of suits) {
+    for (let r = 1; r <= 13; r++) {
+      const rank = r as Rank;
+      const rankChar = rank === 1 ? 'A' : rank === 11 ? 'J' : rank === 12 ? 'Q' : rank === 13 ? 'K' : String(rank);
+      out.push({ id: `${rankChar}${suitChar[suit]}`, suit, rank, faceUp: false });
+    }
+  }
+  return out;
+}
+
+function shuffle<T>(arr: T[], rng: RNG): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export function deal(rng: RNG, options: Options = DEFAULT_OPTIONS): GameState {
+  const deck = shuffle(makeDeck(), rng);
+  const piles = emptyPiles();
+  let idx = 0;
+  for (let col = 0; col < 7; col++) {
+    for (let row = 0; row <= col; row++) {
+      const card = { ...deck[idx++] };
+      if (row === col) card.faceUp = true;
+      piles[`tableau-${col}` as PileId].push(card);
+    }
+  }
+  for (; idx < deck.length; idx++) piles.stock.push({ ...deck[idx], faceUp: false });
+
+  const startedAt = options.timed ? Date.now() : null;
+  return {
+    phase: 'playing',
+    piles,
+    options,
+    score: options.scoring === 'vegas' ? -52 : 0,
+    vegasBalance: 0,
+    startedAt,
+    elapsedMs: 0,
+    recyclesUsed: 0,
+    prev: null,
+    drag: null,
+  };
+}
