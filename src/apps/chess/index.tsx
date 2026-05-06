@@ -8,6 +8,7 @@ import {
 } from './engine';
 import { chooseAiMove } from './ai';
 import Board from './components/Board';
+import NewGameDialog from './components/NewGameDialog';
 import './chess.css';
 
 const PIECE_GLYPH: Record<string, string> = {
@@ -22,12 +23,16 @@ function init(): GameState {
 export default function Chess({ api }: AppProps) {
   const [state, dispatch] = useReducer(reducer, undefined, init);
   const [openMenu, setOpenMenu] = useState<'game' | null>(null);
+  const [newGameOpen, setNewGameOpen] = useState(false);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ from: Sq; offset: { x: number; y: number } } | null>(null);
 
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   useHotkeys(
-    { 'ctrl+z': () => dispatch({ type: 'undo' }) },
+    {
+      'ctrl+z': () => dispatch({ type: 'undo' }),
+      'f2': () => setNewGameOpen(true),
+    },
     { enabled: focused },
   );
 
@@ -115,7 +120,7 @@ export default function Chess({ api }: AppProps) {
           Game
           {openMenu === 'game' && (
             <div className="ch-menu-popup" onClick={(e) => e.stopPropagation()}>
-              <div className="item" onClick={() => { dispatch({ type: 'newGame', playerColor: 'white', difficulty: 'intermediate' }); setOpenMenu(null); }}>New Game</div>
+              <div className="item" onClick={() => { setNewGameOpen(true); setOpenMenu(null); }}>New Game…&nbsp;&nbsp;F2</div>
               <div
                 className={`item${state.history.length === 0 ? ' disabled' : ''}`}
                 onClick={() => { if (state.history.length > 0) { dispatch({ type: 'undo' }); setOpenMenu(null); } }}
@@ -150,6 +155,15 @@ export default function Chess({ api }: AppProps) {
           </div>
         </div>,
         document.body,
+      )}
+      {newGameOpen && (
+        <NewGameDialog
+          onCancel={() => setNewGameOpen(false)}
+          onOk={(playerColor, difficulty) => {
+            dispatch({ type: 'newGame', playerColor, difficulty });
+            setNewGameOpen(false);
+          }}
+        />
       )}
     </div>
   );
