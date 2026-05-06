@@ -516,3 +516,37 @@ export function reducer(s: GameState, a: Action): GameState {
       return { ...s, phase: 'resigned' };
   }
 }
+
+export type ChessSnapshot = {
+  position: Position;
+  history: { move: Move; positionBefore: Position }[];
+  playerColor: Color;
+  difficulty: Difficulty;
+  phase: 'playing' | 'thinking' | 'checkmate' | 'stalemate' | 'draw' | 'resigned';
+  drawReason: DrawReason;
+};
+
+export function isValidChessSnapshot(v: unknown): v is ChessSnapshot {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  if (!s.position || typeof s.position !== 'object') return false;
+  const pos = s.position as Record<string, unknown>;
+  if (!Array.isArray(pos.board) || pos.board.length !== 64) return false;
+  if (pos.toMove !== 'white' && pos.toMove !== 'black') return false;
+  if (typeof pos.halfmoveClock !== 'number' || typeof pos.fullmoveNumber !== 'number') return false;
+  if (s.playerColor !== 'white' && s.playerColor !== 'black') return false;
+  if (s.difficulty !== 'beginner' && s.difficulty !== 'intermediate' && s.difficulty !== 'advanced') return false;
+  if (!Array.isArray(s.history)) return false;
+  return true;
+}
+
+export function rebuildPositionsSeen(history: { move: Move; positionBefore: Position }[], _finalPos: Position): Map<string, number> {
+  const seen = new Map<string, number>();
+  let cur = initialPosition();
+  seen.set(positionHash(cur), 1);
+  for (const entry of history) {
+    cur = makeMove(cur, entry.move);
+    seen.set(positionHash(cur), (seen.get(positionHash(cur)) ?? 0) + 1);
+  }
+  return seen;
+}

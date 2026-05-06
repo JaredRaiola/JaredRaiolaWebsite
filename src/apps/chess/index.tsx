@@ -4,7 +4,7 @@ import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
 import {
-  reducer, initialState, type GameState, type Square as Sq,
+  reducer, initialState, isValidChessSnapshot, rebuildPositionsSeen, type GameState, type Square as Sq,
 } from './engine';
 import { chooseAiMove } from './ai';
 import Board from './components/Board';
@@ -22,12 +22,26 @@ const PIECE_GLYPH: Record<string, string> = {
   'black-king': '♚', 'black-queen': '♛', 'black-rook': '♜', 'black-bishop': '♝', 'black-knight': '♞', 'black-pawn': '♟',
 };
 
-function init(): GameState {
+function initFrom(restored: unknown): GameState {
+  if (isValidChessSnapshot(restored)) {
+    return {
+      phase: restored.phase === 'thinking' ? (restored.position.toMove === restored.playerColor ? 'playing' : 'thinking') : restored.phase,
+      position: restored.position,
+      history: restored.history,
+      positionsSeen: rebuildPositionsSeen(restored.history, restored.position),
+      playerColor: restored.playerColor,
+      difficulty: restored.difficulty,
+      selectedSquare: null,
+      legalDestinations: [],
+      pendingPromotion: null,
+      drawReason: restored.drawReason,
+    };
+  }
   return initialState('white', 'intermediate');
 }
 
-export default function Chess({ api }: AppProps) {
-  const [state, dispatch] = useReducer(reducer, undefined, init);
+export default function Chess({ api, restoreState }: AppProps) {
+  const [state, dispatch] = useReducer(reducer, undefined, () => initFrom(restoreState));
   const [openMenu, setOpenMenu] = useState<'game' | 'help' | null>(null);
   const [newGameOpen, setNewGameOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
@@ -110,6 +124,21 @@ export default function Chess({ api }: AppProps) {
     }, 200);
     return () => window.clearTimeout(id);
   }, [state.phase, state.position, state.difficulty]);
+
+  // Snapshot for session persistence.
+  useEffect(() => {
+    return api.registerSnapshot(() => {
+      const phase = state.phase === 'promoting' ? 'playing' : state.phase;
+      return {
+        position: state.position,
+        history: state.history,
+        playerColor: state.playerColor,
+        difficulty: state.difficulty,
+        phase,
+        drawReason: state.drawReason,
+      };
+    });
+  }, [state, api]);
 
   const handleSquareClick = (sq: Sq, e: React.MouseEvent): void => {
     e.stopPropagation();
