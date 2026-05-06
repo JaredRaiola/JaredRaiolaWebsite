@@ -169,3 +169,37 @@ describe('chord', () => {
     expect(after).toBe(seeded);
   });
 });
+
+describe('win detection', () => {
+  it('transitions to won when every non-mine cell is revealed and auto-flags remaining mines', () => {
+    const s0 = createInitialState({ width: 2, height: 2, mines: 1 });
+    const cells = s0.cells.map((c) => ({ ...c }));
+    cells[3].mine = true;
+    cells[0].adjacent = 0;
+    cells[1].adjacent = 1;
+    cells[2].adjacent = 1;
+    const seeded: GameState = { ...s0, phase: 'playing', cells, startedAt: 0 };
+    let s = reveal(seeded, 0); // floods through 0-cell, opens 1,2
+    // 0 has neighbors 1, 2, 3. Flood reveals 0,1,2 (numbers stop the flood at themselves; 3 is mine).
+    expect(s.phase).toBe('won');
+    expect(s.cells[3].mark).toBe('flag');
+    expect(s.flagsPlaced).toBe(1);
+  });
+});
+
+describe('lose detection', () => {
+  it('reveals all mines when one is clicked and marks the clicked one exploded', () => {
+    const s0 = createInitialState({ width: 2, height: 2, mines: 2 });
+    const cells = s0.cells.map((c) => ({ ...c }));
+    cells[0].mine = true;
+    cells[3].mine = true;
+    cells[1].adjacent = 2;
+    cells[2].adjacent = 2;
+    const seeded: GameState = { ...s0, phase: 'playing', cells, startedAt: 0 };
+    const s = reveal(seeded, 0);
+    expect(s.phase).toBe('lost');
+    expect(s.cells[0].exploded).toBe(true);
+    expect(s.cells[0].revealed).toBe(true);
+    expect(s.cells[3].revealed).toBe(true);
+  });
+});

@@ -85,6 +85,23 @@ function placeMines(state: GameState, safeIdx: number, rng: Rng): GameState {
   return { ...state, cells };
 }
 
+function checkWin(state: GameState): GameState {
+  // Win when every non-mine cell is revealed.
+  for (const c of state.cells) {
+    if (!c.mine && !c.revealed) return state;
+  }
+  // Auto-flag remaining mines.
+  let flagsPlaced = state.flagsPlaced;
+  const cells = state.cells.map((c) => {
+    if (c.mine && c.mark !== 'flag') {
+      flagsPlaced++;
+      return { ...c, mark: 'flag' as const };
+    }
+    return c;
+  });
+  return { ...state, cells, flagsPlaced, phase: 'won' };
+}
+
 export function reveal(state: GameState, idx: number, rng: Rng = Math.random): GameState {
   if (state.phase === 'won' || state.phase === 'lost') return state;
   if (state.cells[idx].revealed || state.cells[idx].mark === 'flag') return state;
@@ -93,6 +110,16 @@ export function reveal(state: GameState, idx: number, rng: Rng = Math.random): G
   if (next.phase === 'idle') {
     next = placeMines(next, idx, rng);
     next = { ...next, phase: 'playing', startedAt: Date.now() };
+  }
+
+  // Click on a mine: reveal all mines, mark the clicked one exploded.
+  if (next.cells[idx].mine) {
+    const cells = next.cells.map((c, i) => {
+      if (i === idx) return { ...c, revealed: true, exploded: true };
+      if (c.mine) return { ...c, revealed: true };
+      return c;
+    });
+    return { ...next, cells, phase: 'lost' };
   }
 
   const cells = next.cells.map((c) => ({ ...c }));
@@ -104,7 +131,7 @@ export function reveal(state: GameState, idx: number, rng: Rng = Math.random): G
     const cell = cells[cur];
     if (cell.revealed || cell.mark === 'flag') continue;
     cell.revealed = true;
-    if (cell.mine) continue; // the caller branch handles loss; flood doesn't push mines
+    if (cell.mine) continue;
     if (cell.adjacent === 0) {
       const col = cur % w;
       const row = Math.floor(cur / w);
@@ -113,7 +140,7 @@ export function reveal(state: GameState, idx: number, rng: Rng = Math.random): G
       }
     }
   }
-  return { ...next, cells };
+  return checkWin({ ...next, cells });
 }
 
 export function chord(state: GameState, idx: number, rng: Rng = Math.random): GameState {
