@@ -150,7 +150,8 @@ describe('isValidRun', () => {
   });
 });
 
-import { reducer } from './engine';
+import { reducer, emptyPiles } from './engine';
+import type { GameState } from './engine';
 
 describe('reducer/drawFromStock', () => {
   it('draw 1 moves one card from stock to waste face-up', () => {
@@ -189,5 +190,61 @@ describe('reducer/drawFromStock', () => {
     const s = { ...s0, piles: { ...s0.piles, stock: [], waste: s0.piles.stock.slice() }, recyclesUsed: 1 };
     const s2 = reducer(s, { type: 'drawFromStock' });
     expect(s2).toBe(s);
+  });
+});
+
+describe('reducer/tryMove', () => {
+  it('illegal move returns same state reference', () => {
+    const s0 = deal(makeRng(1));
+    const r = reducer(s0, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'tableau-1' });
+    expect(r).toBe(s0);
+  });
+  it('legal single-card tableau→tableau move transfers and reveals new top', () => {
+    const piles = emptyPiles();
+    piles['tableau-0'] = [
+      { id: 'XX', suit: 'spades', rank: 7, faceUp: false },
+      { id: '5H', suit: 'hearts', rank: 5, faceUp: true },
+    ];
+    piles['tableau-1'] = [{ id: '6S', suit: 'spades', rank: 6, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 1, to: 'tableau-1' });
+    expect(r.piles['tableau-1'].map((c) => c.id)).toEqual(['6S', '5H']);
+    expect(r.piles['tableau-0']).toHaveLength(1);
+    expect(r.piles['tableau-0'][0].faceUp).toBe(true);
+  });
+  it('legal multi-card tableau→tableau move requires valid run', () => {
+    const piles = emptyPiles();
+    piles['tableau-0'] = [
+      { id: '6S', suit: 'spades', rank: 6, faceUp: true },
+      { id: '5H', suit: 'hearts', rank: 5, faceUp: true },
+      { id: '4C', suit: 'clubs', rank: 4, faceUp: true },
+    ];
+    piles['tableau-1'] = [{ id: '7H', suit: 'hearts', rank: 7, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'tableau-1' });
+    expect(r.piles['tableau-1']).toHaveLength(4);
+    expect(r.piles['tableau-0']).toHaveLength(0);
+  });
+  it('foundation only accepts single card', () => {
+    const piles = emptyPiles();
+    piles['tableau-0'] = [
+      { id: 'AS', suit: 'spades', rank: 1, faceUp: true },
+      { id: '2S', suit: 'spades', rank: 2, faceUp: true },
+    ];
+    piles['foundation-spades'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 0, to: 'foundation-spades' });
+    expect(r).toBe(s);
+    const r2 = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 1, to: 'foundation-spades' });
+    expect(r2.piles['foundation-spades'].map((c) => c.id)).toEqual(['AS', '2S']);
   });
 });

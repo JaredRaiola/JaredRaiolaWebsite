@@ -195,9 +195,47 @@ function drawFromStock(s: GameState): GameState {
   return { ...s, piles, score, recyclesUsed: s.recyclesUsed + 1, prev: snapshotPrev(s) };
 }
 
+function isFoundationPile(p: PileId): boolean {
+  return p.startsWith('foundation-');
+}
+
+function isTableauPile(p: PileId): boolean {
+  return p.startsWith('tableau-');
+}
+
+function tryMove(s: GameState, from: PileId, fromIdx: number, to: PileId): GameState {
+  if (s.phase !== 'playing') return s;
+  if (from === to) return s;
+  const src = s.piles[from];
+  if (fromIdx < 0 || fromIdx >= src.length) return s;
+  const moving = src.slice(fromIdx);
+  if (!isValidRun(moving)) return s;
+
+  if (isFoundationPile(to)) {
+    if (moving.length !== 1) return s;
+    if (!canStackOnFoundation(s.piles[to][s.piles[to].length - 1], moving[0])) return s;
+  } else if (isTableauPile(to)) {
+    const top = s.piles[to][s.piles[to].length - 1];
+    if (!canStackOnTableau(top, moving[0])) return s;
+  } else {
+    return s;
+  }
+
+  const piles = clonePiles(s.piles);
+  piles[from] = piles[from].slice(0, fromIdx);
+  piles[to] = piles[to].concat(moving.map((c) => ({ ...c })));
+  if (isTableauPile(from)) {
+    const newTop = piles[from][piles[from].length - 1];
+    if (newTop && !newTop.faceUp) newTop.faceUp = true;
+  }
+
+  return { ...s, piles, prev: snapshotPrev(s) };
+}
+
 export function reducer(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'drawFromStock': return drawFromStock(s);
+    case 'tryMove': return tryMove(s, a.from, a.fromIdx, a.to);
     default: return s;
   }
 }
