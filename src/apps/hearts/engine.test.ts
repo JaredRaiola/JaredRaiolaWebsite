@@ -422,3 +422,29 @@ describe('reducer/nextHand', () => {
     expect(s1.phase).toBe('passing');
   });
 });
+
+describe('reducer/undo', () => {
+  function startedState() {
+    const s = deal(makeRng(1));
+    const human3 = s.hands[0].slice(0, 3);
+    return reducer(s, {
+      type: 'submitPass',
+      humanSelection: human3,
+      aiPasses: { 0: human3, 1: s.hands[1].slice(0, 3), 2: s.hands[2].slice(0, 3), 3: s.hands[3].slice(0, 3) },
+    });
+  }
+  it('undo reverts the most recent play', () => {
+    let s = startedState();
+    const player = s.turn!;
+    const card = s.hands[player].find((cc) => cc.id === '2C')!;
+    s = reducer(s, { type: 'playCard', player, card });
+    const undone = reducer(s, { type: 'undo' });
+    expect(undone.hands[player]).toContainEqual(card);
+    expect(undone.trick!.plays).toHaveLength(0);
+    expect(undone.turn).toBe(player);
+  });
+  it('undo with no prev is a no-op', () => {
+    const s = startedState();
+    expect(reducer(s, { type: 'undo' })).toBe(s);
+  });
+});

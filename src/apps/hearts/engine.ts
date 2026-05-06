@@ -320,6 +320,7 @@ export function reducer(s: GameState, a: Action): GameState {
     case 'nextHand': return nextHand(s, a.rng);
     case 'newGame': return newGame(s, a.rng);
     case 'setOptions': return setOptions(s, a.options);
+    case 'undo': return undo(s);
     default: return s;
   }
 }
@@ -359,6 +360,21 @@ function newGame(s: GameState, rng: RNG): GameState {
 
 function setOptions(s: GameState, partial: Partial<Options>): GameState {
   return { ...s, options: { ...s.options, ...partial } };
+}
+
+function undo(s: GameState): GameState {
+  if (!s.prev) return s;
+  return {
+    ...s,
+    hands: s.prev.hands,
+    taken: s.prev.taken,
+    trick: s.prev.trick,
+    turn: s.prev.turn,
+    history: s.prev.history,
+    heartsBroken: s.prev.heartsBroken,
+    phase: 'playing',
+    prev: null,
+  };
 }
 
 export function applyHandScores(
