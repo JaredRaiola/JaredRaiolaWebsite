@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState, reveal, neighbors } from './engine';
+import { createInitialState, reveal, neighbors, toggleMark } from './engine';
 import type { GameState } from './engine';
 
 describe('createInitialState', () => {
@@ -90,5 +90,34 @@ describe('reveal — flood fill', () => {
     const s1 = reveal(seeded, 4); // numbered cell, should reveal only itself
     const revealedCount = s1.cells.filter((c) => c.revealed).length;
     expect(revealedCount).toBe(1);
+  });
+});
+
+describe('toggleMark', () => {
+  it('cycles none → flag → question → none with marks enabled', () => {
+    const s0 = createInitialState({ width: 9, height: 9, mines: 10 });
+    const s1 = toggleMark(s0, 0);
+    expect(s1.cells[0].mark).toBe('flag');
+    expect(s1.flagsPlaced).toBe(1);
+    const s2 = toggleMark(s1, 0);
+    expect(s2.cells[0].mark).toBe('question');
+    expect(s2.flagsPlaced).toBe(0);
+    const s3 = toggleMark(s2, 0);
+    expect(s3.cells[0].mark).toBe('none');
+  });
+  it('skips question when marks disabled (none → flag → none)', () => {
+    const s0 = { ...createInitialState({ width: 9, height: 9, mines: 10 }), marksEnabled: false };
+    const s1 = toggleMark(s0, 0);
+    expect(s1.cells[0].mark).toBe('flag');
+    const s2 = toggleMark(s1, 0);
+    expect(s2.cells[0].mark).toBe('none');
+  });
+  it('does nothing on revealed cells', () => {
+    const s0 = createInitialState({ width: 9, height: 9, mines: 10 });
+    const cells = s0.cells.map((c) => ({ ...c }));
+    cells[0].revealed = true;
+    const seeded: GameState = { ...s0, cells };
+    const s1 = toggleMark(seeded, 0);
+    expect(s1).toBe(seeded);
   });
 });

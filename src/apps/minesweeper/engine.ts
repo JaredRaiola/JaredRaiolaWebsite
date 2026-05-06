@@ -115,3 +115,22 @@ export function reveal(state: GameState, idx: number, rng: Rng = Math.random): G
   }
   return { ...next, cells };
 }
+
+export function toggleMark(state: GameState, idx: number): GameState {
+  if (state.phase === 'won' || state.phase === 'lost') return state;
+  const cell = state.cells[idx];
+  if (cell.revealed) return state;
+  let nextMark: Mark;
+  let flagDelta = 0;
+  if (cell.mark === 'none') {
+    nextMark = 'flag';
+    flagDelta = 1;
+  } else if (cell.mark === 'flag') {
+    nextMark = state.marksEnabled ? 'question' : 'none';
+    flagDelta = -1;
+  } else {
+    nextMark = 'none';
+  }
+  const cells = state.cells.map((c, i) => (i === idx ? { ...c, mark: nextMark } : c));
+  return { ...state, cells, flagsPlaced: state.flagsPlaced + flagDelta };
+}
