@@ -56,3 +56,33 @@ export function dealGame(gameNumber: number): GameState {
     prev: null,
   };
 }
+
+export function canStackOnTableau(top: Card | undefined, candidate: Card): boolean {
+  if (top === undefined) return true;
+  return color(top.suit) !== color(candidate.suit) && top.rank === candidate.rank + 1;
+}
+
+export function canStackOnFoundation(top: Card | undefined, candidate: Card): boolean {
+  if (top === undefined) return candidate.rank === 1;
+  return top.suit === candidate.suit && candidate.rank === top.rank + 1;
+}
+
+export function isValidRun(cards: Card[]): boolean {
+  if (cards.length === 0) return false;
+  for (let i = 0; i < cards.length - 1; i++) {
+    const a = cards[i];
+    const b = cards[i + 1];
+    if (a.rank !== b.rank + 1) return false;
+    if (color(a.suit) === color(b.suit)) return false;
+  }
+  return true;
+}
+
+export function supermoveCapacity(state: GameState, destIsEmptyCol: boolean): number {
+  let freeCells = 0;
+  for (const c of CELLS) if (state.piles[c].length === 0) freeCells++;
+  let emptyCols = 0;
+  for (const t of TABLEAUS) if (state.piles[t].length === 0) emptyCols++;
+  if (destIsEmptyCol) emptyCols = Math.max(0, emptyCols - 1);
+  return (freeCells + 1) * Math.pow(2, emptyCols);
+}
