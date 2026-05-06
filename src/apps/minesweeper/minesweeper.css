@@ -1,0 +1,151 @@
+.ms-root {
+  background: #c0c0c0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  user-select: none;
+}
+
+.ms-menubar {
+  display: flex;
+  gap: 8px;
+  padding: 2px 6px;
+  border-bottom: 1px solid #808080;
+}
+.ms-menu { padding: 2px 8px; cursor: default; position: relative; }
+.ms-menu:hover, .ms-menu.open { background: #000080; color: #fff; }
+.ms-menu-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #c0c0c0;
+  color: #000;
+  border: 1px solid;
+  border-color: #fff #404040 #404040 #fff;
+  padding: 2px;
+  min-width: 160px;
+  z-index: 5;
+}
+.ms-menu-popup .item {
+  padding: 3px 16px 3px 8px;
+  cursor: default;
+  white-space: nowrap;
+}
+.ms-menu-popup .item.disabled { color: #808080; }
+.ms-menu-popup .item:not(.disabled):hover { background: #000080; color: #fff; }
+.ms-menu-popup .sep { height: 1px; margin: 3px 2px; background: #808080; box-shadow: 0 1px 0 #fff; }
+.ms-check { display: inline-block; width: 14px; }
+
+.ms-content {
+  flex: 1;
+  padding: 6px;
+  /* outer raised bevel */
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+}
+
+.ms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  margin-bottom: 6px;
+  /* sunken */
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  background: #c0c0c0;
+}
+.ms-led { display: flex; background: #000; border: 1px solid #808080; }
+.ms-digits { display: flex; }
+
+.ms-face {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  cursor: default;
+}
+.ms-face.pressed {
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  padding-left: 2px;
+  padding-top: 2px;
+  width: 26px;
+  height: 26px;
+}
+
+.ms-board {
+  display: grid;
+  /* sunken */
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  background: #c0c0c0;
+  width: max-content;
+}
+.ms-board-cell { width: 16px; height: 16px; }
+
+.ms-cell {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.ms-cell-raised {
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  background: #c0c0c0;
+  box-sizing: border-box;
+}
+.ms-cell-flat {
+  border: 1px solid #808080;
+  background: #c0c0c0;
+  box-sizing: border-box;
+}
+
+/* Dialogs */
+.ms-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.1);
+  z-index: 10;
+}
+.ms-dialog {
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  min-width: 220px;
+}
+.ms-dialog-title {
+  background: #000080;
+  color: #fff;
+  padding: 2px 6px;
+  font-weight: 700;
+}
+.ms-dialog-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.ms-dialog-body label { display: flex; justify-content: space-between; gap: 12px; }
+.ms-dialog-body input { width: 60px; }
+.ms-dialog-buttons { display: flex; gap: 6px; padding: 6px; justify-content: flex-end; }
+.ms-dialog-buttons button { min-width: 60px; height: 22px; }
+
+.ms-bt-dialog .ms-bt-row { display: grid; grid-template-columns: 100px 100px 1fr; gap: 8px; padding: 2px 0; }
