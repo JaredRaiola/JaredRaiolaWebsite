@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 
 type Props = {
   onCancel: () => void;
@@ -12,15 +12,16 @@ function clamp(n: number): number {
 }
 
 export default function SelectGameDialog({ onCancel, onOk }: Props): React.ReactElement {
+  const drag = useDialogDrag();
   const [text, setText] = useState('');
   const submit = (): void => {
     const n = clamp(parseInt(text, 10));
     onOk(n);
   };
-  return createPortal(
+  return (
     <div className="fc-dialog-overlay" onClick={onCancel}>
-      <div className="fc-dialog window" onClick={(e) => e.stopPropagation()}>
-        <div className="title-bar"><div className="title-bar-text">Select Game</div></div>
+      <div className="fc-dialog window" onClick={(e) => e.stopPropagation()} style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">Select Game</div></div>
         <div className="window-body fc-dialog-body">
           <p>Game number (1–32000):</p>
           <input
@@ -36,7 +37,6 @@ export default function SelectGameDialog({ onCancel, onOk }: Props): React.React
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

@@ -1,16 +1,17 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import { loadStats } from '../scores';
 
 type Props = { onClose: () => void };
 
 export default function StatisticsDialog({ onClose }: Props): React.ReactElement {
+  const drag = useDialogDrag();
   const stats = loadStats();
   const total = stats.wins + stats.losses;
   const pct = total === 0 ? 0 : Math.round((stats.wins / total) * 100);
-  return createPortal(
+  return (
     <div className="fc-dialog-overlay" onClick={onClose}>
-      <div className="fc-dialog window" onClick={(e) => e.stopPropagation()}>
-        <div className="title-bar"><div className="title-bar-text">Statistics</div></div>
+      <div className="fc-dialog window" onClick={(e) => e.stopPropagation()} style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">Statistics</div></div>
         <div className="window-body fc-dialog-body">
           <p>Wins: {stats.wins}</p>
           <p>Losses: {stats.losses}</p>
@@ -22,7 +23,6 @@ export default function StatisticsDialog({ onClose }: Props): React.ReactElement
           <button onClick={onClose}>OK</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

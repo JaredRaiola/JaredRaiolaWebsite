@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 
 type Props = {
   outcome: 'won' | 'lost';
@@ -9,10 +9,11 @@ type Props = {
 };
 
 export default function OutcomeDialog({ outcome, gameNumber, moveCount, onNewGame, onClose }: Props): React.ReactElement {
-  return createPortal(
+  const drag = useDialogDrag();
+  return (
     <div className="fc-dialog-overlay">
-      <div className="fc-dialog window">
-        <div className="title-bar"><div className="title-bar-text">{outcome === 'won' ? 'Congratulations' : 'Game Over'}</div></div>
+      <div className="fc-dialog window" style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">{outcome === 'won' ? 'Congratulations' : 'Game Over'}</div></div>
         <div className="window-body fc-dialog-body">
           {outcome === 'won' ? (
             <p>You won game #{gameNumber} in {moveCount} moves.</p>
@@ -25,7 +26,6 @@ export default function OutcomeDialog({ outcome, gameNumber, moveCount, onNewGam
           <button onClick={onClose}>Close</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }
