@@ -225,6 +225,20 @@ export function flushNow(): void {
   void doSave();
 }
 
+/**
+ * Disable auto-save and ignore any pending debounced save. Called by
+ * `resetComputer` so the post-wipe `pagehide` doesn't repopulate localStorage
+ * from the in-memory windowStore. After this, the only way to re-enable
+ * saves is a fresh `bindAutoSave` (which only happens on next boot).
+ */
+export function unbindAutoSave(): void {
+  autoSaveSource = null;
+  if (saveTimer !== null) {
+    window.clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+}
+
 async function doSave(): Promise<void> {
   if (!autoSaveSource) return;
   const { snapshot, blobs } = await autoSaveSource.buildSnapshot();
