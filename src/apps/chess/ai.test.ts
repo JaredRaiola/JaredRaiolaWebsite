@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { evaluate, chooseAiMove } from './ai';
-import { initialPosition, makeSquare, generateLegalMoves, makeMove, fileOf, rankOf, type Position, type Piece } from './engine';
+import { initialPosition, makeSquare, generateLegalMoves, fileOf, rankOf, type Position, type Piece } from './engine';
 
 function emptyPos(): Position {
   return {
