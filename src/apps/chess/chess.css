@@ -1,0 +1,17 @@
+.ch-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #c0c0c0;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  user-select: none;
+}
+.ch-felt {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  color: #000;
+  padding: 12px;
+}
