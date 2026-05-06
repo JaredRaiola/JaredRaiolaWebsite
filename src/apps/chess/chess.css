@@ -15,3 +15,117 @@
   color: #000;
   padding: 12px;
 }
+
+.ch-menubar {
+  display: flex; gap: 8px;
+  background: #c0c0c0; color: #000;
+  border-bottom: 1px solid #808080;
+  padding: 2px 6px;
+}
+.ch-menu { padding: 2px 8px; cursor: default; position: relative; }
+.ch-menu:hover, .ch-menu.open { background: #000080; color: #fff; }
+.ch-menu-popup {
+  position: absolute; top: 100%; left: 0;
+  background: #c0c0c0; color: #000;
+  border: 1px solid; border-color: #fff #404040 #404040 #fff;
+  padding: 2px; min-width: 160px; z-index: 10;
+}
+.ch-menu-popup .item { padding: 3px 16px 3px 8px; cursor: default; white-space: nowrap; }
+.ch-menu-popup .item.disabled { color: #808080; }
+.ch-menu-popup .item:not(.disabled):hover { background: #000080; color: #fff; }
+.ch-menu-popup .sep { height: 1px; margin: 3px 2px; background: #808080; box-shadow: 0 1px 0 #fff; }
+
+.ch-felt { padding: 8px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+
+.ch-board {
+  display: flex; flex-direction: column;
+  border: 2px solid;
+  border-color: #404040 #fff #fff #404040;
+  background: #808080;
+  user-select: none;
+}
+.ch-board-row { display: flex; }
+.ch-rank-label, .ch-file-label {
+  width: 18px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #000;
+  background: #c0c0c0;
+}
+.ch-file-label { width: 56px; height: 18px; }
+.ch-file-labels { display: flex; }
+
+.ch-sq {
+  width: 56px; height: 56px;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  cursor: default;
+}
+.ch-light { background: #f0d9b5; }
+.ch-dark { background: #b58863; }
+.ch-last { box-shadow: inset 0 0 0 56px rgba(255,255,128,0.35); }
+.ch-selected { box-shadow: inset 0 0 0 3px #4488ff !important; }
+.ch-legal-capture { box-shadow: inset 0 0 0 3px #c44 !important; }
+.ch-check { box-shadow: inset 0 0 0 3px #f33 !important; }
+
+.ch-piece {
+  font-family: 'Segoe UI Symbol', 'DejaVu Sans', serif;
+  font-size: 44px;
+  line-height: 1;
+  pointer-events: none;
+}
+.ch-piece-white { color: #fff; text-shadow: 0 0 1px #000, 0 0 2px #000; }
+.ch-piece-black { color: #000; text-shadow: 0 0 1px #fff, 0 0 1px #fff; }
+
+.ch-dot {
+  width: 14px; height: 14px;
+  background: rgba(0,0,0,0.32);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ch-status {
+  display: flex; gap: 16px; align-items: center;
+  padding: 4px 8px;
+  background: #c0c0c0;
+  border-top: 1px solid #fff;
+  box-shadow: inset 0 1px 0 #808080;
+  color: #000;
+  font-size: 11px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ch-drag-layer, .ch-drag-layer * { pointer-events: none !important; }
+.ch-drag-layer {
+  position: fixed; z-index: 1000;
+  width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.ch-dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.05);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.ch-dialog { min-width: 280px; }
+.ch-dialog-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.ch-dialog-body fieldset { padding: 8px 10px; margin: 0; }
+.ch-dialog-body legend { padding: 0 4px; }
+.ch-dialog-body .field-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.ch-dialog-buttons {
+  display: flex; justify-content: flex-end; gap: 6px;
+  padding: 8px 12px; border-top: 1px solid #808080;
+}
+.ch-dialog-buttons button { min-width: 75px; }
+
+.ch-promo-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  padding: 4px 0;
+}
+.ch-promo-button {
+  font-family: 'Segoe UI Symbol', 'DejaVu Sans', serif;
+  font-size: 36px;
+  width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+}
