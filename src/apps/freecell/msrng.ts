@@ -1,5 +1,5 @@
 import type { Card, PileId, Rank, Suit } from './engine';
-import { TABLEAUS } from './engine';
+import { TABLEAUS, emptyPiles } from './engine';
 
 /**
  * Microsoft's 16-bit Linear Congruential Generator used by Win95 FreeCell.
@@ -46,12 +46,7 @@ export function dealForGameNumber(gameNumber: number): Record<PileId, Card[]> {
     const j = rng() % (i + 1);
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
-  const piles = {} as Record<PileId, Card[]>;
-  for (const t of TABLEAUS) piles[t] = [];
-  // Cells + foundations start empty; only tableau is dealt.
-  piles['cell-0'] = []; piles['cell-1'] = []; piles['cell-2'] = []; piles['cell-3'] = [];
-  piles['foundation-spades'] = []; piles['foundation-hearts'] = [];
-  piles['foundation-clubs'] = []; piles['foundation-diamonds'] = [];
+  const piles = emptyPiles();
   // MS FreeCell fills each column top-to-bottom before moving to the next column.
   // The top of the shuffled deck is deck[51] (the last shuffle position touched).
   let pos = 51;
