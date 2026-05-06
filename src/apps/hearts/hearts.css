@@ -36,37 +36,42 @@
 .hearts-hand-card svg { width: 100%; height: 100%; display: block; }
 
 .hearts-ai { color: #fff; font-size: 11px; }
-.hearts-ai-label { margin-bottom: 4px; text-align: center; }
+.hearts-ai-label { text-align: center; padding: 0 6px; white-space: nowrap; }
+
+/* Top player: label above the fan. */
+.hearts-ai-top { display: flex; flex-direction: column; align-items: center; }
+.hearts-ai-top .hearts-ai-label { margin-bottom: 4px; }
+
+/* Left player: label to the left of the fan. */
+.hearts-ai-left { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+
+/* Right player: label to the right of the fan. */
+.hearts-ai-right { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+
 .hearts-ai-fan { position: relative; height: 96px; width: 71px; }
-/* Vertical (left/right players): cards are sideways — long edge horizontal.
-   Padding-top absorbs the rotated card's 12.5px upward overflow so it
-   doesn't cover the player's name label. */
-.hearts-ai.vertical .hearts-ai-fan {
-  width: 96px;
-  height: auto;
-  min-height: 71px;
-  padding-top: 14px;
-}
+/* Side fans use sideways cards: 96 wide × 71 tall layout box. */
+.hearts-ai-left .hearts-ai-fan,
+.hearts-ai-right .hearts-ai-fan { width: 96px; }
 .hearts-ai-card {
   position: absolute;
   width: 71px;
   height: 96px;
 }
 .hearts-ai-card svg { width: 100%; height: 100%; display: block; }
-/* For vertical, the card rotates 90deg around its center. The card div is
-   resized to the rotated bounding box (96 wide × 71 tall). */
-.hearts-ai.vertical .hearts-ai-card {
+.hearts-ai-left .hearts-ai-card,
+.hearts-ai-right .hearts-ai-card {
   width: 96px;
   height: 71px;
 }
-.hearts-ai.vertical .hearts-ai-card svg {
+.hearts-ai-left .hearts-ai-card svg,
+.hearts-ai-right .hearts-ai-card svg {
   width: 71px;
   height: 96px;
-  transform: rotate(90deg);
-  transform-origin: 35.5px 35.5px;
   position: absolute;
   left: 12.5px;
   top: -12.5px;
+  transform: rotate(90deg);
+  transform-origin: 35.5px 35.5px;
 }
 .hearts-ai.highlighted .hearts-ai-fan {
   outline: 3px solid #ffd700;
