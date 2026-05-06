@@ -16,6 +16,7 @@ import StatusBar from './components/StatusBar';
 import OptionsDialog from './components/OptionsDialog';
 import StatisticsDialog from './components/StatisticsDialog';
 import WinCascade from './components/WinCascade';
+import WinDialog from './components/WinDialog';
 import CardFaceSvg from './cards/CardFaceSvg';
 import './solitaire.css';
 
@@ -54,6 +55,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
   const wonHandledRef = useRef(false);
   const [autoFinishing, setAutoFinishing] = useState(false);
   const [flying, setFlying] = useState<{ card: Card; from: { x: number; y: number }; to: { x: number; y: number }; dest: PileId } | null>(null);
+  const [winAck, setWinAck] = useState(false);
 
   useEffect(() => { saveOptions(state.options); }, [state.options]);
 
@@ -93,8 +95,9 @@ export default function Solitaire({ api, restoreState }: AppProps) {
   }, [state.phase]);
 
   useEffect(() => {
-    if (state.phase !== 'won') {
+    if (state.phase !== 'won' && state.phase !== 'cascading') {
       wonHandledRef.current = false;
+      setWinAck(false);
       return;
     }
     if (wonHandledRef.current) return;
@@ -325,6 +328,19 @@ export default function Solitaire({ api, restoreState }: AppProps) {
         />
       )}
       {statsOpen && <StatisticsDialog onClose={() => setStatsOpen(false)} />}
+      {(state.phase === 'won' || state.phase === 'cascading') && !winAck && (
+        <WinDialog
+          score={state.score}
+          elapsedSec={elapsedSec}
+          showScore={state.options.scoring !== 'none'}
+          showTime={state.options.timed}
+          onNewGame={() => {
+            setWinAck(true);
+            dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) });
+          }}
+          onClose={() => setWinAck(true)}
+        />
+      )}
     </div>
   );
 }
