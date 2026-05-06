@@ -7,6 +7,7 @@ const meta: AppDef = {
   defaultSize: { width: 600, height: 480 },
   minSize: { width: 480, height: 360 },
   fileAssociations: ['.png'],
+  menuPath: ['Programs', 'Accessories'],
   component: () => import('./index'),
 };
 

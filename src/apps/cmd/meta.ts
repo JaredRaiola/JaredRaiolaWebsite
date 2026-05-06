@@ -6,6 +6,7 @@ const meta: AppDef = {
   icon: '/assets/win98/png/console_prompt-0.png',
   defaultSize: { width: 640, height: 400 },
   minSize: { width: 320, height: 200 },
+  menuPath: ['Programs'],
   component: () => import('./index'),
 };
 

@@ -7,6 +7,7 @@ const meta: AppDef = {
   defaultSize: { width: 480, height: 460 },
   minSize: { width: 480, height: 460 },
   singleInstance: true,
+  menuPath: ['Settings'],
   component: () => import('./index'),
 };
 
