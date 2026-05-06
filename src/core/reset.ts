@@ -4,6 +4,7 @@
 // scoped to our keys so we don't nuke unrelated origin storage.
 
 const FS_DB_NAME = 'win95-fs';
+const SESSION_DB_NAME = 'win95-session';
 const RESETTING_DURATION_MS = 2500;
 
 // Keys we keep across a reset. The first-boot flag drives the cute floppy
@@ -42,6 +43,17 @@ export async function resetComputer(): Promise<void> {
   await new Promise<void>((resolve) => {
     try {
       const req = indexedDB.deleteDatabase(FS_DB_NAME);
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+      req.onblocked = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+
+  await new Promise<void>((resolve) => {
+    try {
+      const req = indexedDB.deleteDatabase(SESSION_DB_NAME);
       req.onsuccess = () => resolve();
       req.onerror = () => resolve();
       req.onblocked = () => resolve();
