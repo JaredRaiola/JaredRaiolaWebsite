@@ -290,6 +290,25 @@ function playCard(s: GameState, player: PlayerId, card: Card): GameState {
   };
 }
 
+function resolveTrick(s: GameState): GameState {
+  if (s.phase !== 'trick-resolved' || !s.trick || s.trick.plays.length !== 4) return s;
+  const winner = trickWinner(s.trick);
+  const cards = s.trick.plays.map((p) => p.card);
+  const newTaken: Record<PlayerId, Card[]> = {
+    0: s.taken[0].slice(), 1: s.taken[1].slice(), 2: s.taken[2].slice(), 3: s.taken[3].slice(),
+  };
+  newTaken[winner] = [...newTaken[winner], ...cards];
+  const handDone = s.history.length === 52;
+  return {
+    ...s,
+    taken: newTaken,
+    trick: { leader: winner, leadSuit: null, plays: [] },
+    turn: handDone ? null : winner,
+    phase: handDone ? 'hand-over' : 'playing',
+    prev: null,
+  };
+}
+
 export function reducer(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'selectPassCard': return selectPassCard(s, a.card);
@@ -297,6 +316,7 @@ export function reducer(s: GameState, a: Action): GameState {
     case 'submitPass': return submitPass(s, a.humanSelection, a.aiPasses);
     case 'playCard': return playCard(s, a.player, a.card);
     case 'aiPlay': return playCard(s, a.player, a.card);
+    case 'resolveTrick': return resolveTrick(s);
     default: return s;
   }
 }

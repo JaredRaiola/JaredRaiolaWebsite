@@ -170,8 +170,6 @@ describe('shotTheMoon', () => {
   });
 });
 
-import { reducer } from './engine';
-
 describe('reducer/passing', () => {
   it('selectPassCard adds to selections', () => {
     const s0 = deal(makeRng(1));
@@ -224,6 +222,74 @@ describe('reducer/passing', () => {
     const s1 = reducer(s0, { type: 'submitPass', humanSelection: [], aiPasses: { 0: [], 1: [], 2: [], 3: [] } });
     expect(s1.phase).toBe('playing');
     expect(s1.hands).toEqual(s0.hands);
+  });
+});
+
+import { reducer } from './engine';
+
+describe('reducer/resolveTrick', () => {
+  it('moves trick cards to winner taken pile and starts new trick', () => {
+    const trick: Trick = {
+      leader: 0, leadSuit: 'clubs',
+      plays: [
+        { player: 0, card: c('5C', 'clubs', 5) },
+        { player: 1, card: c('KC', 'clubs', 13) },
+        { player: 2, card: c('3D', 'diamonds', 3) },
+        { player: 3, card: c('7C', 'clubs', 7) },
+      ],
+    };
+    const s: GameState = {
+      phase: 'trick-resolved',
+      hands: { 0: [c('A', 'spades', 14)], 1: [], 2: [], 3: [] },
+      taken: emptyTaken(),
+      scores: emptyScores(),
+      handNumber: 0,
+      passDirection: 'left',
+      passSelections: null,
+      passReceived: null,
+      heartsBroken: false,
+      trick,
+      turn: null,
+      history: [...trick.plays.map((p) => p.card)],
+      options: DEFAULT_OPTIONS,
+      prev: null,
+    };
+    const s1 = reducer(s, { type: 'resolveTrick' });
+    expect(s1.taken[1]).toHaveLength(4);
+    expect(s1.trick).toEqual({ leader: 1, leadSuit: null, plays: [] });
+    expect(s1.turn).toBe(1);
+    expect(s1.phase).toBe('playing');
+  });
+  it('after 13 tricks (52 cards in history), transitions to hand-over', () => {
+    const trick: Trick = {
+      leader: 0, leadSuit: 'clubs',
+      plays: [
+        { player: 0, card: c('5C', 'clubs', 5) },
+        { player: 1, card: c('6C', 'clubs', 6) },
+        { player: 2, card: c('7C', 'clubs', 7) },
+        { player: 3, card: c('8C', 'clubs', 8) },
+      ],
+    };
+    const history: Card[] = [];
+    for (let i = 0; i < 48; i++) history.push(c(`X${i}`, 'clubs', 5));
+    const s: GameState = {
+      phase: 'trick-resolved',
+      hands: { 0: [], 1: [], 2: [], 3: [] },
+      taken: emptyTaken(),
+      scores: emptyScores(),
+      handNumber: 0,
+      passDirection: 'left',
+      passSelections: null,
+      passReceived: null,
+      heartsBroken: true,
+      trick,
+      turn: null,
+      history: [...history, ...trick.plays.map((p) => p.card)],
+      options: DEFAULT_OPTIONS,
+      prev: null,
+    };
+    const s1 = reducer(s, { type: 'resolveTrick' });
+    expect(s1.phase).toBe('hand-over');
   });
 });
 
