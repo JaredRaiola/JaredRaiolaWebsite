@@ -152,6 +152,7 @@ describe('isValidRun', () => {
 
 import { reducer, emptyPiles } from './engine';
 import type { GameState } from './engine';
+import type { Suit, Rank, Card, PileId } from './engine';
 
 describe('reducer/drawFromStock', () => {
   it('draw 1 moves one card from stock to waste face-up', () => {
@@ -246,5 +247,65 @@ describe('reducer/tryMove', () => {
     expect(r).toBe(s);
     const r2 = reducer(s, { type: 'tryMove', from: 'tableau-0', fromIdx: 1, to: 'foundation-spades' });
     expect(r2.piles['foundation-spades'].map((c) => c.id)).toEqual(['AS', '2S']);
+  });
+});
+
+describe('reducer/autoMoveToFoundation', () => {
+  it('moves the top card of source to its suit foundation when legal', () => {
+    const piles = emptyPiles();
+    piles['waste'] = [{ id: 'AS', suit: 'spades', rank: 1, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'autoMoveToFoundation', from: 'waste' });
+    expect(r.piles['foundation-spades'].map((c) => c.id)).toEqual(['AS']);
+    expect(r.piles.waste).toHaveLength(0);
+  });
+  it('no-ops when illegal', () => {
+    const piles = emptyPiles();
+    piles['waste'] = [{ id: '5H', suit: 'hearts', rank: 5, faceUp: true }];
+    const s: GameState = {
+      phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    expect(reducer(s, { type: 'autoMoveToFoundation', from: 'waste' })).toBe(s);
+  });
+});
+
+describe('reducer/autoFinish + win detection', () => {
+  it('autoFinish only runs when all face-down + stock + waste empty', () => {
+    const piles = emptyPiles();
+    piles['stock'] = [{ id: '5H', suit: 'hearts', rank: 5, faceUp: false }];
+    const s: GameState = {
+      phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    expect(reducer(s, { type: 'autoFinish' })).toBe(s);
+  });
+  it('autoFinish moves all tableau cards to foundations and wins', () => {
+    const piles = emptyPiles();
+    const cols: Suit[] = ['spades', 'hearts', 'clubs', 'diamonds'];
+    for (let i = 0; i < 4; i++) {
+      const cards: Card[] = [];
+      for (let r = 13; r >= 1; r--) {
+        const rankChar = r === 1 ? 'A' : r === 11 ? 'J' : r === 12 ? 'Q' : r === 13 ? 'K' : String(r);
+        const suitChar = cols[i][0].toUpperCase();
+        cards.push({
+          id: `${rankChar}${suitChar}`,
+          suit: cols[i],
+          rank: r as Rank,
+          faceUp: true,
+        });
+      }
+      piles[`tableau-${i}` as PileId] = cards;
+    }
+    const s: GameState = {
+      phase: 'playing', piles, options: DEFAULT_OPTIONS, score: 0, vegasBalance: 0,
+      startedAt: null, elapsedMs: 0, recyclesUsed: 0, prev: null, drag: null,
+    };
+    const r = reducer(s, { type: 'autoFinish' });
+    expect(r.phase).toBe('won');
+    for (const suit of cols) expect(r.piles[`foundation-${suit}` as PileId]).toHaveLength(13);
   });
 });

@@ -232,10 +232,60 @@ function tryMove(s: GameState, from: PileId, fromIdx: number, to: PileId): GameS
   return { ...s, piles, prev: snapshotPrev(s) };
 }
 
+function autoMoveToFoundation(s: GameState, from: PileId): GameState {
+  if (s.phase !== 'playing') return s;
+  const src = s.piles[from];
+  if (src.length === 0) return s;
+  const top = src[src.length - 1];
+  if (!top.faceUp) return s;
+  const dest = `foundation-${top.suit}` as PileId;
+  return tryMove(s, from, src.length - 1, dest);
+}
+
+function checkWin(s: GameState): GameState {
+  const total =
+    s.piles['foundation-spades'].length +
+    s.piles['foundation-hearts'].length +
+    s.piles['foundation-clubs'].length +
+    s.piles['foundation-diamonds'].length;
+  if (total === 52 && s.phase === 'playing') return { ...s, phase: 'won' };
+  return s;
+}
+
+function canAutoFinish(s: GameState): boolean {
+  if (s.piles.stock.length > 0 || s.piles.waste.length > 0) return false;
+  for (let i = 0; i < 7; i++) {
+    const col = s.piles[`tableau-${i}` as PileId];
+    if (col.some((c) => !c.faceUp)) return false;
+  }
+  return true;
+}
+
+function autoFinish(s: GameState): GameState {
+  if (s.phase !== 'playing') return s;
+  if (!canAutoFinish(s)) return s;
+  let cur = s;
+  let safety = 200;
+  while (safety-- > 0) {
+    let moved = false;
+    for (let i = 0; i < 7; i++) {
+      const pile = `tableau-${i}` as PileId;
+      const next = autoMoveToFoundation(cur, pile);
+      if (next !== cur) { cur = next; moved = true; break; }
+    }
+    if (!moved) break;
+  }
+  return checkWin(cur);
+}
+
+function applied(s: GameState): GameState { return checkWin(s); }
+
 export function reducer(s: GameState, a: Action): GameState {
   switch (a.type) {
-    case 'drawFromStock': return drawFromStock(s);
-    case 'tryMove': return tryMove(s, a.from, a.fromIdx, a.to);
+    case 'drawFromStock': return applied(drawFromStock(s));
+    case 'tryMove': return applied(tryMove(s, a.from, a.fromIdx, a.to));
+    case 'autoMoveToFoundation': return applied(autoMoveToFoundation(s, a.from));
+    case 'autoFinish': return autoFinish(s);
     default: return s;
   }
 }
