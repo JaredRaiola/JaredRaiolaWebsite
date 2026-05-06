@@ -116,6 +116,31 @@ export function reveal(state: GameState, idx: number, rng: Rng = Math.random): G
   return { ...next, cells };
 }
 
+export function chord(state: GameState, idx: number, rng: Rng = Math.random): GameState {
+  if (state.phase !== 'playing') return state;
+  const cell = state.cells[idx];
+  if (!cell.revealed || cell.adjacent === 0) return state;
+  const col = idx % state.width;
+  const row = Math.floor(idx / state.width);
+  const ns = neighbors(col, row, state.width, state.height);
+  let flagged = 0;
+  for (const n of ns) if (state.cells[n].mark === 'flag') flagged++;
+  if (flagged !== cell.adjacent) return state;
+  let next = state;
+  for (const n of ns) {
+    if (next.cells[n].mark === 'flag' || next.cells[n].revealed) continue;
+    if (next.cells[n].mine) {
+      // Wrong flag → mine click → loss. Mark exploded; subsequent task fully reveals other mines via reveal().
+      const cells = next.cells.map((c) => ({ ...c }));
+      cells[n].revealed = true;
+      cells[n].exploded = true;
+      return { ...next, cells, phase: 'lost' };
+    }
+    next = reveal(next, n, rng);
+  }
+  return next;
+}
+
 export function toggleMark(state: GameState, idx: number): GameState {
   if (state.phase === 'won' || state.phase === 'lost') return state;
   const cell = state.cells[idx];

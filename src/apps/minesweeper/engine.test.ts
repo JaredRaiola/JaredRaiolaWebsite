@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState, reveal, neighbors, toggleMark } from './engine';
+import { createInitialState, reveal, neighbors, toggleMark, chord } from './engine';
 import type { GameState } from './engine';
 
 describe('createInitialState', () => {
@@ -119,5 +119,53 @@ describe('toggleMark', () => {
     const seeded: GameState = { ...s0, cells };
     const s1 = toggleMark(seeded, 0);
     expect(s1).toBe(seeded);
+  });
+});
+
+describe('chord', () => {
+  function buildBoard(): GameState {
+    // 3x3, mine at idx 8 (bottom-right). idx 4 has adjacent=1.
+    const s0 = createInitialState({ width: 3, height: 3, mines: 1 });
+    const cells = s0.cells.map((c) => ({ ...c }));
+    cells[8].mine = true;
+    cells[4].adjacent = 1;
+    cells[5].adjacent = 1;
+    cells[7].adjacent = 1;
+    cells[4].revealed = true;
+    return { ...s0, phase: 'playing', cells, startedAt: 0 };
+  }
+
+  it('reveals all unflagged neighbors when flag count matches number', () => {
+    let s = buildBoard();
+    s = toggleMark(s, 8); // flag the mine
+    const after = chord(s, 4);
+    // Neighbors of idx 4: 0,1,2,3,5,6,7,8. idx 8 is flagged. Others should reveal.
+    for (const n of [0, 1, 2, 3, 5, 6, 7]) {
+      expect(after.cells[n].revealed).toBe(true);
+    }
+    expect(after.cells[8].revealed).toBe(false); // still flagged
+  });
+
+  it('is a no-op on under-flagged numbers', () => {
+    const s = buildBoard(); // idx 4 has number 1, no flags placed
+    const after = chord(s, 4);
+    expect(after).toBe(s);
+  });
+
+  it('triggers loss when a chord hits a mine because of a wrong flag', () => {
+    let s = buildBoard();
+    s = toggleMark(s, 0); // wrongly flag a non-mine corner
+    // Now idx 4 has 1 flag (corner) but the actual mine is unflagged.
+    const after = chord(s, 4);
+    expect(after.phase).toBe('lost');
+  });
+
+  it('is a no-op on a revealed 0 cell', () => {
+    const s0 = createInitialState({ width: 3, height: 3, mines: 0 });
+    const cells = s0.cells.map((c) => ({ ...c }));
+    cells[4].revealed = true; // adjacent stays 0
+    const seeded: GameState = { ...s0, phase: 'playing', cells, startedAt: 0 };
+    const after = chord(seeded, 4);
+    expect(after).toBe(seeded);
   });
 });
