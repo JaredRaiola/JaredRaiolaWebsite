@@ -120,6 +120,39 @@ export default function Solitaire({ api, restoreState }: AppProps) {
     return state.drag.cards.some((c) => c.id === cardId);
   };
 
+  // Window-level drag tracking. We avoid setPointerCapture / element-bound
+  // listeners because if the captured element unmounts mid-drag (which can
+  // happen when an unrelated state update reflows piles) the capture leaks
+  // and every subsequent click in the window is dead.
+  useEffect(() => {
+    if (!state.drag) return;
+    const onMove = (e: PointerEvent): void => {
+      setDragPos({ x: e.clientX, y: e.clientY });
+    };
+    const onUp = (e: PointerEvent): void => {
+      const meta = dragMetaRef.current;
+      if (meta) {
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const pileEl = target?.closest('[data-pile-id]') as HTMLElement | null;
+        const dropPile = pileEl?.dataset.pileId as PileId | undefined;
+        if (dropPile) {
+          dispatch({ type: 'tryMove', from: meta.from, fromIdx: meta.fromIdx, to: dropPile });
+        }
+      }
+      dispatch({ type: 'cancelDrag' });
+      dragMetaRef.current = null;
+      setDragPos(null);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [state.drag]);
+
   const startDrag = (from: PileId, fromIdx: number, e: React.PointerEvent): void => {
     if (state.phase !== 'playing') return;
     const src = state.piles[from];
@@ -131,26 +164,6 @@ export default function Solitaire({ api, restoreState }: AppProps) {
     dragMetaRef.current = { from, fromIdx };
     dispatch({ type: 'pickUpDrag', from, cards, pointerOffset: offset });
     setDragPos({ x: e.clientX, y: e.clientY });
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
-
-  const onPointerMove = (e: React.PointerEvent): void => {
-    if (!state.drag) return;
-    setDragPos({ x: e.clientX, y: e.clientY });
-  };
-
-  const onPointerUp = (e: React.PointerEvent): void => {
-    if (!state.drag || !dragMetaRef.current) return;
-    const target = document.elementFromPoint(e.clientX, e.clientY);
-    const pileEl = target?.closest('[data-pile-id]') as HTMLElement | null;
-    const dropPile = pileEl?.dataset.pileId as PileId | undefined;
-    const meta = dragMetaRef.current;
-    if (dropPile) {
-      dispatch({ type: 'tryMove', from: meta.from, fromIdx: meta.fromIdx, to: dropPile });
-    }
-    dispatch({ type: 'cancelDrag' });
-    dragMetaRef.current = null;
-    setDragPos(null);
   };
 
   const elapsedSec = Math.floor(state.elapsedMs / 1000);
@@ -159,8 +172,6 @@ export default function Solitaire({ api, restoreState }: AppProps) {
     <div
       className="sol-root"
       onClick={() => setOpenMenu(null)}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
       onContextMenu={(e) => { e.preventDefault(); dispatch({ type: 'autoFinish' }); }}
     >
       <div className="sol-menubar">
