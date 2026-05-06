@@ -3,7 +3,7 @@ import {
   reducer,
   dealGame,
   canStackOnTableau, canStackOnFoundation, isValidRun, supermoveCapacity,
-  CELLS, FOUNDATIONS, TABLEAUS, emptyPiles,
+  emptyPiles,
   isAutoCascadable,
   hasLegalMoves,
   type Card, type GameState,
