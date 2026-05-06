@@ -94,8 +94,24 @@ export function reveal(state: GameState, idx: number, rng: Rng = Math.random): G
     next = placeMines(next, idx, rng);
     next = { ...next, phase: 'playing', startedAt: Date.now() };
   }
-  // Reveal logic implemented in next task. For now, just mark the clicked cell revealed.
+
   const cells = next.cells.map((c) => ({ ...c }));
-  cells[idx].revealed = true;
+  const w = next.width;
+  const h = next.height;
+  const stack: number[] = [idx];
+  while (stack.length > 0) {
+    const cur = stack.pop()!;
+    const cell = cells[cur];
+    if (cell.revealed || cell.mark === 'flag') continue;
+    cell.revealed = true;
+    if (cell.mine) continue; // the caller branch handles loss; flood doesn't push mines
+    if (cell.adjacent === 0) {
+      const col = cur % w;
+      const row = Math.floor(cur / w);
+      for (const n of neighbors(col, row, w, h)) {
+        if (!cells[n].revealed && cells[n].mark !== 'flag') stack.push(n);
+      }
+    }
+  }
   return { ...next, cells };
 }

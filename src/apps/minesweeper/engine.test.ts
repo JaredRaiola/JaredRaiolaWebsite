@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createInitialState, reveal, neighbors } from './engine';
+import type { GameState } from './engine';
 
 describe('createInitialState', () => {
   it('starts in idle phase with no mines placed', () => {
@@ -48,5 +49,46 @@ describe('reveal — first click', () => {
     // RNG that always picks slot 0 — mine placer must skip that slot for the click cell.
     const s1 = reveal(s0, 0, () => 0);
     expect(s1.cells[0].mine).toBe(false);
+  });
+});
+
+describe('reveal — flood fill', () => {
+  it('revealing a 0-adjacent cell opens the connected zero region plus its number border', () => {
+    // Construct a controlled board: 5x5, mines only in the bottom-right corner cell.
+    const s0 = createInitialState({ width: 5, height: 5, mines: 1 });
+    // RNG that always returns 0.999 → picks last candidate (after Fisher-Yates of remaining)
+    // Easier: directly set state for testing rather than fight RNG.
+    const cells = s0.cells.map((c) => ({ ...c }));
+    cells[24].mine = true; // bottom-right
+    // Manually compute adjacency
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 5; col++) {
+        const idx = row * 5 + col;
+        if (cells[idx].mine) continue;
+        let count = 0;
+        for (const n of neighbors(col, row, 5, 5)) if (cells[n].mine) count++;
+        cells[idx].adjacent = count;
+      }
+    }
+    const seeded: GameState = { ...s0, phase: 'playing', cells, startedAt: 0 };
+    const s1 = reveal(seeded, 0); // top-left, far from mine, should flood
+    const revealedCount = s1.cells.filter((c) => c.revealed).length;
+    // 5x5 = 25 cells. 1 is a mine (not revealed). Top-left flood reveals all non-mines reachable.
+    // Adjacent-to-mine cells (the L-shaped border around bottom-right) are revealed too.
+    // Expected: 24 cells revealed.
+    expect(revealedCount).toBe(24);
+  });
+
+  it('does not flood when revealing a numbered cell', () => {
+    const s0 = createInitialState({ width: 3, height: 3, mines: 1 });
+    const cells = s0.cells.map((c) => ({ ...c }));
+    cells[0].mine = true;
+    cells[1].adjacent = 1;
+    cells[3].adjacent = 1;
+    cells[4].adjacent = 1;
+    const seeded: GameState = { ...s0, phase: 'playing', cells, startedAt: 0 };
+    const s1 = reveal(seeded, 4); // numbered cell, should reveal only itself
+    const revealedCount = s1.cells.filter((c) => c.revealed).length;
+    expect(revealedCount).toBe(1);
   });
 });
