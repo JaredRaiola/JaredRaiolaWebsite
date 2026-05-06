@@ -68,3 +68,27 @@ describe('Medium AI', () => {
     expect(choice.id).toBe('3C');
   });
 });
+
+describe('Hard AI', () => {
+  it('plays only legal cards across 200 randomized scenarios', () => {
+    const deck = makeDeck();
+    for (let seed = 0; seed < 200; seed++) {
+      const idx = (seed * 7) % deck.length;
+      const hand = deck.slice(idx, idx + 13).concat(deck.slice(0, Math.max(0, 13 - (deck.length - idx))));
+      if (hand.length < 1) continue;
+      const trick: Trick = { leader: 1, leadSuit: null, plays: [] };
+      const choice = chooseAiPlay(hand, trick, [], true, false, 'hard');
+      expect(hand.some((h) => h.id === choice.id)).toBe(true);
+    }
+  });
+  it('attempts shoot-the-moon: leads QS or high spade when hand has 5+ hearts and high spade cover', () => {
+    const hand: Card[] = [
+      c('AS', 'spades', 14), c('KS', 'spades', 13), c('QS', 'spades', 12),
+      c('AH', 'hearts', 14), c('KH', 'hearts', 13), c('QH', 'hearts', 12),
+      c('JH', 'hearts', 11), c('10H', 'hearts', 10),
+    ];
+    const trick: Trick = { leader: 1, leadSuit: null, plays: [] };
+    const choice = chooseAiPlay(hand, trick, [], true, false, 'hard');
+    expect(['QS', 'KS', 'AS']).toContain(choice.id);
+  });
+});

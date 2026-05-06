@@ -80,7 +80,40 @@ function mediumPlay(legal: Card[], _hand: Card[], trick: Trick, _isFirstTrick: b
   }
   return myInSuit.slice().sort((a, b) => a.rank - b.rank)[0];
 }
-function hardPass(hand: Card[], _direction: PassDirection): Card[] { return mediumPass(hand); }
-function hardPlay(legal: Card[], hand: Card[], trick: Trick, _history: Card[], _heartsBroken: boolean, isFirstTrick: boolean): Card {
+function hasMoonPotential(hand: Card[]): boolean {
+  const hearts = hand.filter((c) => c.suit === 'hearts');
+  const hasQS = hand.some((c) => c.id === 'QS');
+  const highSpades = hand.filter((c) => c.suit === 'spades' && c.rank >= 12);
+  return hearts.length >= 5 && hasQS && highSpades.length >= 2;
+}
+
+function hardPass(hand: Card[], _direction: PassDirection): Card[] {
+  if (hasMoonPotential(hand)) {
+    const lowNonPoints = hand
+      .filter((c) => !(c.suit === 'spades' && c.rank === 12) && c.suit !== 'hearts')
+      .sort((a, b) => a.rank - b.rank);
+    if (lowNonPoints.length >= 3) return lowNonPoints.slice(0, 3);
+  }
+  return mediumPass(hand);
+}
+
+function hardPlay(
+  legal: Card[],
+  hand: Card[],
+  trick: Trick,
+  _history: Card[],
+  _heartsBroken: boolean,
+  isFirstTrick: boolean,
+): Card {
+  if (hasMoonPotential(hand)) {
+    if (trick.plays.length === 0) {
+      const highSpades = legal.filter((c) => c.suit === 'spades').sort((a, b) => b.rank - a.rank);
+      if (highSpades.length > 0) return highSpades[0];
+    } else {
+      const lead = trick.leadSuit!;
+      const inSuit = legal.filter((c) => c.suit === lead);
+      if (inSuit.length > 0) return inSuit.slice().sort((a, b) => b.rank - a.rank)[0];
+    }
+  }
   return mediumPlay(legal, hand, trick, isFirstTrick);
 }
