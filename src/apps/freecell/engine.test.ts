@@ -194,7 +194,7 @@ describe('reducer/tryMove supermove', () => {
       c('4S', 'spades', 4),
       c('3H', 'hearts', 3),
     ];
-    s.piles['tableau-1'] = [c('7H', 'hearts', 7)];
+    s.piles['tableau-1'] = [c('6S', 'spades', 6)];
     s.piles['tableau-2'] = [c('AS', 'spades', 1)];
     s.piles['tableau-3'] = [c('AS', 'spades', 1)];
     s.piles['tableau-4'] = [c('AS', 'spades', 1)];
