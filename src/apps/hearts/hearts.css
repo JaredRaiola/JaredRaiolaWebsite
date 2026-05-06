@@ -66,3 +66,15 @@
 }
 .hearts-trick-card svg { width: 100%; height: 100%; display: block; }
 .hearts-trick.resolving .hearts-trick-card { opacity: 0; }
+
+.hearts-status {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 8px;
+  background: #c0c0c0;
+  border-top: 1px solid #fff;
+  box-shadow: inset 0 1px 0 #808080;
+  color: #000;
+  font-size: 11px;
+}
+.hearts-status button { min-width: 75px; }
+.hearts-broken-flag { color: #c00; font-style: italic; }
