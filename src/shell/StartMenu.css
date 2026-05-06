@@ -26,20 +26,15 @@
   letter-spacing: 1.5px;
 }
 .start-items {
-  display: flex;
-  flex-direction: column;
-  min-width: 280px;
-  padding: 4px 0;
+  background: #c0c0c0;
+  padding: 2px;
+  min-width: 180px;
 }
-.start-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 22px 8px 12px;
-  cursor: default;
-  font-size: 15px;
+.start-items .flyout-item {
+  padding: 4px 8px 4px 4px;
+  font-size: 12px;
 }
-.start-item img { width: 32px; height: 32px; image-rendering: pixelated; }
-.start-item:hover:not(.disabled) { background: #000080; color: white; }
-.start-item.disabled { color: #808080; }
-.start-sep { height: 1px; background: #808080; border-bottom: 1px solid #fff; margin: 4px 6px; }
+.start-items .flyout-item img {
+  width: 18px;
+  height: 18px;
+}
