@@ -1,5 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
+import { useHotkeys } from '@/lib/useHotkeys';
+import { useWindowStore } from '@/stores/windowStore';
 import { reducer, deal, isValidRun, type GameState, type Suit, type PileId, type Card } from './engine';
 import { makeRng } from './rng';
 import { loadOptions, saveOptions } from './options';
@@ -25,6 +27,16 @@ export default function Solitaire({ api }: AppProps) {
   const dragMetaRef = useRef<{ from: PileId; fromIdx: number } | null>(null);
 
   useEffect(() => { saveOptions(state.options); }, [state.options]);
+
+  const focused = useWindowStore((s) => s.focusedId === api.windowId);
+
+  useHotkeys(
+    {
+      'f2': () => dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }),
+      'mod+z': () => dispatch({ type: 'undo' }),
+    },
+    { enabled: focused },
+  );
 
   useEffect(() => {
     if (state.phase !== 'playing' || !state.options.timed) return;
@@ -78,6 +90,7 @@ export default function Solitaire({ api }: AppProps) {
       onClick={() => setOpenMenu(null)}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onContextMenu={(e) => { e.preventDefault(); dispatch({ type: 'autoFinish' }); }}
     >
       <div className="sol-menubar">
         <div className={`sol-menu${openMenu === 'game' ? ' open' : ''}`} onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === 'game' ? null : 'game'); }}>
