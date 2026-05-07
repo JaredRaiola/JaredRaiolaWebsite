@@ -5,6 +5,8 @@ import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
 import { sysAlert } from '@/lib/dialog';
+import { playSound } from '@/stores/soundStore';
+import { useBsodStore } from '@/stores/bsodStore';
 
 const HISTORY_KEY = 'win95.run.history';
 
@@ -72,6 +74,14 @@ export function RunDialog() {
     const next = [v, ...history.filter((h) => h !== v)].slice(0, 5);
     setHistory(next);
     saveHistory(next);
+
+    // Easter egg: 'bsod' triggers a fake Blue Screen of Death.
+    if (v.toLowerCase() === 'bsod') {
+      playSound('bsod');
+      useBsodStore.getState().trigger();
+      close();
+      return;
+    }
 
     if (v.includes('\\') || v.toLowerCase().startsWith('c:')) {
       if (!fs) return;
