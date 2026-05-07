@@ -18,6 +18,7 @@ import { PropertiesDialogHost } from './PropertiesDialog';
 import { Bsod } from './Bsod';
 import { ShutdownScreen } from './ShutdownScreen';
 import { Screensaver } from './Screensaver';
+import { Clippy } from './Clippy';
 
 // Keep in sync with DesktopIcon.tsx's PROTECTED_ICON_IDS.
 const PROTECTED_ICON_IDS = new Set([
@@ -108,6 +109,7 @@ export function Shell() {
       <Bsod />
       <ShutdownScreen />
       <Screensaver />
+      <Clippy />
     </>
   );
 }

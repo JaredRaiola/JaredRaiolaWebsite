@@ -5,6 +5,7 @@ import { listApps, getApp, type AppDef } from '@/core/apps/registry';
 import { resetComputer } from '@/core/reset';
 import { sysConfirm } from '@/lib/dialog';
 import { useShutdownStore } from '@/stores/shutdownStore';
+import { useClippyStore } from '@/stores/clippyStore';
 import { Flyout, type FlyoutItem } from './Flyout';
 import './StartMenu.css';
 
@@ -55,6 +56,8 @@ export function StartMenu() {
   const close = useTaskbarStore((s) => s.closeStartMenu);
   const openRun = useTaskbarStore((s) => s.openRunDialog);
   const openWindow = useWindowStore((s) => s.open);
+  const clippyEnabled = useClippyStore((s) => s.enabled);
+  const setClippyEnabled = useClippyStore((s) => s.setEnabled);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,6 +104,12 @@ export function StartMenu() {
     { kind: 'submenu', label: 'Find', icon: '/assets/win98/png/search_file-0.png', items: [], disabled: true },
     { kind: 'action', label: 'Help', icon: '/assets/win98/png/help_book_big-0.png', onSelect: () => {}, disabled: true },
     { kind: 'action', label: 'Run...', icon: '/assets/win98/png/application_hourglass-0.png', onSelect: () => { openRun(); } },
+    {
+      kind: 'action',
+      label: clippyEnabled ? 'Hide Clippy' : 'Show Clippy',
+      icon: '/assets/win98/png/help_book_big-0.png',
+      onSelect: () => { setClippyEnabled(!clippyEnabled); close(); },
+    },
     { kind: 'separator' },
     {
       kind: 'action',
