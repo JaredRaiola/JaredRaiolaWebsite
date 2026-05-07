@@ -5,6 +5,22 @@ import { useTaskbarStore } from '@/stores/taskbarStore';
 import { useSoundStore } from '@/stores/soundStore';
 import './Taskbar.css';
 
+function SpeakerIcon({ muted }: { muted: boolean }) {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" shapeRendering="crispEdges" aria-hidden="true">
+      <path d="M3 6 L6 6 L9 3 L9 13 L6 10 L3 10 Z" fill="#000" />
+      {muted ? (
+        <path d="M11 6 L14 9 M14 6 L11 9" stroke="#c00" strokeWidth="1.4" fill="none" />
+      ) : (
+        <>
+          <path d="M11 5 Q13 8 11 11" stroke="#000" strokeWidth="1" fill="none" />
+          <path d="M11 7 Q12 8 11 9" stroke="#000" strokeWidth="1" fill="none" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 function useClock(): { time: string; date: string } {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -55,10 +71,7 @@ export function Taskbar() {
           title={muted ? 'Unmute sounds' : 'Mute sounds'}
           aria-label={muted ? 'Unmute' : 'Mute'}
         >
-          <img
-            src={muted ? '/assets/win98/svg/speaker-muted.svg' : '/assets/win98/svg/speaker.svg'}
-            alt=""
-          />
+          <SpeakerIcon muted={muted} />
         </button>
         <span className="tb-clock" title={date}>{time}</span>
       </div>
