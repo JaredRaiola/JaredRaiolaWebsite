@@ -5,6 +5,7 @@ import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
 import { sysAlert } from '@/lib/dialog';
+import { useScreensaverStore } from '@/stores/screensaverStore';
 
 const HISTORY_KEY = 'win95.run.history';
 
@@ -72,6 +73,14 @@ export function RunDialog() {
     const next = [v, ...history.filter((h) => h !== v)].slice(0, 5);
     setHistory(next);
     saveHistory(next);
+
+    // Quick triggers for full-screen modes.
+    const lower = v.toLowerCase();
+    if (lower === 'saver' || lower === 'screensaver') {
+      useScreensaverStore.getState().setActive(true);
+      close();
+      return;
+    }
 
     if (v.includes('\\') || v.toLowerCase().startsWith('c:')) {
       if (!fs) return;
