@@ -10,14 +10,5 @@ input[type='text'], input:not([type]) {
   padding: 2px 4px;
 }
 
-::-webkit-scrollbar { width: 16px; height: 16px; }
-::-webkit-scrollbar-track { background: #dfdfdf; }
-::-webkit-scrollbar-thumb {
-  background: #c0c0c0;
-  border: 1px outset #c0c0c0;
-}
-::-webkit-scrollbar-button {
-  background: #c0c0c0;
-  border: 1px outset #c0c0c0;
-  width: 16px; height: 16px;
-}
+/* Scrollbar styling is provided by 98.css (full Win95 look with arrow
+ * buttons, recessed track pattern, raised thumb). Don't override here. */
