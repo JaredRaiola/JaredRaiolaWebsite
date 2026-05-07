@@ -113,6 +113,7 @@ export default function Hearts({ api, restoreState }: AppProps) {
         state.history.length === 0,
         state.options.difficulty,
       );
+      playSound('cardPlace');
       dispatch({ type: 'aiPlay', player, card });
     }, 900);
     return () => window.clearTimeout(id);
