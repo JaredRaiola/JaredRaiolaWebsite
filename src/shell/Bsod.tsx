@@ -24,14 +24,14 @@ export function Bsod() {
     <div className="bsod-root">
       <div className="bsod-content">
         <div className="bsod-header"><span>Windows</span></div>
-        <pre className="bsod-body">
+        <div className="bsod-body">
 {`A fatal exception 0E has occurred at 0028:C0011E36 in VXD VMM(01) +
 00010E36.  The current application will be terminated.
 
 *  Press any key to terminate the current application.
 *  Press CTRL+ALT+DEL again to restart your computer. You will
    lose any unsaved information in all applications.`}
-        </pre>
+        </div>
         <div className="bsod-footer">Press any key to continue _</div>
       </div>
     </div>

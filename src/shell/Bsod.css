@@ -22,13 +22,14 @@
 }
 .bsod-header {
   text-align: center;
-  margin-bottom: 0.4em;
+  margin-bottom: 0.2em;
 }
 .bsod-header span {
   background: #c0c0c0;
   color: #0000a8;
-  padding: 0 1ch;
-  font-weight: bold;
+  padding: 0 0.6ch;
+  font-weight: normal;
+  font-size: inherit;
 }
 .bsod-body {
   margin: 0;
