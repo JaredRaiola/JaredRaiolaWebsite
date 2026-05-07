@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import type { Options } from '../engine';
 
 type Props = {
@@ -10,40 +10,12 @@ type Props = {
 
 export default function OptionsDialog({ initial, onCancel, onOk }: Props): React.ReactElement {
   const [o, setO] = useState<Options>(initial);
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const drag = useDialogDrag();
 
-  const onTitleDown = (e: React.PointerEvent): void => {
-    const dialog = (e.currentTarget as HTMLElement).parentElement!;
-    const rect = dialog.getBoundingClientRect();
-    dragRef.current = { startX: e.clientX, startY: e.clientY, origX: rect.left, origY: rect.top };
-    setPos({ x: rect.left, y: rect.top });
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
-  const onTitleMove = (e: React.PointerEvent): void => {
-    const d = dragRef.current;
-    if (!d) return;
-    setPos({ x: d.origX + (e.clientX - d.startX), y: d.origY + (e.clientY - d.startY) });
-  };
-  const onTitleUp = (e: React.PointerEvent): void => {
-    dragRef.current = null;
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* ignore */ }
-  };
-
-  const dialogStyle: React.CSSProperties = pos
-    ? { position: 'fixed', left: pos.x, top: pos.y, margin: 0 }
-    : {};
-
-  return createPortal(
+  return (
     <div className="sol-dialog-overlay" onClick={onCancel}>
-      <div className="sol-dialog window" style={dialogStyle} onClick={(e) => e.stopPropagation()}>
-        <div
-          className="title-bar"
-          style={{ cursor: 'move', touchAction: 'none' }}
-          onPointerDown={onTitleDown}
-          onPointerMove={onTitleMove}
-          onPointerUp={onTitleUp}
-        >
+      <div className="sol-dialog window" onClick={(e) => e.stopPropagation()} style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}>
           <div className="title-bar-text">Options</div>
         </div>
         <div className="window-body sol-dialog-body">
@@ -95,7 +67,6 @@ export default function OptionsDialog({ initial, onCancel, onOk }: Props): React
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

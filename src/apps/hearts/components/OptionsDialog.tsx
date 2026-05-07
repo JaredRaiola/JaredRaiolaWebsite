@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import type { Options } from '../engine';
 
 type Props = {
@@ -10,10 +10,11 @@ type Props = {
 
 export default function OptionsDialog({ initial, onCancel, onOk }: Props): React.ReactElement {
   const [o, setO] = useState<Options>(initial);
-  return createPortal(
+  const drag = useDialogDrag();
+  return (
     <div className="hearts-dialog-overlay" onClick={onCancel}>
-      <div className="hearts-dialog window" onClick={(e) => e.stopPropagation()}>
-        <div className="title-bar"><div className="title-bar-text">Options</div></div>
+      <div className="hearts-dialog window" onClick={(e) => e.stopPropagation()} style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">Options</div></div>
         <div className="window-body hearts-dialog-body">
           <fieldset>
             <legend>Difficulty</legend>
@@ -40,7 +41,6 @@ export default function OptionsDialog({ initial, onCancel, onOk }: Props): React
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

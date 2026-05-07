@@ -7,6 +7,7 @@
   font-family: Tahoma, sans-serif;
   font-size: 11px;
   user-select: none;
+  position: relative;
 }
 .sol-felt {
   flex: 1;
@@ -142,11 +143,12 @@
 }
 
 .sol-dialog-overlay {
-  position: fixed; inset: 0;
+  position: absolute; inset: 0;
   background: rgba(0,0,0,0.05);
   display: flex; align-items: center; justify-content: center;
   z-index: 50;
 }
+.sol-root .title-bar { cursor: move; }
 .sol-dialog { min-width: 280px; }
 .sol-dialog-body {
   display: flex; flex-direction: column; gap: 6px; padding: 12px;

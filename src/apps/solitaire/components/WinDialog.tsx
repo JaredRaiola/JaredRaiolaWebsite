@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 
 type Props = {
   score: number;
@@ -16,10 +16,11 @@ function fmtTime(s: number): string {
 }
 
 export default function WinDialog({ score, elapsedSec, showScore, showTime, onNewGame, onClose }: Props): React.ReactElement {
-  return createPortal(
+  const drag = useDialogDrag();
+  return (
     <div className="sol-dialog-overlay">
-      <div className="sol-dialog window">
-        <div className="title-bar"><div className="title-bar-text">You won!</div></div>
+      <div className="sol-dialog window" style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">You won!</div></div>
         <div className="window-body sol-dialog-body">
           <p>Congratulations — all 52 cards are home.</p>
           {showTime && <p>Time: {fmtTime(elapsedSec)}</p>}
@@ -30,7 +31,6 @@ export default function WinDialog({ score, elapsedSec, showScore, showTime, onNe
           <button onClick={onClose}>Close</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

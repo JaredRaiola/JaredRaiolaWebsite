@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import type { BestTimes } from '../scores';
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
 };
 
 export function BestTimesDialog({ times, onReset, onClose }: Props) {
+  const drag = useDialogDrag();
   const row = (label: string, rec: BestTimes[keyof BestTimes]): React.ReactNode => (
     <div className="ms-bt-row">
       <span className="ms-bt-label">{label}</span>
@@ -15,10 +16,10 @@ export function BestTimesDialog({ times, onReset, onClose }: Props) {
       <span className="ms-bt-name">{rec ? rec.name : 'Anonymous'}</span>
     </div>
   );
-  return createPortal(
+  return (
     <div className="ms-dialog-backdrop">
-      <div className="ms-dialog ms-bt-dialog">
-        <div className="ms-dialog-title">Fastest Mine Sweepers</div>
+      <div className="ms-dialog ms-bt-dialog" style={{ transform: drag.transform }}>
+        <div className="ms-dialog-title" onPointerDown={drag.onPointerDown}>Fastest Mine Sweepers</div>
         <div className="ms-dialog-body">
           {row('Beginner:', times.beginner)}
           {row('Intermediate:', times.intermediate)}
@@ -29,7 +30,6 @@ export function BestTimesDialog({ times, onReset, onClose }: Props) {
           <button onClick={onClose}>OK</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 
 type Props = {
   elapsedSec: number;
@@ -8,10 +8,11 @@ type Props = {
 };
 
 export default function WinDialog({ elapsedSec, difficulty, onNewGame, onClose }: Props): React.ReactElement {
-  return createPortal(
+  const drag = useDialogDrag();
+  return (
     <div className="ms-dialog-backdrop">
-      <div className="ms-dialog">
-        <div className="ms-dialog-title">You won!</div>
+      <div className="ms-dialog" style={{ transform: drag.transform }}>
+        <div className="ms-dialog-title" onPointerDown={drag.onPointerDown}>You won!</div>
         <div className="ms-dialog-body">
           <p>You cleared the board.</p>
           <p>Difficulty: {difficulty}</p>
@@ -22,7 +23,6 @@ export default function WinDialog({ elapsedSec, difficulty, onNewGame, onClose }
           <button onClick={onClose}>Close</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

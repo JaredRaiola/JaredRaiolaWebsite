@@ -7,6 +7,7 @@
   font-family: Tahoma, sans-serif;
   font-size: 11px;
   user-select: none;
+  position: relative;
 }
 .hearts-felt {
   flex: 1;
@@ -143,11 +144,12 @@
 .hearts-left, .hearts-right { display: flex; }
 
 .hearts-dialog-overlay {
-  position: fixed; inset: 0;
+  position: absolute; inset: 0;
   background: rgba(0,0,0,0.05);
   display: flex; align-items: center; justify-content: center;
   z-index: 50;
 }
+.hearts-root .title-bar { cursor: move; }
 .hearts-dialog { min-width: 280px; }
 .hearts-scoresheet-dialog { min-width: 360px; font-size: 13px; }
 .hearts-scoresheet { padding: 16px; font-size: 13px; }
