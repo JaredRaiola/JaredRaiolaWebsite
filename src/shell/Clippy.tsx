@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useWindowStore } from '@/stores/windowStore';
 import { useClippyStore } from '@/stores/clippyStore';
 import './Clippy.css';
@@ -78,13 +78,56 @@ export function Clippy() {
     return () => window.clearInterval(id);
   }, [enabled, bubbleVisible, tips.length]);
 
+  // Drag offset from the default bottom-right anchor. Persists for session.
+  const [drag, setDrag] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent): void => {
+      const s = dragRef.current;
+      if (!s) return;
+      const dx = e.clientX - s.startX;
+      const dy = e.clientY - s.startY;
+      if (!s.moved && Math.abs(dx) + Math.abs(dy) > 4) s.moved = true;
+      // Drag x/y are deltas from the anchor; positive y goes UP (further from
+      // bottom). Translate sign-flips so the css transform reads naturally.
+      setDrag({ x: s.origX + dx, y: s.origY + dy });
+    };
+    const onUp = (): void => { /* keep moved flag for the click handler to read */ };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, []);
+
+  const onFigurePointerDown = (e: React.PointerEvent): void => {
+    if (e.button !== 0) return;
+    dragRef.current = { startX: e.clientX, startY: e.clientY, origX: drag.x, origY: drag.y, moved: false };
+  };
+
+  const onFigureClick = (): void => {
+    // Suppress the click if the user actually dragged.
+    if (dragRef.current?.moved) {
+      dragRef.current = null;
+      return;
+    }
+    dragRef.current = null;
+    setBubbleVisible((v) => !v);
+  };
+
   if (!enabled) return null;
 
   const tip = tips[tipIdx % tips.length];
   const cycleTip = (): void => setTipIdx((i) => (i + 1) % tips.length);
 
   return (
-    <div className="clippy-root" aria-hidden="false">
+    <div
+      className="clippy-root"
+      aria-hidden="false"
+      style={{ transform: `translate(${drag.x}px, ${drag.y}px)` }}
+    >
       {bubbleVisible && (
         <div className="clippy-bubble">
           <button
@@ -101,8 +144,9 @@ export function Clippy() {
       )}
       <button
         className="clippy-figure"
-        onClick={() => setBubbleVisible((v) => !v)}
-        title={bubbleVisible ? 'Hide tip' : 'Show tip'}
+        onPointerDown={onFigurePointerDown}
+        onClick={onFigureClick}
+        title="Drag to move. Click to toggle tip."
       >
         <ClippySvg />
       </button>
