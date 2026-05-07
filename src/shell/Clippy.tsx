@@ -156,7 +156,7 @@ export function Clippy() {
 
 function ClippySvg(): React.ReactElement {
   return (
-    <svg viewBox="0 0 64 96" width="64" height="96" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 64 96" width="96" height="144" xmlns="http://www.w3.org/2000/svg">
       {/* Outer paperclip */}
       <path
         d="M22 8 C32 4, 44 8, 48 22 L48 70 C48 80, 38 86, 30 80 C24 76, 24 70, 28 66 L28 30 C28 24, 32 22, 36 24 C38 26, 38 30, 36 32 L36 60"
