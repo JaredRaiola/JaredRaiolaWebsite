@@ -80,6 +80,11 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
 
     // Easter eggs.
     setTimeout(() => {
+      // Jared's actual number — voicemail-style greeting.
+      if (/8454907692$/.test(n)) {
+        setStatus("Hi! You've reached Jared. He's probably playing chess right now. Leave a message after the beep — beep!");
+        return;
+      }
       // Tommy Tutone — "Jenny, I got your number".
       if (/8675309$/.test(n)) {
         setStatus("Jenny, I tried that number — she's not picking up.");
