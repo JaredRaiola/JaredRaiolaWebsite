@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" preserveAspectRatio="xMidYMid slice">
+  <rect width="256" height="256" fill="#008080"/>
+  <g transform="translate(128 128) scale(1.6)">
+    <g transform="translate(-32 -22)">
+      <path d="M0 0 L24 -3 L24 22 L0 22 Z" fill="#ff0000"/>
+      <path d="M28 -3.5 L60 -8 L60 22 L28 22 Z" fill="#00aa00"/>
+      <path d="M0 26 L24 26 L24 50 L0 47 Z" fill="#0000ff"/>
+      <path d="M28 26 L60 26 L60 54 L28 50 Z" fill="#ffaa00"/>
+    </g>
+  </g>
+</svg>

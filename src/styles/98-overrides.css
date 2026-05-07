@@ -10,9 +10,19 @@ input[type='text'], input:not([type]) {
   padding: 2px 4px;
 }
 
-/* Win95-style scrollbars. Forced here because some Chromium variants
- * collapse to overlay scrollbars when 98.css's rules don't fully cover
- * every part. */
+/* Win95-style scrollbars.
+ *
+ * Firefox: only `scrollbar-width` + `scrollbar-color` are supported
+ *   (no pseudo-elements). The colors below approximate the Win95 look
+ *   but Firefox can't render the arrow buttons or recessed track.
+ *
+ * Chromium/Safari/Edge: the ::-webkit-scrollbar rules below give the
+ *   full Win95 chrome (arrows, recessed track pattern, raised thumb).
+ */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: #c0c0c0 #dfdfdf;
+}
 ::-webkit-scrollbar { width: 16px; height: 17px; }
 ::-webkit-scrollbar:horizontal { height: 17px; }
 ::-webkit-scrollbar-corner { background: #dfdfdf; }

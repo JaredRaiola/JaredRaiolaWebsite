@@ -2,8 +2,8 @@ import { create } from 'zustand';
 
 const WALLPAPERS: Record<string, string> = {
   teal: '',
-  clouds: '/assets/wallpapers/clouds.png',
-  setup: '/assets/wallpapers/setup.png',
+  clouds: '/assets/wallpapers/clouds.svg',
+  setup: '/assets/wallpapers/setup.svg',
 };
 
 const THEME_KEY = 'win95.theme';

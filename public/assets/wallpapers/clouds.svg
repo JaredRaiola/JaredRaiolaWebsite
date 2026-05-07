@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5b8bcc"/>
+      <stop offset="100%" stop-color="#9fc1e8"/>
+    </linearGradient>
+    <radialGradient id="cloud" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="url(#sky)"/>
+  <ellipse cx="64" cy="80" rx="56" ry="22" fill="url(#cloud)"/>
+  <ellipse cx="190" cy="50" rx="44" ry="18" fill="url(#cloud)"/>
+  <ellipse cx="220" cy="160" rx="60" ry="24" fill="url(#cloud)"/>
+  <ellipse cx="80" cy="200" rx="50" ry="20" fill="url(#cloud)"/>
+  <ellipse cx="140" cy="120" rx="38" ry="16" fill="url(#cloud)"/>
+</svg>
