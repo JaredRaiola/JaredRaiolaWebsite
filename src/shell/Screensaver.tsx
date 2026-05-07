@@ -41,10 +41,24 @@ export function Screensaver() {
     return () => window.clearInterval(id);
   }, [kind, timeoutMs, setActive]);
 
-  // Dismiss on any input.
+  // Dismiss on any input. We add a 500ms grace period after activation
+  // because the trigger itself (Run-dialog "saver" command, or just the
+  // mouse coming to rest after being idle) involves a final mouse event
+  // that would otherwise instant-dismiss the saver.
   useEffect(() => {
     if (!active) return;
-    const dismiss = (): void => {
+    const activatedAt = Date.now();
+    let lastPos: { x: number; y: number } | null = null;
+    const dismiss = (e: Event): void => {
+      if (Date.now() - activatedAt < 500) return;
+      // Ignore tiny mouse jitter (>= 4px movement required).
+      if (e.type === 'mousemove') {
+        const me = e as MouseEvent;
+        if (lastPos === null) { lastPos = { x: me.clientX, y: me.clientY }; return; }
+        const dx = me.clientX - lastPos.x;
+        const dy = me.clientY - lastPos.y;
+        if (dx * dx + dy * dy < 16) return;
+      }
       lastActivity.current = Date.now();
       setActive(false);
     };
