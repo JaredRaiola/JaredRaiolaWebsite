@@ -7,6 +7,7 @@ import { resolveAssociation } from '@/core/apps/associations';
 import { sysAlert } from '@/lib/dialog';
 import { playSound } from '@/stores/soundStore';
 import { useBsodStore } from '@/stores/bsodStore';
+import { useScreensaverStore } from '@/stores/screensaverStore';
 
 const HISTORY_KEY = 'win95.run.history';
 
@@ -75,10 +76,16 @@ export function RunDialog() {
     setHistory(next);
     saveHistory(next);
 
-    // Easter egg: 'bsod' triggers a fake Blue Screen of Death.
-    if (v.toLowerCase() === 'bsod') {
+    // Quick triggers for full-screen modes / easter eggs.
+    const lower = v.toLowerCase();
+    if (lower === 'bsod') {
       playSound('bsod');
       useBsodStore.getState().trigger();
+      close();
+      return;
+    }
+    if (lower === 'saver' || lower === 'screensaver') {
+      useScreensaverStore.getState().setActive(true);
       close();
       return;
     }
