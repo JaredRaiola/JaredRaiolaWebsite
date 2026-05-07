@@ -3,6 +3,7 @@ import type { AppProps } from '@/core/apps/registry';
 import { useSoundStore } from '@/stores/soundStore';
 import { useBsodStore } from '@/stores/bsodStore';
 import { sysAlert } from '@/lib/dialog';
+import { speak, cancelSpeech } from '@/lib/speech';
 import { playDtmf, playReorder, playDialTone } from './dtmf';
 import './phone.css';
 
@@ -60,6 +61,10 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
   }, [number, api]);
 
   const beep = (digit: string): void => { if (!muted) playDtmf(digit); };
+  const say = (text: string): void => { if (!muted) speak(text); };
+
+  // Stop speech when the window unmounts.
+  useEffect(() => () => cancelSpeech(), []);
 
   const press = (key: string): void => {
     setStatus('');
@@ -82,12 +87,16 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
     setTimeout(() => {
       // Jared's actual number — voicemail-style greeting.
       if (/8454907692$/.test(n)) {
-        setStatus("Hi! You've reached Jared. He's probably playing Counter-Strike right now. Leave a message after the beep — beep!");
+        const msg = "Hi! You've reached Jared. He's probably playing Counter-Strike right now. Leave a message after the beep — beep!";
+        setStatus(msg);
+        say(msg);
         return;
       }
       // Tommy Tutone — "Jenny, I got your number".
       if (/8675309$/.test(n)) {
-        setStatus("Jenny, I tried that number — she's not picking up.");
+        const msg = "Jenny, I tried that number — she's not picking up.";
+        setStatus(msg);
+        say(msg);
         return;
       }
       // BSOD trigger.
@@ -106,12 +115,16 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
       }
       // 411 — directory assistance.
       if (n === '411') {
-        setStatus('Information. What city, please?');
+        const msg = 'Information. What city, please?';
+        setStatus(msg);
+        say(msg);
         return;
       }
       // 1995 — Win95 nostalgia.
       if (/1995$/.test(n)) {
-        setStatus("Microsoft Information Line — please hold while we connect you to 1995.");
+        const msg = "Microsoft Information Line — please hold while we connect you to 1995.";
+        setStatus(msg);
+        say(msg);
         return;
       }
       // Generic: pretend "all circuits are busy".
@@ -126,24 +139,37 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
   };
 
   const speedDial = (entry: SpeedDial): void => {
-    if (entry.action === 'open' && entry.url) {
-      window.open(entry.url, '_blank', 'noopener,noreferrer');
-      setStatus(`Connected to ${entry.label}.`);
-      return;
-    }
-    // Easter egg speed dials — populate the display + dial.
     setNumber(entry.number);
-    setStatus('Connecting…');
+    setStatus('Dialing…');
+    // Play DTMF tones for each digit in the label, staggered.
+    if (!muted) {
+      const digits = normalize(entry.number);
+      for (let i = 0; i < digits.length; i++) {
+        setTimeout(() => playDtmf(digits[i] || '0'), i * 90);
+      }
+    }
+    const dialDelay = Math.max(450, normalize(entry.number).length * 90 + 200);
     setTimeout(() => {
+      if (entry.action === 'open' && entry.url) {
+        window.open(entry.url, '_blank', 'noopener,noreferrer');
+        const msg = `Connected to ${entry.label}.`;
+        setStatus(msg);
+        say(msg);
+        return;
+      }
       if (entry.label === 'Microsoft') {
-        setStatus("We're sorry — Microsoft is not affiliated with this site.");
+        const msg = "We're sorry — Microsoft is not affiliated with this site.";
+        setStatus(msg);
+        say(msg);
       } else if (entry.label === 'Pizza') {
-        setStatus('Hello, Pizza Palace. We deliver in 30 minutes or it\'s free!');
+        const msg = "Hello, Pizza Palace. We deliver in 30 minutes or it's free!";
+        setStatus(msg);
+        say(msg);
       } else {
         setStatus('All circuits are busy.');
         if (!muted) playReorder();
       }
-    }, 400);
+    }, dialDelay);
   };
 
   return (
