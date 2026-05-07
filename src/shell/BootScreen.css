@@ -33,7 +33,10 @@
   align-items: center;
   justify-content: center;
   gap: 32px;
+  outline: none;
 }
+.boot-floppy-stage.awaiting { cursor: pointer; }
+.boot-floppy-stage.awaiting:hover .boot-floppy { filter: brightness(1.15); }
 .boot-root.fading {
   opacity: 0;
 }
@@ -64,15 +67,23 @@
   top: 210px;
   width: 186px;
   height: 176px;
-  animation: boot-floppy-insert 2.6s steps(18, end) forwards;
-  animation-delay: 0.2s;
   transform-origin: 50% 50%;
 }
+.boot-floppy-stage.awaiting .boot-floppy {
+  animation: boot-floppy-bob 1.5s ease-in-out infinite;
+}
+.boot-floppy-stage.inserting .boot-floppy {
+  animation: boot-floppy-insert 1.4s steps(14, end) forwards;
+}
+@keyframes boot-floppy-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
 @keyframes boot-floppy-insert {
-  0%   { left: 630px; top: 210px; width: 186px; height: 176px; opacity: 1; }
-  60%  { left: 380px; top: 232px; width: 150px; height: 142px; opacity: 1; }
-  85%  { left: 312px; top: 246px; width: 110px; height: 104px; opacity: 1; }
-  100% { left: 268px; top: 254px; width: 72px;  height: 66px;  opacity: 0; }
+  0%   { left: 630px; top: 210px; width: 186px; height: 176px; opacity: 1; transform: translateY(0); }
+  60%  { left: 380px; top: 232px; width: 150px; height: 142px; opacity: 1; transform: translateY(0); }
+  85%  { left: 312px; top: 246px; width: 110px; height: 104px; opacity: 1; transform: translateY(0); }
+  100% { left: 268px; top: 254px; width: 72px;  height: 66px;  opacity: 0; transform: translateY(0); }
 }
 .boot-floppy-caption {
   font-family: 'W95FA', 'Courier New', monospace;

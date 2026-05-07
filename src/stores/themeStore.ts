@@ -1,19 +1,29 @@
 import { create } from 'zustand';
 
-const WALLPAPERS: Record<string, string> = {
+/**
+ * Built-in wallpapers ship with the site. Custom wallpapers (user uploads) are
+ * stored in localStorage as data URLs alongside the rest of the theme. The
+ * `wallpaperKey` selects either a built-in name or a `custom:<id>` key.
+ */
+const BUILTIN_WALLPAPERS: Record<string, string> = {
   teal: '',
-  clouds: '/assets/wallpapers/clouds.png',
-  setup: '/assets/wallpapers/setup.png',
 };
 
 const THEME_KEY = 'win95.theme';
 
 export type WallpaperMode = 'tile' | 'center' | 'stretch';
 
+export type CustomWallpaper = {
+  id: string;
+  name: string;
+  dataUrl: string;
+};
+
 type Persisted = {
-  wallpaperKey?: keyof typeof WALLPAPERS;
+  wallpaperKey?: string;
   bgColor?: string;
   wallpaperMode?: WallpaperMode;
+  customWallpapers?: CustomWallpaper[];
 };
 
 const loadPersisted = (): Persisted => {
@@ -29,44 +39,62 @@ const savePersisted = (p: Persisted): void => {
   try {
     localStorage.setItem(THEME_KEY, JSON.stringify(p));
   } catch {
-    /* ignore */
+    /* ignore quota errors */
   }
 };
 
 type ThemeStore = {
-  wallpaperKey: keyof typeof WALLPAPERS;
+  wallpaperKey: string;
   bgColor: string;
   wallpaperMode: WallpaperMode;
-  setWallpaper(key: keyof typeof WALLPAPERS): void;
+  customWallpapers: CustomWallpaper[];
+  setWallpaper(key: string): void;
   setBgColor(color: string): void;
   setWallpaperMode(mode: WallpaperMode): void;
+  addCustomWallpaper(name: string, dataUrl: string): string;
+  removeCustomWallpaper(id: string): void;
 };
 
 const initial = loadPersisted();
 
-export const useThemeStore = create<ThemeStore>((set) => ({
-  wallpaperKey: (initial.wallpaperKey ?? 'teal') as keyof typeof WALLPAPERS,
+export const useThemeStore = create<ThemeStore>((set, get) => ({
+  wallpaperKey: initial.wallpaperKey ?? 'teal',
   bgColor: initial.bgColor ?? '#008080',
   wallpaperMode: initial.wallpaperMode ?? 'tile',
-  setWallpaper(key) {
-    set({ wallpaperKey: key });
+  customWallpapers: initial.customWallpapers ?? [],
+  setWallpaper(key) { set({ wallpaperKey: key }); },
+  setBgColor(color) { set({ bgColor: color }); },
+  setWallpaperMode(mode) { set({ wallpaperMode: mode }); },
+  addCustomWallpaper(name, dataUrl) {
+    const id = `cw-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    set({ customWallpapers: [...get().customWallpapers, { id, name, dataUrl }] });
+    return `custom:${id}`;
   },
-  setBgColor(color) {
-    set({ bgColor: color });
-  },
-  setWallpaperMode(mode) {
-    set({ wallpaperMode: mode });
+  removeCustomWallpaper(id) {
+    const cur = get().customWallpapers.filter((w) => w.id !== id);
+    set({ customWallpapers: cur });
+    // If the removed wallpaper was selected, fall back to teal.
+    if (get().wallpaperKey === `custom:${id}`) set({ wallpaperKey: 'teal' });
   },
 }));
 
-// Persist any change.
 useThemeStore.subscribe((s) => {
   savePersisted({
     wallpaperKey: s.wallpaperKey,
     bgColor: s.bgColor,
     wallpaperMode: s.wallpaperMode,
+    customWallpapers: s.customWallpapers,
   });
 });
 
-export const wallpaperUrl = (key: keyof typeof WALLPAPERS): string => WALLPAPERS[key];
-export const WALLPAPER_KEYS = Object.keys(WALLPAPERS) as Array<keyof typeof WALLPAPERS>;
+/** Resolve a wallpaper key to its URL (built-in path, custom data URL, or ''). */
+export function wallpaperUrl(key: string): string {
+  if (key.startsWith('custom:')) {
+    const id = key.slice('custom:'.length);
+    const found = useThemeStore.getState().customWallpapers.find((w) => w.id === id);
+    return found?.dataUrl ?? '';
+  }
+  return BUILTIN_WALLPAPERS[key] ?? '';
+}
+
+export const BUILTIN_WALLPAPER_KEYS = Object.keys(BUILTIN_WALLPAPERS);

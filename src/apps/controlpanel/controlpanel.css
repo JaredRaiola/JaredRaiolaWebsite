@@ -69,7 +69,15 @@
   border: 2px solid;
   border-color: #404040 #ffffff #ffffff #404040;
   font-size: 12px;
+  background-color: #fff;
+  color: #000;
 }
+/* Override 98.css's select:focus rule which paints the whole listbox navy.
+ * For our wallpaper picker we want a white listbox where only the selected
+ * row is highlighted, the way Win95 actually rendered Display Properties. */
+.cp-list:focus { background-color: #fff !important; color: #000 !important; }
+.cp-list option { background-color: #fff; color: #000; padding: 1px 4px; }
+.cp-list option:checked { background-color: #000080 !important; color: #fff !important; }
 .cp-row { display: flex; align-items: center; gap: 8px; }
 .cp-row select { font-size: 12px; }
 

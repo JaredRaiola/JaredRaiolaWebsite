@@ -2,6 +2,7 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
+import { playSound } from '@/stores/soundStore';
 import { useWindowStore } from '@/stores/windowStore';
 import { reducer, deal, isValidRun, isValidSolitaireSnapshot, canAutoFinish, nextAutoFinishMove, type GameState, type Suit, type PileId, type Card, type Options } from './engine';
 import { makeRng } from './rng';
@@ -63,7 +64,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
 
   useHotkeys(
     {
-      'f2': () => dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }),
+      'f2': () => { playSound('cardShuffle'); dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); },
       'ctrl+z': () => dispatch({ type: 'undo' }),
     },
     { enabled: focused && !optionsOpen && !statsOpen && !state.drag },
@@ -102,6 +103,8 @@ export default function Solitaire({ api, restoreState }: AppProps) {
     }
     if (wonHandledRef.current) return;
     wonHandledRef.current = true;
+
+    playSound('winChime');
 
     if (state.options.scoring === 'vegas' && state.options.vegasKeepScore) {
       saveVegasBalance(loadVegasBalance() + state.score);
@@ -155,6 +158,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
     // Wait for the slide to finish, then commit the move.
     const SLIDE_MS = 280;
     const id = window.setTimeout(() => {
+      playSound('cardPlace');
       dispatch({ type: 'autoFinishStep' });
       setFlying(null);
     }, SLIDE_MS);
@@ -177,6 +181,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
         const pileEl = target?.closest('[data-pile-id]') as HTMLElement | null;
         const dropPile = pileEl?.dataset.pileId as PileId | undefined;
         if (dropPile) {
+          playSound('cardPlace');
           dispatch({ type: 'tryMove', from: meta.from, fromIdx: meta.fromIdx, to: dropPile });
         }
       }
@@ -220,7 +225,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
           Game
           {openMenu === 'game' && (
             <div className="sol-menu-popup" onClick={(e) => e.stopPropagation()}>
-              <div className="item" onClick={() => { dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); setOpenMenu(null); }}>Deal&nbsp;&nbsp;&nbsp;F2</div>
+              <div className="item" onClick={() => { playSound('cardShuffle'); dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); setOpenMenu(null); }}>Deal&nbsp;&nbsp;&nbsp;F2</div>
               <div className="item" onClick={() => { dispatch({ type: 'undo' }); setOpenMenu(null); }}>Undo&nbsp;&nbsp;&nbsp;Ctrl+Z</div>
               <div className="sep" />
               <div className="item" onClick={() => { setOptionsOpen(true); setOpenMenu(null); }}>Options...</div>
@@ -252,7 +257,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
         <div className="sol-top-row">
           <div className="sol-top-left">
             <div data-pile-id="stock">
-              <Stock cards={state.piles.stock} recyclesUsed={state.recyclesUsed} options={state.options} onClick={() => dispatch({ type: 'drawFromStock' })} />
+              <Stock cards={state.piles.stock} recyclesUsed={state.recyclesUsed} options={state.options} onClick={() => { playSound('cardFlip'); dispatch({ type: 'drawFromStock' }); }} />
             </div>
             <div data-pile-id="waste">
               <Waste
@@ -261,7 +266,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
                 outlineDragging={state.options.outlineDragging}
                 isDragSource={isDragSource}
                 onPointerDownTop={(e) => startDrag('waste', state.piles.waste.length - 1, e)}
-                onDoubleClickTop={() => dispatch({ type: 'autoMoveToFoundation', from: 'waste' })}
+                onDoubleClickTop={() => { playSound('cardPlace'); dispatch({ type: 'autoMoveToFoundation', from: 'waste' }); }}
               />
             </div>
           </div>
@@ -288,13 +293,13 @@ export default function Solitaire({ api, restoreState }: AppProps) {
                 outlineDragging={state.options.outlineDragging}
                 isDragSource={isDragSource}
                 onPointerDownAt={(idx, e) => startDrag(`tableau-${i}` as PileId, idx, e)}
-                onDoubleClickTop={() => dispatch({ type: 'autoMoveToFoundation', from: `tableau-${i}` as PileId })}
+                onDoubleClickTop={() => { playSound('cardPlace'); dispatch({ type: 'autoMoveToFoundation', from: `tableau-${i}` as PileId }); }}
               />
             </div>
           ))}
         </div>
         {state.phase === 'cascading' && (
-          <WinCascade onSkip={() => dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) })} />
+          <WinCascade onSkip={() => { playSound('cardShuffle'); dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); }} />
         )}
       </div>
 
@@ -336,6 +341,7 @@ export default function Solitaire({ api, restoreState }: AppProps) {
           showTime={state.options.timed}
           onNewGame={() => {
             setWinAck(true);
+            playSound('cardShuffle');
             dispatch({ type: 'deal', rng: makeRng((Math.random() * 0x7fffffff) | 0) });
           }}
           onClose={() => setWinAck(true)}

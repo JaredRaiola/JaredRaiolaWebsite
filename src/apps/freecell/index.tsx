@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { AppProps } from '@/core/apps/registry';
+import { playSound } from '@/stores/soundStore';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
 import {
@@ -42,12 +43,14 @@ export default function FreeCell({ api, restoreState }: AppProps) {
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const dragMetaRef = useRef<{ from: PileId; fromIdx: number; cards: Card[]; offset: { x: number; y: number } } | null>(null);
   const recordedRef = useRef(false);
+  const wonHandledRef = useRef(false);
 
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   useHotkeys(
     {
       'f2': () => {
         const n = 1 + Math.floor(Math.random() * 32000);
+        playSound('cardShuffle');
         dispatch({ type: 'newGame', gameNumber: n });
       },
       'ctrl+z': () => dispatch({ type: 'undo' }),
@@ -73,11 +76,13 @@ export default function FreeCell({ api, restoreState }: AppProps) {
   useEffect(() => {
     if (state.phase !== 'won' && state.phase !== 'lost') {
       recordedRef.current = false;
+      wonHandledRef.current = false;
       return;
     }
     if (recordedRef.current) return;
     recordedRef.current = true;
     recordResult(state.phase);
+    if (state.phase === 'won') playSound('winChime');
   }, [state.phase]);
 
   // Snapshot for session persistence.
@@ -102,7 +107,7 @@ export default function FreeCell({ api, restoreState }: AppProps) {
         const target = document.elementFromPoint(e.clientX, e.clientY);
         const pileEl = target?.closest('[data-pile-id]') as HTMLElement | null;
         const dropPile = pileEl?.dataset.pileId as PileId | undefined;
-        if (dropPile) dispatch({ type: 'tryMove', from: meta.from, fromIdx: meta.fromIdx, to: dropPile });
+        if (dropPile) { playSound('cardPlace'); dispatch({ type: 'tryMove', from: meta.from, fromIdx: meta.fromIdx, to: dropPile }); }
       }
       dragMetaRef.current = null;
       setDragPos(null);
@@ -159,7 +164,7 @@ export default function FreeCell({ api, restoreState }: AppProps) {
           Game
           {openMenu === 'game' && (
             <div className="fc-menu-popup" onClick={(e) => e.stopPropagation()}>
-              <div className="item" onClick={() => { dispatch({ type: 'newGame', gameNumber: 1 + Math.floor(Math.random() * 32000) }); setOpenMenu(null); }}>New Game&nbsp;&nbsp;F2</div>
+              <div className="item" onClick={() => { playSound('cardShuffle'); dispatch({ type: 'newGame', gameNumber: 1 + Math.floor(Math.random() * 32000) }); setOpenMenu(null); }}>New Game&nbsp;&nbsp;F2</div>
               <div className="item" onClick={() => { dispatch({ type: 'undo' }); setOpenMenu(null); }}>Undo&nbsp;&nbsp;Ctrl+Z</div>
               <div className="sep" />
               <div className="item" onClick={() => { setSelectGameOpen(true); setOpenMenu(null); }}>Select Game...</div>
@@ -179,7 +184,7 @@ export default function FreeCell({ api, restoreState }: AppProps) {
                 <FreeCellSlot
                   card={state.piles[cellId][0] ?? null}
                   onPointerDown={(e) => startDrag(cellId, 0, e)}
-                  onDoubleClick={() => dispatch({ type: 'autoMoveToFoundation', from: cellId })}
+                  onDoubleClick={() => { playSound('cardPlace'); dispatch({ type: 'autoMoveToFoundation', from: cellId }); }}
                   dragging={draggingIds.has(state.piles[cellId][0]?.id ?? '')}
                   outlineDragging={outlineDragging}
                 />
@@ -195,7 +200,7 @@ export default function FreeCell({ api, restoreState }: AppProps) {
                     suit={suit}
                     cards={state.piles[fId]}
                     onPointerDownTop={(e) => startDrag(fId, state.piles[fId].length - 1, e)}
-                    onDoubleClickTop={() => dispatch({ type: 'autoMoveToFoundation', from: fId })}
+                    onDoubleClickTop={() => { playSound('cardPlace'); dispatch({ type: 'autoMoveToFoundation', from: fId }); }}
                     dragging={draggingIds.has(state.piles[fId][state.piles[fId].length - 1]?.id ?? '')}
                     outlineDragging={outlineDragging}
                   />
@@ -213,7 +218,7 @@ export default function FreeCell({ api, restoreState }: AppProps) {
                 draggingIds={draggingIds}
                 outlineDragging={outlineDragging}
                 onPointerDownAt={(idx, e) => startDrag(tId, idx, e)}
-                onDoubleClickTop={() => dispatch({ type: 'autoMoveToFoundation', from: tId })}
+                onDoubleClickTop={() => { playSound('cardPlace'); dispatch({ type: 'autoMoveToFoundation', from: tId }); }}
               />
             </div>
           ))}
@@ -237,7 +242,7 @@ export default function FreeCell({ api, restoreState }: AppProps) {
       {selectGameOpen && (
         <SelectGameDialog
           onCancel={() => setSelectGameOpen(false)}
-          onOk={(gameNumber) => { dispatch({ type: 'newGame', gameNumber }); setSelectGameOpen(false); }}
+          onOk={(gameNumber) => { playSound('cardShuffle'); dispatch({ type: 'newGame', gameNumber }); setSelectGameOpen(false); }}
         />
       )}
       {statsOpen && <StatisticsDialog onClose={() => setStatsOpen(false)} />}
@@ -246,7 +251,7 @@ export default function FreeCell({ api, restoreState }: AppProps) {
           outcome={state.phase}
           gameNumber={state.gameNumber}
           moveCount={state.moveCount}
-          onNewGame={() => dispatch({ type: 'newGame', gameNumber: 1 + Math.floor(Math.random() * 32000) })}
+          onNewGame={() => { playSound('cardShuffle'); dispatch({ type: 'newGame', gameNumber: 1 + Math.floor(Math.random() * 32000) }); }}
           onClose={() => api.requestClose()}
         />
       )}

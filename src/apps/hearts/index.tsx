@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
+import { playSound } from '@/stores/soundStore';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
 import {
@@ -85,12 +86,14 @@ export default function Hearts({ api, restoreState }: AppProps) {
     const humanScore = state.scores[0];
     const lowest = Math.min(state.scores[0], state.scores[1], state.scores[2], state.scores[3]);
     recordResult({ humanWon: humanScore === lowest, humanScore });
+    if (humanScore === lowest) playSound('winChime');
+    else playSound('chord');
   }, [state.phase, state.scores]);
 
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   useHotkeys(
     {
-      'f2': () => dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) }),
+      'f2': () => { playSound('cardShuffle'); dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); },
       'ctrl+z': () => dispatch({ type: 'undo' }),
     },
     { enabled: focused && !optionsOpen && state.phase !== 'game-over' },
@@ -110,6 +113,7 @@ export default function Hearts({ api, restoreState }: AppProps) {
         state.history.length === 0,
         state.options.difficulty,
       );
+      playSound('cardPlace');
       dispatch({ type: 'aiPlay', player, card });
     }, 900);
     return () => window.clearTimeout(id);
@@ -148,6 +152,7 @@ export default function Hearts({ api, restoreState }: AppProps) {
       else dispatch({ type: 'selectPassCard', card });
     } else if (state.phase === 'playing' && state.turn === 0) {
       if (legalIds && legalIds.has(card.id)) {
+        playSound('cardPlace');
         dispatch({ type: 'playCard', player: 0, card });
       }
     }
@@ -155,6 +160,7 @@ export default function Hearts({ api, restoreState }: AppProps) {
 
   const onPass = (): void => {
     if (state.passDirection === 'keep') {
+      playSound('cardFlip');
       dispatch({ type: 'submitPass', humanSelection: [], aiPasses: { 0: [], 1: [], 2: [], 3: [] } });
       return;
     }
@@ -165,6 +171,7 @@ export default function Hearts({ api, restoreState }: AppProps) {
       2: chooseAiPass(state.hands[2], state.passDirection, state.options.difficulty),
       3: chooseAiPass(state.hands[3], state.passDirection, state.options.difficulty),
     };
+    playSound('cardFlip');
     dispatch({ type: 'submitPass', humanSelection: state.passSelections!, aiPasses });
   };
 
@@ -175,7 +182,7 @@ export default function Hearts({ api, restoreState }: AppProps) {
           Game
           {openMenu === 'game' && (
             <div className="hearts-menu-popup" onClick={(e) => e.stopPropagation()}>
-              <div className="item" onClick={() => { dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); setOpenMenu(null); }}>New Game&nbsp;&nbsp;F2</div>
+              <div className="item" onClick={() => { playSound('cardShuffle'); dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); setOpenMenu(null); }}>New Game&nbsp;&nbsp;F2</div>
               <div className="item" onClick={() => { dispatch({ type: 'undo' }); setOpenMenu(null); }}>Undo&nbsp;&nbsp;Ctrl+Z</div>
               <div className="sep" />
               <div className="item" onClick={() => { setOptionsOpen(true); setOpenMenu(null); }}>Options...</div>
@@ -210,13 +217,13 @@ export default function Hearts({ api, restoreState }: AppProps) {
         <ScoreSheet
           scoresBefore={scoresAtHandStartRef.current}
           taken={state.taken}
-          onContinue={() => dispatch({ type: 'nextHand', rng: makeRng((Math.random() * 0x7fffffff) | 0) })}
+          onContinue={() => { playSound('cardShuffle'); dispatch({ type: 'nextHand', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); }}
         />
       )}
       {state.phase === 'game-over' && (
         <GameOverDialog
           scores={state.scores}
-          onNewGame={() => dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) })}
+          onNewGame={() => { playSound('cardShuffle'); dispatch({ type: 'newGame', rng: makeRng((Math.random() * 0x7fffffff) | 0) }); }}
           onClose={() => api.requestClose()}
         />
       )}

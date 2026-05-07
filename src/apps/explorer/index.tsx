@@ -14,6 +14,7 @@ import { RECYCLE_BIN_DIR } from '@/core/fs/recycleBin';
 import { setDndPayload, getDndPayload, moveAllInto, markDropConsumed, wasDropConsumed, isPathInside } from '@/core/fs/dnd';
 import { createUrlShortcut, createAppShortcut, tryOpenShortcut } from '@/core/fs/shortcut';
 import { sysAlert, sysConfirm, sysPrompt } from '@/lib/dialog';
+import { playSound } from '@/stores/soundStore';
 import { showProperties } from '@/lib/properties';
 import './explorer.css';
 
@@ -477,6 +478,7 @@ export default function Explorer({ api, fs, args, restoreState }: AppProps) {
             void sysConfirm(msg, { title: 'Confirm Multiple File Delete', icon: 'warn' }).then((ok) => {
               if (!ok || !recycleBin) return;
               void recycleBin.empty().then(() => {
+                playSound('recycle');
                 useRecycleBinStore.getState().refresh();
                 useFsStore.getState().bump();
               });

@@ -5,6 +5,9 @@ import { useFsStore } from '@/stores/fsStore';
 import { getApp } from '@/core/apps/registry';
 import { resolveAssociation } from '@/core/apps/associations';
 import { sysAlert } from '@/lib/dialog';
+import { playSound } from '@/stores/soundStore';
+import { useBsodStore } from '@/stores/bsodStore';
+import { useScreensaverStore } from '@/stores/screensaverStore';
 
 const HISTORY_KEY = 'win95.run.history';
 
@@ -72,6 +75,20 @@ export function RunDialog() {
     const next = [v, ...history.filter((h) => h !== v)].slice(0, 5);
     setHistory(next);
     saveHistory(next);
+
+    // Quick triggers for full-screen modes / easter eggs.
+    const lower = v.toLowerCase();
+    if (lower === 'bsod') {
+      playSound('bsod');
+      useBsodStore.getState().trigger();
+      close();
+      return;
+    }
+    if (lower === 'saver' || lower === 'screensaver') {
+      useScreensaverStore.getState().setActive(true);
+      close();
+      return;
+    }
 
     if (v.includes('\\') || v.toLowerCase().startsWith('c:')) {
       if (!fs) return;
