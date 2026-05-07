@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
 import { useThemeStore } from '@/stores/themeStore';
 import { DisplayTab } from './display';
+import { ScreensaverTab } from './screensaver';
 import './controlpanel.css';
 
-type Tab = 'display' | 'sounds' | 'datetime';
+type Tab = 'display' | 'screensaver' | 'sounds' | 'datetime';
 
 type ControlPanelSnapshot = { tab: Tab };
 
@@ -38,6 +39,10 @@ export default function ControlPanel({ api, args, restoreState }: AppProps) {
           className={tab === 'display' ? 'cp-tab cp-tab-active' : 'cp-tab'}
           onClick={() => setTab('display')}
         >Display</button>
+        <button
+          className={tab === 'screensaver' ? 'cp-tab cp-tab-active' : 'cp-tab'}
+          onClick={() => setTab('screensaver')}
+        >Screen Saver</button>
         <button className="cp-tab cp-tab-disabled" disabled>Sounds</button>
         <button className="cp-tab cp-tab-disabled" disabled>Date/Time</button>
       </div>
@@ -49,6 +54,9 @@ export default function ControlPanel({ api, args, restoreState }: AppProps) {
             onOk={(d) => { apply(d); api.requestClose(); }}
             onCancel={() => api.requestClose()}
           />
+        )}
+        {tab === 'screensaver' && (
+          <ScreensaverTab onClose={() => api.requestClose()} />
         )}
       </div>
     </div>
