@@ -16,6 +16,7 @@ import { SystemDialogHost } from './SystemDialog';
 import { RestoreConflictDialogHost } from './RestoreConflictDialog';
 import { PropertiesDialogHost } from './PropertiesDialog';
 import { Bsod } from './Bsod';
+import { ShutdownScreen } from './ShutdownScreen';
 
 // Keep in sync with DesktopIcon.tsx's PROTECTED_ICON_IDS.
 const PROTECTED_ICON_IDS = new Set([
@@ -104,6 +105,7 @@ export function Shell() {
       <RestoreConflictDialogHost />
       <PropertiesDialogHost />
       <Bsod />
+      <ShutdownScreen />
     </>
   );
 }
