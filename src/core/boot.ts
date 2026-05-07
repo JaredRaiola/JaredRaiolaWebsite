@@ -17,6 +17,7 @@ import solitaireMeta from '@/apps/solitaire/meta';
 import heartsMeta from '@/apps/hearts/meta';
 import freecellMeta from '@/apps/freecell/meta';
 import chessMeta from '@/apps/chess/meta';
+import phoneMeta from '@/apps/phone/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
 import {
@@ -359,6 +360,7 @@ function registerAllApps(): void {
   registerApp(heartsMeta);
   registerApp(freecellMeta);
   registerApp(chessMeta);
+  registerApp(phoneMeta);
 }
 
 export async function boot(): Promise<void> {

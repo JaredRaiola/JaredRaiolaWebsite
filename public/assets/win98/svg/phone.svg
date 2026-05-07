@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges">
+  <!-- Beige base -->
+  <rect x="3" y="14" width="26" height="14" fill="#d8c8a8"/>
+  <rect x="3" y="14" width="26" height="1" fill="#fff"/>
+  <rect x="3" y="14" width="1" height="14" fill="#fff"/>
+  <rect x="28" y="14" width="1" height="14" fill="#7a6e50"/>
+  <rect x="3" y="27" width="26" height="1" fill="#7a6e50"/>
+  <!-- Keypad grid -->
+  <g fill="#3a3022">
+    <rect x="6" y="17" width="2" height="2"/>
+    <rect x="10" y="17" width="2" height="2"/>
+    <rect x="14" y="17" width="2" height="2"/>
+    <rect x="6" y="20" width="2" height="2"/>
+    <rect x="10" y="20" width="2" height="2"/>
+    <rect x="14" y="20" width="2" height="2"/>
+    <rect x="6" y="23" width="2" height="2"/>
+    <rect x="10" y="23" width="2" height="2"/>
+    <rect x="14" y="23" width="2" height="2"/>
+  </g>
+  <!-- Speaker holes on right side -->
+  <g fill="#3a3022">
+    <rect x="20" y="18" width="6" height="1"/>
+    <rect x="20" y="20" width="6" height="1"/>
+    <rect x="20" y="22" width="6" height="1"/>
+    <rect x="20" y="24" width="6" height="1"/>
+  </g>
+  <!-- Handset (cradled on top) -->
+  <g>
+    <rect x="2" y="9" width="28" height="5" fill="#e8d8b8"/>
+    <rect x="2" y="9" width="28" height="1" fill="#fff"/>
+    <rect x="2" y="9" width="1" height="5" fill="#fff"/>
+    <rect x="29" y="9" width="1" height="5" fill="#7a6e50"/>
+    <rect x="2" y="13" width="28" height="1" fill="#7a6e50"/>
+    <!-- earpiece + mouthpiece (round caps) -->
+    <rect x="3" y="10" width="3" height="3" fill="#3a3022"/>
+    <rect x="26" y="10" width="3" height="3" fill="#3a3022"/>
+  </g>
+  <!-- Coiled cord -->
+  <g stroke="#3a3022" stroke-width="0.8" fill="none">
+    <path d="M5 14 Q5 6, 9 6 Q13 6, 13 10"/>
+  </g>
+</svg>
