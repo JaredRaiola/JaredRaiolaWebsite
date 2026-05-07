@@ -5,8 +5,10 @@ import { useDesktopStore } from '@/stores/desktopStore';
 // up the moment any app/menu opens — preloading them keeps Explorer/Notepad
 // from flashing missing-image placeholders on first open.
 const COMMON_ICON_ASSETS = [
+  // Generic file/folder icons
   '/assets/win98/png/computer-0.png',
   '/assets/win98/png/recycle_bin_empty-0.png',
+  '/assets/win98/png/recycle_bin_full-0.png',
   '/assets/win98/png/directory_closed-0.png',
   '/assets/win98/png/directory_open-0.png',
   '/assets/win98/png/directory_open_file_mydocs-0.png',
@@ -21,8 +23,19 @@ const COMMON_ICON_ASSETS = [
   '/assets/win98/png/application_hourglass-0.png',
   '/assets/win98/png/shut_down_normal-0.png',
   '/assets/win98/png/start_icon.png',
+  // Social / profile icons
   '/assets/misc/github.png',
   '/assets/misc/linkedin.png',
+  // System dialog icons
+  '/assets/win98/png/msg_information-0.png',
+  '/assets/win98/png/msg_error-0.png',
+  '/assets/win98/png/msg_warning-0.png',
+  '/assets/win98/png/msg_question-0.png',
+  // Boot / shutdown / wallpapers — anything the shell renders without the
+  // user opening an app first.
+  '/assets/win95-logo.svg',
+  '/assets/wallpapers/clouds.png',
+  '/assets/wallpapers/setup.png',
 ];
 
 const preloadedImages: HTMLImageElement[] = [];

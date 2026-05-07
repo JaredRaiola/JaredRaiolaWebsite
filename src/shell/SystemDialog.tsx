@@ -11,16 +11,8 @@ const ICON_URL: Record<DialogIcon, string> = {
 
 export function SystemDialogHost() {
   const queue = useDialogStore((s) => s.queue);
-
-  // Preload dialog icons so they don't flash in on first dialog show.
-  useEffect(() => {
-    for (const url of Object.values(ICON_URL)) {
-      const img = new Image();
-      img.src = url;
-    }
-  }, []);
-
   // Only render the head of the queue; rest stack behind sequentially.
+  // Icon assets are preloaded by core/preload.ts at boot.
   const top = queue[0];
   if (!top) return null;
   return <SystemDialog key={top.id} config={top} />;
