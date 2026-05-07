@@ -20,13 +20,13 @@ export default function ControlPanel({ api, args, restoreState }: AppProps) {
   }, [tab, api]);
 
   const initialDraft = {
-    wallpaperKey: useThemeStore.getState().wallpaperKey as string,
+    wallpaperKey: useThemeStore.getState().wallpaperKey,
     wallpaperMode: useThemeStore.getState().wallpaperMode,
     bgColor: useThemeStore.getState().bgColor,
   };
 
   const apply = (d: typeof initialDraft): void => {
-    useThemeStore.getState().setWallpaper(d.wallpaperKey as never);
+    useThemeStore.getState().setWallpaper(d.wallpaperKey);
     useThemeStore.getState().setWallpaperMode(d.wallpaperMode);
     useThemeStore.getState().setBgColor(d.bgColor);
   };
