@@ -31,6 +31,7 @@
   "dependencies": {
     "98.css": "^0.1.21",
     "idb": "^8.0.3",
+    "js-dos": "^8.3.20",
     "nanoid": "^5.1.11",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
@@ -55,6 +56,7 @@
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "vite": "^8.0.10",
+    "vite-plugin-static-copy": "^4.1.0",
     "vitest": "^4.1.5"
   }
 }

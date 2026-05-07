@@ -75,3 +75,22 @@
   font-size: 11px;
   color: #707070;
 }
+.doom-splash code {
+  background: #2a2a2a;
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #c0a050;
+}
+.doom-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c00;
+  font-family: 'Black Ops One', Impact, sans-serif;
+  font-size: 28px;
+  letter-spacing: 4px;
+  background: #000;
+  pointer-events: none;
+}
