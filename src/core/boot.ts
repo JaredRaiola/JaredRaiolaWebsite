@@ -14,6 +14,7 @@ import cmdMeta from '@/apps/cmd/meta';
 import paintMeta from '@/apps/paint/meta';
 import minesweeperMeta from '@/apps/minesweeper/meta';
 import solitaireMeta from '@/apps/solitaire/meta';
+import freecellMeta from '@/apps/freecell/meta';
 import chessMeta from '@/apps/chess/meta';
 import { registerApp } from '@/core/apps/registry';
 import { preload } from './preload';
@@ -354,6 +355,7 @@ function registerAllApps(): void {
   registerApp(paintMeta);
   registerApp(minesweeperMeta);
   registerApp(solitaireMeta);
+  registerApp(freecellMeta);
   registerApp(chessMeta);
 }
 

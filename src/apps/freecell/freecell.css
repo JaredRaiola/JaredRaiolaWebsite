@@ -1,0 +1,112 @@
+.fc-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #008000;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  user-select: none;
+  position: relative;
+}
+.fc-felt {
+  flex: 1;
+  position: relative;
+  padding: 12px;
+  display: flex; flex-direction: column;
+  gap: 16px;
+}
+.fc-cell, .fc-foundation {
+  width: 71px;
+  height: 96px;
+  position: relative;
+  border: 1px dashed rgba(255,255,255,0.4);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.fc-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 71px;
+  height: 96px;
+  cursor: pointer;
+}
+.fc-card svg { width: 100%; height: 100%; display: block; }
+.fc-foundation-outline {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  display: block;
+}
+.fc-tableau {
+  position: relative;
+  width: 71px;
+  min-height: 96px;
+}
+
+.fc-menubar {
+  display: flex; gap: 8px;
+  background: #c0c0c0;
+  color: #000;
+  border-bottom: 1px solid #808080;
+  padding: 2px 6px;
+}
+.fc-menu { padding: 2px 8px; cursor: default; position: relative; }
+.fc-menu:hover, .fc-menu.open { background: #000080; color: #fff; }
+.fc-menu-popup {
+  position: absolute; top: 100%; left: 0;
+  background: #c0c0c0; color: #000;
+  border: 1px solid; border-color: #fff #404040 #404040 #fff;
+  padding: 2px; min-width: 160px; z-index: 10;
+}
+.fc-menu-popup .item { padding: 3px 16px 3px 8px; cursor: default; white-space: nowrap; }
+.fc-menu-popup .item:hover { background: #000080; color: #fff; }
+.fc-menu-popup .sep { height: 1px; margin: 3px 2px; background: #808080; box-shadow: 0 1px 0 #fff; }
+
+.fc-top-row {
+  display: flex; justify-content: space-between;
+}
+.fc-cells, .fc-foundations { display: flex; gap: 8px; }
+.fc-tableau-row { display: flex; justify-content: space-between; gap: 4px; }
+
+.fc-status {
+  display: flex; gap: 16px; align-items: center;
+  padding: 4px 8px;
+  background: #c0c0c0;
+  border-top: 1px solid #fff;
+  box-shadow: inset 0 1px 0 #808080;
+  color: #000;
+  font-size: 11px;
+}
+.fc-status button { margin-left: auto; min-width: 75px; }
+
+.fc-drag-layer,
+.fc-drag-layer * {
+  pointer-events: none !important;
+}
+.fc-drag-layer {
+  position: fixed;
+  z-index: 1000;
+  width: 71px;
+  height: 96px;
+}
+
+.fc-dialog-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.05);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.fc-dialog .title-bar { cursor: move; }
+.fc-dialog { min-width: 280px; }
+.fc-dialog-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.fc-dialog-body input { width: 100%; padding: 4px; font-family: inherit; }
+.fc-dialog-buttons {
+  display: flex; justify-content: flex-end; gap: 6px;
+  padding: 8px 12px; border-top: 1px solid #808080;
+}
+.fc-dialog-buttons button { min-width: 75px; }
