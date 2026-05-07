@@ -138,6 +138,7 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
   const restored = restoreState as Partial<PhoneSnapshot> | undefined;
   const [number, setNumber] = useState<string>(typeof restored?.number === 'string' ? restored.number : '');
   const [status, setStatus] = useState<string>('');
+  const [dialed, setDialed] = useState(false);
   const muted = useSoundStore((s) => s.muted);
 
   useEffect(() => {
@@ -151,12 +152,20 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
   useEffect(() => () => cancelSpeech(), []);
 
   const press = (key: string): void => {
-    setStatus('');
     beep(key);
+    cancelSpeech();
+    if (dialed) {
+      // After a call, the next digit starts a fresh entry.
+      setDialed(false);
+      setStatus('');
+      setNumber(key);
+      return;
+    }
+    setStatus('');
     if (number.length < 14) setNumber((n) => n + key);
   };
 
-  const clear = (): void => { setNumber(''); setStatus(''); };
+  const clear = (): void => { setNumber(''); setStatus(''); setDialed(false); cancelSpeech(); };
 
   const dial = (): void => {
     const n = normalize(number);
@@ -166,6 +175,7 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
       return;
     }
     setStatus('Connecting…');
+    setDialed(true);
 
     setTimeout(() => {
       // Special-action easter eggs (not just a status line).
@@ -200,11 +210,15 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
   const hangup = (): void => {
     setStatus('');
     setNumber('');
+    setDialed(false);
+    cancelSpeech();
   };
 
   const speedDial = (entry: SpeedDial): void => {
+    cancelSpeech();
     setNumber(entry.number);
     setStatus('Dialing…');
+    setDialed(true);
     // Play DTMF tones for each digit in the label, staggered.
     if (!muted) {
       const digits = normalize(entry.number);
