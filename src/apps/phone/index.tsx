@@ -122,6 +122,11 @@ const EASTER_EGGS: EasterEgg[] = [
     reply: "Information. What city, please?",
   },
   {
+    // *69 — last call return.
+    test: (n) => n === '*69',
+    reply: "Star sixty-nine — calling back the last number that called you. ...but no one's called this phone in a while.",
+  },
+  {
     // 1995 — Win95 nostalgia.
     test: (n) => /1995$/.test(n),
     reply: "Microsoft Information Line — please hold while we connect you to 1995.",
