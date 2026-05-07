@@ -89,12 +89,49 @@
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #c00;
-  font-family: 'Black Ops One', Impact, sans-serif;
-  font-size: 28px;
-  letter-spacing: 4px;
+  gap: 12px;
   background: #000;
   pointer-events: none;
+}
+.doom-loading-text {
+  color: #c00;
+  font-family: 'Black Ops One', Impact, sans-serif;
+  font-size: clamp(18px, 2.5vw, 26px);
+  letter-spacing: 3px;
+}
+.doom-progress {
+  width: 60%;
+  max-width: 480px;
+  height: 18px;
+  background: #1a0a0a;
+  border: 2px solid;
+  border-color: #400000 #ff4040 #ff4040 #400000;
+  overflow: hidden;
+  position: relative;
+}
+.doom-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #800000, #c00000, #ff4040, #c00000, #800000);
+  background-size: 200% 100%;
+  transition: width 0.15s linear;
+}
+.doom-progress-bar.determinate {
+  /* width set inline */
+}
+.doom-progress-bar.indeterminate {
+  width: 35%;
+  animation: doom-bar-slide 1.4s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+@keyframes doom-bar-slide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(286%); }
+}
+.doom-progress-pct {
+  color: #c0a050;
+  font-family: 'Perfect DOS VGA 437', 'Courier New', monospace;
+  font-size: 14px;
 }

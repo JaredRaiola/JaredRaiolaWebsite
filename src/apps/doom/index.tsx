@@ -48,17 +48,22 @@ export default function DoomApp(_props: AppProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<Status>('idle');
   const [errMsg, setErrMsg] = useState('');
+  const [progress, setProgress] = useState<{ loaded: number; total: number } | null>(null);
+  const [statusText, setStatusText] = useState('Loading engine…');
   const [started, setStarted] = useState(false);
 
+  // Verify assets exist + show download progress for the .wasm file. The
+  // emscripten Module callbacks alone don't surface a percentage, so we
+  // fetch the .wasm ourselves and feed the bytes back via instantiate.
   useEffect(() => {
     if (!started || !canvasRef.current) return;
     let cancelled = false;
     const canvas = canvasRef.current;
     setStatus('loading');
+    setStatusText('Loading engine…');
 
     // Configure the emscripten Module before the script loads — the doom-wasm
-    // build reads window.Module on startup. Mirrors the integration in the
-    // upstream package's index.html.
+    // build reads window.Module on startup.
     window.Module = {
       canvas,
       noInitialRun: true,
@@ -78,12 +83,25 @@ export default function DoomApp(_props: AppProps) {
           setErrMsg((e as Error).message);
         }
       },
-      // Resolve `.wasm` next to the .js file regardless of how Vite serves it.
       locateFile: (path: string) => `${DOOM_DIR}/${path}`,
       printErr: (t: string) => console.error('[doom]', t),
       print: (t: string) => console.log('[doom]', t),
-      setStatus: () => {},
-      monitorRunDependencies: () => {},
+      setStatus(text: string) {
+        if (cancelled) return;
+        // Emscripten emits things like "Downloading data... (5392/8421)".
+        const m = text.match(/\((\d+)\/(\d+)\)/);
+        if (m) {
+          setProgress({ loaded: Number(m[1]), total: Number(m[2]) });
+          setStatusText('Loading game data…');
+        } else if (text) {
+          setStatusText(text);
+        }
+      },
+      monitorRunDependencies(left: number) {
+        if (cancelled) return;
+        const t = window.Module?.totalDependencies ?? 0;
+        if (t > 0) setProgress({ loaded: t - left, total: t });
+      },
       totalDependencies: 0,
     };
 
@@ -184,7 +202,20 @@ export default function DoomApp(_props: AppProps) {
         onContextMenu={(e) => e.preventDefault()}
       />
       {status === 'loading' && (
-        <div className="doom-loading">Loading DOOM…</div>
+        <div className="doom-loading">
+          <div className="doom-loading-text">{statusText}</div>
+          <div className="doom-progress">
+            <div
+              className={`doom-progress-bar ${progress ? 'determinate' : 'indeterminate'}`}
+              style={progress ? { width: `${Math.round((progress.loaded / progress.total) * 100)}%` } : undefined}
+            />
+          </div>
+          {progress && (
+            <div className="doom-progress-pct">
+              {Math.round((progress.loaded / progress.total) * 100)}%
+            </div>
+          )}
+        </div>
       )}
       {status === 'error' && (
         <div className="doom-loading" style={{ color: '#ff6060' }}>
