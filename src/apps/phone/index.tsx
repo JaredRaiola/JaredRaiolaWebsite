@@ -44,6 +44,90 @@ const SPEED_DIALS: SpeedDial[] = [
   { label: 'Pizza',    number: '555-PIZZA', action: 'easter' },
 ];
 
+type EasterEgg = {
+  test: (n: string) => boolean;
+  reply: string;
+  speak?: boolean;
+};
+
+const EASTER_EGGS: EasterEgg[] = [
+  {
+    // Jared's actual number.
+    test: (n) => /8454907692$/.test(n),
+    reply: "Hi! You've reached Jared. He's probably playing Counter-Strike right now. Leave a message after the beep — beep!",
+  },
+  {
+    // Tommy Tutone — "Jenny, I got your number".
+    test: (n) => /8675309$/.test(n),
+    reply: "Jenny, I tried that number — she's not picking up.",
+  },
+  {
+    // Ghostbusters.
+    test: (n) => /5552368$/.test(n),
+    reply: "Who you gonna call?",
+  },
+  {
+    // Empire Carpet.
+    test: (n) => /18005882300$/.test(n) || /5882300$/.test(n),
+    reply: "Five-eight-eight, two-three-hundred — Empire!",
+  },
+  {
+    // Counter-Strike bomb defuse code (foreshadows the Counter-Strike voicemail).
+    test: (n) => /7355608$/.test(n),
+    reply: "The bomb has been planted.",
+  },
+  {
+    // LOST numbers.
+    test: (n) => /^4815162342$/.test(n),
+    reply: "We have to go back!",
+  },
+  {
+    // The answer.
+    test: (n) => n === '42',
+    reply: "The answer to life, the universe, and everything.",
+  },
+  {
+    // Pi.
+    test: (n) => n === '31415' || n === '314159' || n === '3141592',
+    reply: "Mmm, pie.",
+  },
+  {
+    // 666.
+    test: (n) => n === '666',
+    reply: "...the line went dead.",
+  },
+  {
+    // Moon landing.
+    test: (n) => n === '1969',
+    reply: "Houston, the Eagle has landed.",
+  },
+  {
+    // Operator.
+    test: (n) => n === '0' || n === '00',
+    reply: "Operator. How may I direct your call?",
+  },
+  {
+    // Schoolyard classic — read upside down.
+    test: (n) => n === '5318008' || n === '80085',
+    reply: "Real mature.",
+  },
+  {
+    // Generic test/junk numbers.
+    test: (n) => n === '1234' || n === '12345' || n === '123' || n === '11111',
+    reply: "Are you just hitting random buttons?",
+  },
+  {
+    // 411 — directory assistance.
+    test: (n) => n === '411',
+    reply: "Information. What city, please?",
+  },
+  {
+    // 1995 — Win95 nostalgia.
+    test: (n) => /1995$/.test(n),
+    reply: "Microsoft Information Line — please hold while we connect you to 1995.",
+  },
+];
+
 type PhoneSnapshot = { number: string };
 
 function normalize(num: string): string {
@@ -83,28 +167,12 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
     }
     setStatus('Connecting…');
 
-    // Easter eggs.
     setTimeout(() => {
-      // Jared's actual number — voicemail-style greeting.
-      if (/8454907692$/.test(n)) {
-        const msg = "Hi! You've reached Jared. He's probably playing Counter-Strike right now. Leave a message after the beep — beep!";
-        setStatus(msg);
-        say(msg);
-        return;
-      }
-      // Tommy Tutone — "Jenny, I got your number".
-      if (/8675309$/.test(n)) {
-        const msg = "Jenny, I tried that number — she's not picking up.";
-        setStatus(msg);
-        say(msg);
-        return;
-      }
-      // BSOD trigger.
+      // Special-action easter eggs (not just a status line).
       if (n === '1234567' || n === '5551234') {
         useBsodStore.getState().trigger();
         return;
       }
-      // 911.
       if (n === '911') {
         void sysAlert(
           "This is a Win95 facsimile. Please don't dial 911 here. Hang up and call again from a real phone if there's an actual emergency.",
@@ -113,21 +181,17 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
         setStatus('');
         return;
       }
-      // 411 — directory assistance.
-      if (n === '411') {
-        const msg = 'Information. What city, please?';
-        setStatus(msg);
-        say(msg);
-        return;
+
+      // Status-line easter eggs.
+      for (const egg of EASTER_EGGS) {
+        if (egg.test(n)) {
+          setStatus(egg.reply);
+          if (egg.speak !== false) say(egg.reply);
+          return;
+        }
       }
-      // 1995 — Win95 nostalgia.
-      if (/1995$/.test(n)) {
-        const msg = "Microsoft Information Line — please hold while we connect you to 1995.";
-        setStatus(msg);
-        say(msg);
-        return;
-      }
-      // Generic: pretend "all circuits are busy".
+
+      // Generic: "all circuits are busy".
       if (!muted) playReorder();
       setStatus('All circuits are busy. Please try your call again later.');
     }, 350);
