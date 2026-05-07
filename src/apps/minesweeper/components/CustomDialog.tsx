@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import { CUSTOM_LIMITS, maxMinesFor } from '../difficulties';
 
 type Props = {
@@ -19,6 +19,7 @@ export function CustomDialog({ initialWidth, initialHeight, initialMines, onCanc
   const [w, setW] = useState(String(initialWidth));
   const [h, setH] = useState(String(initialHeight));
   const [m, setM] = useState(String(initialMines));
+  const drag = useDialogDrag();
 
   const submit = (): void => {
     const width = clamp(parseInt(w, 10), CUSTOM_LIMITS.minWidth, CUSTOM_LIMITS.maxWidth);
@@ -27,10 +28,10 @@ export function CustomDialog({ initialWidth, initialHeight, initialMines, onCanc
     onSubmit(width, height, mines);
   };
 
-  return createPortal(
+  return (
     <div className="ms-dialog-backdrop">
-      <div className="ms-dialog">
-        <div className="ms-dialog-title">Custom Field</div>
+      <div className="ms-dialog" style={{ transform: drag.transform }}>
+        <div className="ms-dialog-title" onPointerDown={drag.onPointerDown}>Custom Field</div>
         <div className="ms-dialog-body">
           <label>Height: <input type="text" value={h} onChange={(e) => setH(e.target.value)} /></label>
           <label>Width: <input type="text" value={w} onChange={(e) => setW(e.target.value)} /></label>
@@ -41,7 +42,6 @@ export function CustomDialog({ initialWidth, initialHeight, initialMines, onCanc
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

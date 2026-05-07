@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+import { useDialogDrag } from '@/lib/useDialogDrag';
 import type { PlayerId } from '../engine';
 
 const NAMES: Record<PlayerId, string> = { 0: 'You', 1: 'Jared', 2: 'Meatball', 3: 'John' };
@@ -10,14 +10,15 @@ type Props = {
 };
 
 export default function GameOverDialog({ scores, onNewGame, onClose }: Props): React.ReactElement {
+  const drag = useDialogDrag();
   const winner = ([0, 1, 2, 3] as PlayerId[]).reduce(
     (best, p) => scores[p] < scores[best] ? p : best,
     0 as PlayerId,
   );
-  return createPortal(
+  return (
     <div className="hearts-dialog-overlay">
-      <div className="hearts-dialog window">
-        <div className="title-bar"><div className="title-bar-text">Game Over</div></div>
+      <div className="hearts-dialog window" style={{ transform: drag.transform }}>
+        <div className="title-bar" onPointerDown={drag.onPointerDown}><div className="title-bar-text">Game Over</div></div>
         <div className="window-body hearts-scoresheet">
           <p className="moon-banner">{NAMES[winner]} {winner === 0 ? 'won' : 'wins'}!</p>
           <table>
@@ -39,7 +40,6 @@ export default function GameOverDialog({ scores, onNewGame, onClose }: Props): R
           <button onClick={onClose}>Close</button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

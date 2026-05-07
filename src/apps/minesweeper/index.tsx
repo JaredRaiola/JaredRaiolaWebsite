@@ -25,6 +25,7 @@ import { Header } from './components/Header';
 import { Board } from './components/Board';
 import { CustomDialog } from './components/CustomDialog';
 import { BestTimesDialog } from './components/BestTimesDialog';
+import WinDialog from './components/WinDialog';
 import type { FaceSprite } from './sprites';
 import './minesweeper.css';
 
@@ -92,6 +93,7 @@ export default function Minesweeper({ api, restoreState }: AppProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [customOpen, setCustomOpen] = useState(false);
   const [bestTimesOpen, setBestTimesOpen] = useState(false);
+  const [winAck, setWinAck] = useState(false);
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
   const wonHandledRef = useRef(false);
 
@@ -120,6 +122,7 @@ export default function Minesweeper({ api, restoreState }: AppProps) {
   useEffect(() => {
     if (state.phase !== 'won') {
       wonHandledRef.current = false;
+      setWinAck(false);
       return;
     }
     if (wonHandledRef.current) return;
@@ -247,6 +250,15 @@ export default function Minesweeper({ api, restoreState }: AppProps) {
             });
           }}
           onClose={() => setBestTimesOpen(false)}
+        />
+      )}
+
+      {state.phase === 'won' && !winAck && (
+        <WinDialog
+          elapsedSec={elapsedSeconds}
+          difficulty={detectBuiltinDifficulty(state) ?? 'custom'}
+          onNewGame={() => { setWinAck(true); dispatch({ type: 'newGame' }); }}
+          onClose={() => setWinAck(true)}
         />
       )}
     </div>

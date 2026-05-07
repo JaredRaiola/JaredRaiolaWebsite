@@ -6,6 +6,7 @@
   font-family: Tahoma, sans-serif;
   font-size: 11px;
   user-select: none;
+  position: relative;
 }
 
 .ms-menubar {
@@ -130,9 +131,9 @@
   box-sizing: border-box;
 }
 
-/* Dialogs (portaled to document.body) */
+/* Dialogs */
 .ms-dialog-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
@@ -140,6 +141,7 @@
   background: rgba(0,0,0,0.1);
   z-index: 99500;
 }
+.ms-dialog-title { cursor: move; }
 .ms-dialog {
   background: #c0c0c0;
   border-top: 2px solid #ffffff;

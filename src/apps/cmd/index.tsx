@@ -67,6 +67,7 @@ export default function CmdApp({ api, fs, restoreState }: AppProps) {
       if (e.key === 'Backspace') { e.preventDefault(); setInput((s) => s.slice(0, -1)); return; }
       if (e.key === 'ArrowUp') { e.preventDefault(); cycleHistory(1); return; }
       if (e.key === 'ArrowDown') { e.preventDefault(); cycleHistory(-1); return; }
+      if (e.key === 'Tab') { e.preventDefault(); tabComplete(); return; }
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
         setInput((s) => s + e.key);
@@ -103,6 +104,33 @@ export default function CmdApp({ api, fs, restoreState }: AppProps) {
         setLines((ls) => [...ls, ...out]);
       }
     });
+  };
+
+  const tabComplete = (): void => {
+    const cur = input;
+    const lastSpace = cur.lastIndexOf(' ');
+    const prefix = cur.slice(0, lastSpace + 1);
+    const word = cur.slice(lastSpace + 1);
+    if (word.length === 0) return;
+    let entries: { name: string; isDir: boolean }[];
+    try {
+      entries = fs.list(cwd).map((n) => ({ name: n.name, isDir: n.kind === 'dir' }));
+    } catch { return; }
+    const matches = entries.filter((e) => e.name.toLowerCase().startsWith(word.toLowerCase()));
+    if (matches.length === 0) return;
+    if (matches.length === 1) {
+      const m = matches[0];
+      setInput(prefix + m.name + (m.isDir ? '\\' : ''));
+      return;
+    }
+    // Multiple matches: complete to longest common prefix.
+    let common = matches[0].name;
+    for (let i = 1; i < matches.length; i++) {
+      let j = 0;
+      while (j < common.length && j < matches[i].name.length && common[j].toLowerCase() === matches[i].name[j].toLowerCase()) j++;
+      common = common.slice(0, j);
+    }
+    if (common.length > word.length) setInput(prefix + common);
   };
 
   const cycleHistory = (dir: 1 | -1): void => {

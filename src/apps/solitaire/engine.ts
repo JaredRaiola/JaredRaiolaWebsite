@@ -152,6 +152,7 @@ export type Action =
   | { type: 'tryMove'; from: PileId; fromIdx: number; to: PileId }
   | { type: 'autoMoveToFoundation'; from: PileId }
   | { type: 'autoFinish' }
+  | { type: 'autoFinishStep' }
   | { type: 'undo' }
   | { type: 'deal'; rng: RNG }
   | { type: 'pickUpDrag'; from: PileId; cards: Card[]; pointerOffset: { x: number; y: number } }
@@ -325,6 +326,28 @@ function autoFinish(s: GameState): GameState {
   return checkWin(cur);
 }
 
+export function nextAutoFinishMove(s: GameState): { from: PileId; card: Card } | null {
+  if (s.phase !== 'playing' || !canAutoFinish(s)) return null;
+  for (let i = 0; i < 7; i++) {
+    const pile = `tableau-${i}` as PileId;
+    const col = s.piles[pile];
+    if (col.length === 0) continue;
+    const top = col[col.length - 1];
+    if (!top.faceUp) continue;
+    const dest = `foundation-${top.suit}` as PileId;
+    const destTop = s.piles[dest][s.piles[dest].length - 1];
+    const accepts = destTop ? destTop.rank === top.rank - 1 : top.rank === 1;
+    if (accepts) return { from: pile, card: top };
+  }
+  return null;
+}
+
+function autoFinishStep(s: GameState): GameState {
+  const next = nextAutoFinishMove(s);
+  if (!next) return s;
+  return autoMoveToFoundation(s, next.from);
+}
+
 function applied(s: GameState): GameState { return checkWin(s); }
 
 function undo(s: GameState): GameState {
@@ -362,6 +385,7 @@ export function reducer(s: GameState, a: Action): GameState {
     case 'tryMove': return applied(tryMove(s, a.from, a.fromIdx, a.to));
     case 'autoMoveToFoundation': return applied(autoMoveToFoundation(s, a.from));
     case 'autoFinish': return autoFinish(s);
+    case 'autoFinishStep': return checkWin(autoFinishStep(s));
     case 'undo': return undo(s);
     case 'deal': return deal(a.rng, s.options);
     case 'setOptions': return setOptions(s, a.options);
