@@ -7,8 +7,6 @@ import { create } from 'zustand';
  */
 const BUILTIN_WALLPAPERS: Record<string, string> = {
   teal: '',
-  clouds: '/assets/wallpapers/clouds.png',
-  setup: '/assets/wallpapers/setup.png',
 };
 
 const THEME_KEY = 'win95.theme';
