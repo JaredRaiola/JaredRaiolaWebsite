@@ -32,8 +32,14 @@
 }
 .bsod-body {
   margin: 0;
+  padding: 0;
   white-space: pre;
   text-align: left;
+  background: transparent !important;
+  color: #c0c0c0;
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
 }
 .bsod-footer {
   text-align: center;
