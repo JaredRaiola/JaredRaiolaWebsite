@@ -1,7 +1,7 @@
 .clippy-root {
   position: fixed;
   right: 14px;
-  bottom: 56px;
+  bottom: 100px;
   z-index: 80000;
   display: flex;
   flex-direction: column;
@@ -11,20 +11,27 @@
 }
 .clippy-root > * { pointer-events: auto; }
 
+/* Override 98.css's blanket button styling — Clippy's clickable areas
+ * should look like a sticker, not a chrome button. */
 .clippy-figure {
-  background: transparent;
-  border: none;
-  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0;
+  min-width: 0 !important;
+  min-height: 0 !important;
   cursor: pointer;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
+.clippy-figure:focus { outline: none; }
 .clippy-figure svg { display: block; }
 
 .clippy-bubble {
   position: relative;
   background: #ffffe1;
   border: 1px solid #000;
-  padding: 10px 28px 10px 12px;
+  padding: 10px 30px 10px 12px;
   font-family: Tahoma, sans-serif;
   font-size: 12px;
   color: #000;
@@ -52,17 +59,27 @@
   border-top: 11px solid #000;
 }
 .clippy-bubble-close {
-  position: absolute;
-  top: 2px; right: 4px;
-  background: transparent;
-  border: none;
-  padding: 0;
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
   color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.clippy-bubble-close:hover { color: #000; }
+.clippy-bubble-close:hover { color: #000; background: rgba(0,0,0,0.06) !important; }
+.clippy-bubble-close:focus { outline: none; }
 .clippy-bubble-text { padding-bottom: 8px; line-height: 1.3; }
 .clippy-bubble-actions { display: flex; justify-content: flex-end; gap: 6px; }
-.clippy-bubble-actions button { font-size: 11px; padding: 1px 6px; }
+.clippy-bubble-actions button { font-size: 11px; padding: 1px 8px; min-width: 0 !important; min-height: 22px !important; }
