@@ -7,6 +7,7 @@
   font-family: Tahoma, sans-serif;
   font-size: 11px;
   user-select: none;
+  position: relative;
 }
 .fc-felt {
   flex: 1;
@@ -95,11 +96,12 @@
 }
 
 .fc-dialog-overlay {
-  position: fixed; inset: 0;
+  position: absolute; inset: 0;
   background: rgba(0,0,0,0.05);
   display: flex; align-items: center; justify-content: center;
   z-index: 50;
 }
+.fc-dialog .title-bar { cursor: move; }
 .fc-dialog { min-width: 280px; }
 .fc-dialog-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .fc-dialog-body input { width: 100%; padding: 4px; font-family: inherit; }
