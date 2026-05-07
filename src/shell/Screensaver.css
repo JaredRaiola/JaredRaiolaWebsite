@@ -1,0 +1,12 @@
+.screensaver-root {
+  position: fixed;
+  inset: 0;
+  z-index: 999000;
+  background: #000;
+  cursor: none;
+}
+.screensaver-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

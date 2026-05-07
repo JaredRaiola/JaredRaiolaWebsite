@@ -15,6 +15,7 @@ import { ContextMenu } from './ContextMenu';
 import { SystemDialogHost } from './SystemDialog';
 import { RestoreConflictDialogHost } from './RestoreConflictDialog';
 import { PropertiesDialogHost } from './PropertiesDialog';
+import { Screensaver } from './Screensaver';
 
 // Keep in sync with DesktopIcon.tsx's PROTECTED_ICON_IDS.
 const PROTECTED_ICON_IDS = new Set([
@@ -102,6 +103,7 @@ export function Shell() {
       <SystemDialogHost />
       <RestoreConflictDialogHost />
       <PropertiesDialogHost />
+      <Screensaver />
     </>
   );
 }
