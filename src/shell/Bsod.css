@@ -1,0 +1,34 @@
+.bsod-root {
+  position: fixed;
+  inset: 0;
+  background: #0000a8;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Perfect DOS VGA 437', 'Courier New', monospace;
+  font-size: clamp(14px, 1.4vw, 22px);
+  color: #c0c0c0;
+  line-height: 1.4;
+}
+.bsod-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5em;
+  max-width: 80ch;
+}
+.bsod-header span {
+  background: #c0c0c0;
+  color: #0000a8;
+  padding: 0 1ch;
+  font-weight: bold;
+}
+.bsod-body {
+  margin: 0;
+  white-space: pre;
+}
+.bsod-footer {
+  margin-top: 0.5em;
+}
