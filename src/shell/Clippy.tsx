@@ -47,11 +47,19 @@ const TIPS_BY_APP: Record<string, string[]> = {
 };
 
 const DEFAULT_TIPS = [
-  "Hi! I'm Clippy. I see you're poking around Windows 95.",
-  'Try double-clicking the My Computer icon.',
+  "It looks like you're poking around in Windows 95 (Jared's personal website).",
+  "Open the Resume file on the desktop to learn more about Jared.",
   "Click 'Start' to launch a program.",
+  "Try some of the games — Solitaire, FreeCell, Hearts, Chess, or Minesweeper.",
   "Press 'bsod' in the Run dialog. Just trust me.",
 ];
+
+// Rare easter-egg tips. With small probability, the rotation picks one of
+// these instead of the next default tip.
+const RARE_TIPS = [
+  "Did you know? Jared's cat is named John, and his dog is named Meatball.",
+];
+const RARE_TIP_PROBABILITY = 0.04;
 
 export function Clippy() {
   const enabled = useClippyStore((s) => s.enabled);
@@ -69,14 +77,19 @@ export function Clippy() {
   // Reset tip index when the tip set changes.
   useEffect(() => { setTipIdx(0); setBubbleVisible(true); }, [tips]);
 
-  // Rotate tips every 25 seconds.
+  // Rotate tips every 25 seconds. When showing default tips, occasionally
+  // surface a rare easter-egg tip instead.
   useEffect(() => {
     if (!enabled || !bubbleVisible) return;
     const id = window.setInterval(() => {
-      setTipIdx((i) => (i + 1) % tips.length);
+      if (tips === DEFAULT_TIPS && Math.random() < RARE_TIP_PROBABILITY && RARE_TIPS.length > 0) {
+        setTipIdx(-1 - Math.floor(Math.random() * RARE_TIPS.length));
+      } else {
+        setTipIdx((i) => (Math.max(0, i) + 1) % tips.length);
+      }
     }, 25_000);
     return () => window.clearInterval(id);
-  }, [enabled, bubbleVisible, tips.length]);
+  }, [enabled, bubbleVisible, tips]);
 
   // Drag offset from the default bottom-right anchor. Persists for session.
   const [drag, setDrag] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -119,8 +132,11 @@ export function Clippy() {
 
   if (!enabled) return null;
 
-  const tip = tips[tipIdx % tips.length];
-  const cycleTip = (): void => setTipIdx((i) => (i + 1) % tips.length);
+  // Negative tipIdx encodes a RARE_TIPS index (-1 → RARE_TIPS[0], etc).
+  const tip = tipIdx < 0
+    ? RARE_TIPS[(-tipIdx - 1) % RARE_TIPS.length]
+    : tips[tipIdx % tips.length];
+  const cycleTip = (): void => setTipIdx((i) => (Math.max(0, i) + 1) % tips.length);
 
   return (
     <div
