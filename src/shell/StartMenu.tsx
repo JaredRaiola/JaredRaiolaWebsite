@@ -4,6 +4,7 @@ import { useWindowStore } from '@/stores/windowStore';
 import { listApps, getApp, type AppDef } from '@/core/apps/registry';
 import { resetComputer } from '@/core/reset';
 import { sysConfirm } from '@/lib/dialog';
+import { useShutdownStore } from '@/stores/shutdownStore';
 import { Flyout, type FlyoutItem } from './Flyout';
 import './StartMenu.css';
 
@@ -119,13 +120,12 @@ export function StartMenu() {
       icon: '/assets/win98/png/shut_down_normal-0.png',
       onSelect: () => {
         close();
-        try { sessionStorage.removeItem('win95.booted'); } catch { /* ignore */ }
-        document.body.innerHTML =
-          '<div style="background:#000;color:#ffb000;font-family:\'W95FA\',\'Lucida Console\',\'Courier New\',monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;">' +
-            '<div style="font-size:32px;line-height:1.5;">It is now safe to turn off your<br/>computer.</div>' +
-            '<div style="margin-top:64px;color:#444;font-size:13px;">(Click anywhere to come back.)</div>' +
-          '</div>';
-        document.body.onclick = () => location.reload();
+        void sysConfirm('Are you sure you want to shut down the computer?', {
+          title: 'Shut Down Windows',
+          icon: 'question',
+        }).then((ok) => {
+          if (ok) useShutdownStore.getState().start();
+        });
       },
     },
   ];
