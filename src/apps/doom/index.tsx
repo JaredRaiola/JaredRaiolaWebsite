@@ -19,7 +19,7 @@ import './doom.css';
 
 const DOOM_DIR = '/doom-wasm';
 const DOOM_SCRIPT = `${DOOM_DIR}/websockets-doom.js`;
-const DOOM_ARGS = ['-iwad', 'doom1.wad', '-window', '-nogui', '-nomusic', '-config', 'default.cfg'];
+const DOOM_ARGS = ['-iwad', 'doom1.wad', '-window', '-nogui', '-nomusic', '-nomouse', '-config', 'default.cfg'];
 
 declare global {
   interface Window {
@@ -61,6 +61,11 @@ export default function DoomApp(_props: AppProps) {
     const canvas = canvasRef.current;
     setStatus('loading');
     setStatusText('Loading engine…');
+
+    // Defense-in-depth against mouse capture. -nomouse disables Doom's mouse
+    // input at the engine level, but the SDL/emscripten layer can still call
+    // requestPointerLock on click. No-op the request so the cursor stays free.
+    canvas.requestPointerLock = () => Promise.resolve();
 
     // Configure the emscripten Module before the script loads — the doom-wasm
     // build reads window.Module on startup.
@@ -123,8 +128,10 @@ export default function DoomApp(_props: AppProps) {
       // Doom-wasm has no clean shutdown; the runtime stays alive until the
       // page reloads. Close+reopen of the app is effectively a hard reset
       // since react re-mounts the canvas — that's acceptable for this use.
-      delete window.Module;
-      delete window.callMain;
+      // (`callMain` is defined non-configurable by emscripten, so assign
+      // rather than delete to avoid TypeError on unmount.)
+      try { (window as { Module?: unknown }).Module = undefined; } catch { /* ignore */ }
+      try { (window as { callMain?: unknown }).callMain = undefined; } catch { /* ignore */ }
     };
   }, [started]);
 
