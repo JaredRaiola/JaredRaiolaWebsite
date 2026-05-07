@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useWindowStore } from '@/stores/windowStore';
 import { useTaskbarStore } from '@/stores/taskbarStore';
+import { useSoundStore } from '@/stores/soundStore';
 import './Taskbar.css';
 
-function useClock(): string {
+function useClock(): { time: string; date: string } {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
-  return now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return {
+    time: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+    date: now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+  };
 }
 
 export function Taskbar() {
@@ -20,7 +24,9 @@ export function Taskbar() {
   const minimize = useWindowStore((s) => s.minimize);
   const startOpen = useTaskbarStore((s) => s.startMenuOpen);
   const toggleStart = useTaskbarStore((s) => s.toggleStartMenu);
-  const time = useClock();
+  const muted = useSoundStore((s) => s.muted);
+  const toggleMuted = useSoundStore((s) => s.toggleMuted);
+  const { time, date } = useClock();
 
   return (
     <div className="taskbar">
@@ -42,8 +48,19 @@ export function Taskbar() {
           </button>
         ))}
       </div>
-      <div className="tb-tray" title={new Date().toDateString()}>
-        {time}
+      <div className="tb-tray">
+        <button
+          className="tb-tray-icon"
+          onClick={toggleMuted}
+          title={muted ? 'Unmute sounds' : 'Mute sounds'}
+          aria-label={muted ? 'Unmute' : 'Mute'}
+        >
+          <img
+            src={muted ? '/assets/win98/svg/speaker-muted.svg' : '/assets/win98/svg/speaker.svg'}
+            alt=""
+          />
+        </button>
+        <span className="tb-clock" title={date}>{time}</span>
       </div>
     </div>
   );

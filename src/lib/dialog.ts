@@ -1,4 +1,13 @@
 import { useDialogStore, type DialogIcon } from '@/stores/dialogStore';
+import { playSound } from '@/stores/soundStore';
+import type { SoundName } from '@/lib/sounds';
+
+function soundForIcon(icon: DialogIcon | undefined): SoundName {
+  if (icon === 'error') return 'chord';
+  if (icon === 'warn') return 'exclam';
+  if (icon === 'question') return 'ding';
+  return 'ding';
+}
 
 type AlertOpts = { title?: string; icon?: DialogIcon; okLabel?: string };
 type ConfirmOpts = {
@@ -16,6 +25,7 @@ type PromptOpts = {
 
 /** Win95-style replacement for window.alert. Resolves when the user clicks OK. */
 export function sysAlert(message: string, opts: AlertOpts = {}): Promise<void> {
+  playSound(soundForIcon(opts.icon ?? 'info'));
   return new Promise<void>((resolve) => {
     useDialogStore.getState().push({
       kind: 'alert',
@@ -30,6 +40,7 @@ export function sysAlert(message: string, opts: AlertOpts = {}): Promise<void> {
 
 /** Win95-style replacement for window.confirm. Resolves true on OK/Yes, false otherwise. */
 export function sysConfirm(message: string, opts: ConfirmOpts = {}): Promise<boolean> {
+  playSound(soundForIcon(opts.icon ?? 'question'));
   return new Promise<boolean>((resolve) => {
     useDialogStore.getState().push({
       kind: 'confirm',

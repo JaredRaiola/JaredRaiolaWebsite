@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { playSound } from '@/stores/soundStore';
 import './BootScreen.css';
 
 type Stage = 'floppy' | 'bios' | 'config' | 'splash';
@@ -38,6 +39,7 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   }, []);
 
   useEffect(() => {
+    if (stage === 'splash') playSound('startup');
     const t = setTimeout(() => {
       const idx = STAGE_ORDER.indexOf(stage);
       if (idx < STAGE_ORDER.length - 1) {
