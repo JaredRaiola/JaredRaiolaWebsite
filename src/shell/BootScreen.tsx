@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { playSound } from '@/stores/soundStore';
 import './BootScreen.css';
 
 type Stage = 'floppy' | 'bios' | 'config' | 'splash';
@@ -38,6 +39,11 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   }, []);
 
   useEffect(() => {
+    // The floppy stage is click-gated (we don't auto-advance until the user
+    // inserts the disk — which doubles as the gesture that unlocks Web Audio
+    // for the boot chime later).
+    if (stage === 'floppy') return;
+    if (stage === 'splash') playSound('startup');
     const t = setTimeout(() => {
       const idx = STAGE_ORDER.indexOf(stage);
       if (idx < STAGE_ORDER.length - 1) {
@@ -54,7 +60,7 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
     <div className={`boot-root ${hide ? 'fading' : ''}`}>
       {/* preload the splash logo so it renders instantly when the splash stage appears */}
       <img src="/assets/win95-logo.svg" alt="" className="boot-preload" aria-hidden="true" />
-      {stage === 'floppy' && <FloppyStage />}
+      {stage === 'floppy' && <FloppyStage onInserted={() => setStage('bios')} />}
       {stage === 'bios' && <BiosStage />}
       {stage === 'config' && <ConfigStage />}
       {stage === 'splash' && <SplashStage />}
@@ -62,9 +68,24 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-function FloppyStage() {
+function FloppyStage({ onInserted }: { onInserted: () => void }) {
+  const [inserted, setInserted] = useState(false);
+
+  const handleInsert = (): void => {
+    if (inserted) return;
+    setInserted(true);
+    // Insertion animation runs ~1500ms; advance to bios when it's done.
+    window.setTimeout(onInserted, 1500);
+  };
+
   return (
-    <div className="boot-floppy-stage">
+    <div
+      className={`boot-floppy-stage ${inserted ? 'inserting' : 'awaiting'}`}
+      onClick={handleInsert}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleInsert(); }}
+      role="button"
+      tabIndex={0}
+    >
       <div className="boot-floppy-scene">
         {/* Tower */}
         <svg
@@ -128,7 +149,9 @@ function FloppyStage() {
           <rect x="6" y="23" width="14" height="1" fill="#404040" />
         </svg>
       </div>
-      <div className="boot-floppy-caption">Inserting boot disk...</div>
+      <div className="boot-floppy-caption">
+        {inserted ? 'Inserting boot disk...' : 'Click to insert boot disk.'}
+      </div>
     </div>
   );
 }

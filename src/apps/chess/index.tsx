@@ -4,8 +4,9 @@ import type { AppProps } from '@/core/apps/registry';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { useWindowStore } from '@/stores/windowStore';
 import {
-  reducer, initialState, isValidChessSnapshot, rebuildPositionsSeen, type GameState, type Square as Sq,
+  reducer, initialState, isValidChessSnapshot, rebuildPositionsSeen, isCheck, type GameState, type Square as Sq,
 } from './engine';
+import { playSound } from '@/stores/soundStore';
 import { chooseAiMove } from './ai';
 import Board from './components/Board';
 import NewGameDialog from './components/NewGameDialog';
@@ -72,6 +73,8 @@ export default function Chess({ api, restoreState }: AppProps) {
         const sqEl = target?.closest('[data-sq]') as HTMLElement | null;
         const dropSq = sqEl ? Number(sqEl.dataset.sq) : -1;
         if (dropSq >= 0 && dropSq <= 63) {
+          const isCapture = !!state.position.board[dropSq];
+          playSound(isCapture ? 'pieceCapture' : 'pieceMove');
           dispatch({ type: 'playerMove', move: { from: meta.from, to: dropSq } });
         }
       }
@@ -101,12 +104,22 @@ export default function Chess({ api, restoreState }: AppProps) {
     if (state.phase === 'checkmate') {
       const result: 'win' | 'loss' = state.position.toMove === state.playerColor ? 'loss' : 'win';
       recordOutcome(result);
+      playSound('checkmate');
     } else if (state.phase === 'resigned') {
       recordOutcome('loss');
     } else {
       recordOutcome('draw');
     }
   }, [state.phase, state.playerColor, state.position.toMove]);
+
+  // Check sound: fire 200ms after a move lands the opponent in check (non-checkmate).
+  useEffect(() => {
+    if (state.phase !== 'playing' && state.phase !== 'thinking') return;
+    if (!isCheck(state.position, state.position.toMove)) return;
+    const id = window.setTimeout(() => playSound('check'), 200);
+    return () => window.clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.position]);
 
   // AI move on thinking phase.
   useEffect(() => {
@@ -120,6 +133,7 @@ export default function Chess({ api, restoreState }: AppProps) {
           if (r === 0 || r === 7) move = { ...move, promotion: 'queen' };
         }
       }
+      playSound(move.capture ? 'pieceCapture' : 'pieceMove');
       dispatch({ type: 'aiMove', move });
     }, 200);
     return () => window.clearTimeout(id);
@@ -148,6 +162,8 @@ export default function Chess({ api, restoreState }: AppProps) {
       return;
     }
     if (state.legalDestinations.includes(sq)) {
+      const isCapture = !!state.position.board[sq];
+      playSound(isCapture ? 'pieceCapture' : 'pieceMove');
       dispatch({ type: 'playerMove', move: { from: state.selectedSquare, to: sq } });
       return;
     }
@@ -245,7 +261,7 @@ export default function Chess({ api, restoreState }: AppProps) {
       {state.phase === 'promoting' && (
         <PromotionDialog
           color={state.playerColor}
-          onChoose={(p) => dispatch({ type: 'choosePromotion', promotion: p })}
+          onChoose={(p) => { playSound('pieceMove'); dispatch({ type: 'choosePromotion', promotion: p }); }}
           onCancel={() => dispatch({ type: 'cancelPromotion' })}
         />
       )}
