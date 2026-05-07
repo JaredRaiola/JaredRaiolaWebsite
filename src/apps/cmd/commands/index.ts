@@ -43,7 +43,9 @@ const cd: CommandHandler = {
   describe: 'Displays the name of or changes the current directory.',
   run(args, ctx) {
     if (args.length === 0) { ctx.print(ctx.cwd); return; }
-    const target = resolvePath(ctx.cwd, args[0]);
+    // cmd.exe treats the remainder of the line as the path, so spaces don't
+    // require quoting (e.g. `cd My Documents`).
+    const target = resolvePath(ctx.cwd, args.join(' '));
     if (!ctx.fs.exists(target)) { ctx.print(`The system cannot find the path specified.`); return; }
     if (ctx.fs.stat(target)?.kind !== 'dir') { ctx.print(`Not a directory: ${target}`); return; }
     ctx.setCwd(target);

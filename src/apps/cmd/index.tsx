@@ -120,7 +120,8 @@ export default function CmdApp({ api, fs, restoreState }: AppProps) {
     if (matches.length === 0) return;
     if (matches.length === 1) {
       const m = matches[0];
-      setInput(prefix + m.name + (m.isDir ? '\\' : ''));
+      const name = m.name.includes(' ') ? `"${m.name}${m.isDir ? '\\' : ''}"` : m.name + (m.isDir ? '\\' : '');
+      setInput(prefix + name);
       return;
     }
     // Multiple matches: complete to longest common prefix.
