@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import type { AppProps } from '@/core/apps/registry';
+import { playSound } from '@/stores/soundStore';
 import { useWindowStore } from '@/stores/windowStore';
 import { useHotkeys } from '@/lib/useHotkeys';
 import { sysAlert, sysConfirm, sysPrompt } from '@/lib/dialog';
@@ -118,6 +119,11 @@ export default function Minesweeper({ api, restoreState }: AppProps) {
     return () => window.clearInterval(id);
   }, [state.phase]);
 
+  // Phase-change sounds.
+  useEffect(() => {
+    if (state.phase === 'lost') playSound('mineBoom');
+  }, [state.phase]);
+
   // Win handler.
   useEffect(() => {
     if (state.phase !== 'won') {
@@ -127,6 +133,7 @@ export default function Minesweeper({ api, restoreState }: AppProps) {
     }
     if (wonHandledRef.current) return;
     wonHandledRef.current = true;
+    playSound('winChime');
     const diff = detectBuiltinDifficulty(state);
     if (!diff) return;
     const seconds = Math.floor(state.elapsedMs / 1000);
@@ -215,9 +222,9 @@ export default function Minesweeper({ api, restoreState }: AppProps) {
           />
           <Board
             state={state}
-            onReveal={(idx) => dispatch({ type: 'reveal', idx })}
-            onToggleMark={(idx) => dispatch({ type: 'toggleMark', idx })}
-            onChord={(idx) => dispatch({ type: 'chord', idx })}
+            onReveal={(idx) => { playSound('tileClick'); dispatch({ type: 'reveal', idx }); }}
+            onToggleMark={(idx) => { playSound('flagPlant'); dispatch({ type: 'toggleMark', idx }); }}
+            onChord={(idx) => { playSound('tileClick'); dispatch({ type: 'chord', idx }); }}
             onPressTile={(idx) => dispatch({ type: 'pressTile', idx })}
           />
         </div>
