@@ -3,6 +3,7 @@ import type { AppProps } from '@/core/apps/registry';
 import { useFsStore } from '@/stores/fsStore';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
 import { useWindowStore } from '@/stores/windowStore';
+import { getApp } from '@/core/apps/registry';
 import { useClipboardStore } from '@/stores/clipboardStore';
 import { useRecycleBinStore } from '@/stores/recycleBinStore';
 import { showRestoreConflict, type RestoreConflictResolution } from '@/lib/restoreConflict';
@@ -47,6 +48,18 @@ export default function Explorer({ api, fs, args, restoreState }: AppProps) {
   const bumpVersion = useFsStore((s) => s.bumpVersion);
   const showCtx = useContextMenuStore((s) => s.show);
   const focused = useWindowStore((s) => s.focusedId === api.windowId);
+  const openWindow = useWindowStore((s) => s.open);
+
+  const launchCmdHere = (): void => {
+    const cmdApp = getApp('cmd');
+    if (!cmdApp) return;
+    openWindow('cmd', { cwd }, {
+      title: cmdApp.displayName,
+      icon: cmdApp.icon,
+      width: cmdApp.defaultSize.width,
+      height: cmdApp.defaultSize.height,
+    });
+  };
   const clipPaths = useClipboardStore((s) => s.paths);
   const clipOp = useClipboardStore((s) => s.op);
 
@@ -772,7 +785,13 @@ export default function Explorer({ api, fs, args, restoreState }: AppProps) {
           value={addr}
           onChange={(e) => setAddr(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') navigate(addr);
+            if (e.key !== 'Enter') return;
+            if (addr.trim().toLowerCase() === 'cmd') {
+              launchCmdHere();
+              setAddr(cwd);
+              return;
+            }
+            navigate(addr);
           }}
         />
       </div>

@@ -18,9 +18,14 @@ type CmdSnapshot = {
   history: string[];
 };
 
-export default function CmdApp({ api, fs, restoreState }: AppProps) {
+export default function CmdApp({ api, fs, args, restoreState }: AppProps) {
   const restored = (restoreState as Partial<CmdSnapshot> | undefined);
-  const [cwd, setCwd] = useState(typeof restored?.cwd === 'string' ? restored.cwd : 'C:\\');
+  const initialArgs = (args as { cwd?: string } | undefined);
+  const [cwd, setCwd] = useState(
+    typeof restored?.cwd === 'string'
+      ? restored.cwd
+      : (typeof initialArgs?.cwd === 'string' ? initialArgs.cwd : 'C:\\')
+  );
   const [lines, setLines] = useState<string[]>(
     Array.isArray(restored?.scrollback) ? restored.scrollback : BANNER,
   );
