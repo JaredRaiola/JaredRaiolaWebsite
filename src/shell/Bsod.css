@@ -7,17 +7,22 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-family: 'Perfect DOS VGA 437', 'Courier New', monospace;
-  font-size: clamp(14px, 1.4vw, 22px);
+  font-family: 'Perfect DOS VGA 437', 'Lucida Console', 'Courier New', monospace;
+  font-size: clamp(14px, 1.5vw, 22px);
   color: #c0c0c0;
-  line-height: 1.4;
+  line-height: 1.5;
+  padding: 4vh 6vw;
 }
 .bsod-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1.5em;
+  gap: 1.4em;
+  width: 100%;
   max-width: 80ch;
+}
+.bsod-header {
+  text-align: center;
+  margin-bottom: 0.4em;
 }
 .bsod-header span {
   background: #c0c0c0;
@@ -28,7 +33,9 @@
 .bsod-body {
   margin: 0;
   white-space: pre;
+  text-align: left;
 }
 .bsod-footer {
-  margin-top: 0.5em;
+  text-align: center;
+  margin-top: 0.6em;
 }
