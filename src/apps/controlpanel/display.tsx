@@ -72,6 +72,14 @@ export function DisplayTab({ initial, onApply, onOk, onCancel }: Props) {
       void sysAlert('That file is not an image.', { title: 'Display', icon: 'error' });
       return;
     }
+    // Defense-in-depth: reject SVG/XML uploads outright. Even though the
+    // canvas re-encode below produces a raster JPEG (stripping any embedded
+    // scripts), refusing the source is clearer intent and avoids browsers
+    // running SVG scripts during the Image() decode step.
+    if (file.type === 'image/svg+xml' || file.type.includes('xml')) {
+      void sysAlert('SVG and XML images are not supported.', { title: 'Display', icon: 'error' });
+      return;
+    }
     try {
       const dataUrl = await resizeImageToDataUrl(file);
       if (dataUrl.length > MAX_BYTES) {
