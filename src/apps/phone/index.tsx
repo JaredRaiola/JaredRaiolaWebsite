@@ -179,8 +179,16 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
       setStatus('Pick up the receiver and dial.');
       return;
     }
-    setStatus('Connecting…');
+    setStatus('Dialing…');
     setDialed(true);
+    // Replay the dialed digits as a rapid DTMF burst, the way a phone "dials
+    // out" once you finish entering. Each tone is short (~80ms) and staggered.
+    if (!muted) {
+      for (let i = 0; i < n.length; i++) {
+        setTimeout(() => playDtmf(n[i] || '0', 80), i * 95);
+      }
+    }
+    const replyDelay = Math.max(450, n.length * 95 + 200);
 
     setTimeout(() => {
       // Special-action easter eggs (not just a status line).
@@ -209,7 +217,7 @@ export default function PhoneApp({ api, restoreState }: AppProps) {
       // Generic: "all circuits are busy".
       if (!muted) playReorder();
       setStatus('All circuits are busy. Please try your call again later.');
-    }, 350);
+    }, replyDelay);
   };
 
   const hangup = (): void => {

@@ -1,0 +1,137 @@
+.doom-root {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.doom-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  outline: none;
+  /* Doom renders at 320×200; preserve aspect ratio with crisp scaling. */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  object-fit: contain;
+}
+
+/* Pre-launch splash — Win95-styled "Click START to play" prompt. */
+.doom-splash {
+  background: #000;
+  color: #c0c0c0;
+  padding: 32px 28px;
+  text-align: center;
+  font-family: 'Perfect DOS VGA 437', 'Courier New', monospace;
+  max-width: 520px;
+}
+.doom-splash-title {
+  font-family: 'Black Ops One', Impact, sans-serif;
+  color: #c00000;
+  font-size: 64px;
+  letter-spacing: 6px;
+  text-shadow:
+    0 0 8px rgba(255, 32, 32, 0.55),
+    2px 2px 0 #400000;
+  margin-bottom: 8px;
+}
+.doom-splash-text {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0 0 16px;
+}
+.doom-splash-text em { color: #c0a050; font-style: italic; }
+.doom-splash-controls {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #909090;
+  margin: 0 0 24px;
+}
+.doom-splash-controls strong { color: #c0c0c0; }
+.doom-splash-btn {
+  font-family: 'Black Ops One', Impact, sans-serif !important;
+  background: #c00000 !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  letter-spacing: 4px;
+  padding: 10px 32px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 2px solid;
+  border-color: #ff4040 #400000 #400000 #ff4040 !important;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 32, 32, 0.5);
+}
+.doom-splash-btn:hover {
+  background: #d80000 !important;
+  box-shadow: 0 0 16px rgba(255, 64, 64, 0.7);
+}
+.doom-splash-btn:active {
+  border-color: #400000 #ff4040 #ff4040 #400000 !important;
+}
+.doom-splash-note {
+  margin-top: 18px;
+  font-size: 11px;
+  color: #707070;
+}
+.doom-splash code {
+  background: #2a2a2a;
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #c0a050;
+}
+.doom-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #000;
+  pointer-events: none;
+}
+.doom-loading-text {
+  color: #c00;
+  font-family: 'Black Ops One', Impact, sans-serif;
+  font-size: clamp(18px, 2.5vw, 26px);
+  letter-spacing: 3px;
+}
+.doom-progress {
+  width: 60%;
+  max-width: 480px;
+  height: 18px;
+  background: #1a0a0a;
+  border: 2px solid;
+  border-color: #400000 #ff4040 #ff4040 #400000;
+  overflow: hidden;
+  position: relative;
+}
+.doom-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #800000, #c00000, #ff4040, #c00000, #800000);
+  background-size: 200% 100%;
+  transition: width 0.15s linear;
+}
+.doom-progress-bar.determinate {
+  /* width set inline */
+}
+.doom-progress-bar.indeterminate {
+  width: 35%;
+  animation: doom-bar-slide 1.4s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+@keyframes doom-bar-slide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(286%); }
+}
+.doom-progress-pct {
+  color: #c0a050;
+  font-family: 'Perfect DOS VGA 437', 'Courier New', monospace;
+  font-size: 14px;
+}

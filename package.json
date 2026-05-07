@@ -8,13 +8,14 @@
     "doc": "docs"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "node scripts/sync-doom-wasm.mjs && vite",
+    "build": "node scripts/sync-doom-wasm.mjs && tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src --ext .ts,.tsx",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "postinstall": "node scripts/sync-doom-wasm.mjs"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
   },
   "homepage": "https://github.com/JaredRaiola/JaredRaiolaWebsite#readme",
   "dependencies": {
+    "@nicejsisverycool/tizendoom": "^0.1.6",
     "98.css": "^0.1.21",
     "idb": "^8.0.3",
     "nanoid": "^5.1.11",

@@ -119,9 +119,16 @@ export default function Minesweeper({ api, restoreState }: AppProps) {
     return () => window.clearInterval(id);
   }, [state.phase]);
 
-  // Phase-change sounds.
+  // Phase-change sounds. Ref-guarded so a restored 'lost' state on app open
+  // doesn't replay the boom — only an actual loss during play does.
+  const lostFiredRef = useRef(state.phase === 'lost');
   useEffect(() => {
-    if (state.phase === 'lost') playSound('mineBoom');
+    if (state.phase === 'lost') {
+      if (!lostFiredRef.current) playSound('mineBoom');
+      lostFiredRef.current = true;
+    } else {
+      lostFiredRef.current = false;
+    }
   }, [state.phase]);
 
   // Win handler.
