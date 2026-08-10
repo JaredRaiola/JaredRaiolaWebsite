@@ -33,7 +33,7 @@
     "@nicejsisverycool/tizendoom": "^0.1.6",
     "98.css": "^0.1.21",
     "idb": "^8.0.3",
-    "nanoid": "^5.1.11",
+    "nanoid": "^5.1.16",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-rnd": "^10.5.3",
